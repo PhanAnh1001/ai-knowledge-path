@@ -7,10 +7,20 @@ on:
     types: [completed]
     branches: [master]
 
-# Secrets cần cấu hình trong GitHub → Settings → Secrets and variables → Actions:
-#   FLY_API_TOKEN        — lấy từ: flyctl auth token
-#   CLOUDFLARE_API_TOKEN — Cloudflare dashboard → My Profile → API Tokens
-#   CLOUDFLARE_ACCOUNT_ID — Cloudflare dashboard → bên phải màn hình chính
+# ── Secrets cần cấu hình (GitHub → Settings → Secrets and variables → Actions) ──
+#   FLY_API_TOKEN         — lấy từ: flyctl auth token
+#   CLOUDFLARE_API_TOKEN  — Cloudflare → My Profile → API Tokens
+#                           (template: "Edit Cloudflare Pages")
+#   CLOUDFLARE_ACCOUNT_ID — Cloudflare dashboard → bên phải trang chủ
+#
+# ── Variables cần cấu hình (Settings → Secrets and variables → Variables) ───────
+#   VITE_API_BASE_URL     — ví dụ: https://awb-backend.fly.dev/api/v1
+#
+# ── Chạy một lần thủ công trước khi dùng workflow này ────────────────────────────
+#   1. flyctl launch --no-deploy --name awb-backend   (từ thư mục gốc)
+#   2. flyctl launch --no-deploy --name awb-engine    (từ thư mục adaptive-engine/)
+#   3. flyctl secrets set --app awb-backend DB_URL="..." ...
+#   4. Tạo project Cloudflare Pages tên "ai-wisdom-battle" tại pages.cloudflare.com
 
 jobs:
 
@@ -21,10 +31,18 @@ jobs:
     if: github.event.workflow_run.conclusion == 'success'
 
     steps:
+      # QUAN TRỌNG: checkout đúng commit đã pass CI, không phải HEAD của master
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Setup flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Verify app exists on Fly.io
+        run: flyctl status --app awb-backend
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
       - name: Deploy Spring Boot
         run: flyctl deploy --remote-only --app awb-backend
@@ -39,12 +57,20 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Setup flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
 
+      - name: Verify app exists on Fly.io
+        run: flyctl status --app awb-engine
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
       - name: Deploy Adaptive Engine
-        run: flyctl deploy --remote-only --app awb-engine --config adaptive-engine/fly.toml
+        # working-directory: adaptive-engine → --config chỉ cần "fly.toml" (relative)
+        run: flyctl deploy --remote-only --app awb-engine --config fly.toml
         working-directory: adaptive-engine
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
@@ -57,6 +83,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Setup Node.js 22
         uses: actions/setup-node@v4
@@ -73,15 +101,16 @@ jobs:
         run: npm run build
         working-directory: frontend
         env:
-          # URL backend Fly.io của bạn
-          VITE_API_BASE_URL: https://awb-backend.fly.dev/api/v1
+          # Đặt giá trị tại: Settings → Variables → VITE_API_BASE_URL
+          # Ví dụ: https://awb-backend.fly.dev/api/v1
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: ai-wisdom-battle
+          projectName: ai-wisdom-battle    # phải khớp tên project trên Cloudflare Pages
           directory: frontend/dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
@@ -102,7 +131,7 @@ jobs:
           if [[ "${{ needs.deploy-backend.result }}"  == "failure" ||
                 "${{ needs.deploy-engine.result }}"   == "failure" ||
                 "${{ needs.deploy-frontend.result }}" == "failure" ]]; then
-            echo "❌ Một hoặc nhiều deploy thất bại"
+            echo "Một hoặc nhiều deploy thất bại"
             exit 1
           fi
-          echo "✅ Tất cả deploy thành công"
+          echo "Tất cả deploy thành công"
