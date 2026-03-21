@@ -1,7 +1,7 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-21 13:20:58
-> Session: `7f075d87-799`
+> Cập nhật lần cuối: 2026-03-21 13:26:53
+> Session: `2fb0391a-903`
 > Branch: `claude/add-claude-documentation-OLqcO`
 
 ---
@@ -11,6 +11,7 @@
 ### Các commit gần nhất
 
 ```
+a97a7ac Update PROJECT_LOG: 2026-03-21 7f075d87
 2ca3edd feat: production deployment via Fly.io + Cloudflare Pages (no docker-compose)
 928856b Update PROJECT_LOG: 2026-03-21 7f075d87
 f23218f docs: add free production deployment guide (DEPLOY-FREE.md)
@@ -25,7 +26,6 @@ f4c57fd feat: enhance global exception handling with RFC 7807 ProblemDetail
 3d2ad66 Update PROJECT_LOG: 2026-03-21 2d16b9f6
 4efb0fd feat: add SpringDoc OpenAPI + Redis caching for knowledge nodes
 70af1b1 Update PROJECT_LOG: 2026-03-21 2d16b9f6
-77303c0 feat: add Flyway database migrations (V1–V3)
 ```
 
 ---
