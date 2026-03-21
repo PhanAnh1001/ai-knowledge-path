@@ -249,6 +249,58 @@ Tháng 3: Polish + 20 session buffer cho ngày ra mắt
 
 ---
 
+## 12. Kiến trúc kỹ thuật
+
+### Tech Stack
+
+**Frontend:** React + TypeScript (web)
+- Vite — build tooling
+- TanStack Query — server state management
+- Tailwind CSS — styling
+- React Router — navigation
+
+**Backend — Hybrid Architecture:**
+```
+Java (Spring Boot)          Python (FastAPI)
+────────────────────        ────────────────────
+API Gateway                 Adaptive Engine
+User Service                  - Scoring Function
+Session Service               - Spaced Repetition
+Content Service               - Entry Point Selector
+Auth / Billing                - ML Pipeline (Phase 3)
+```
+
+**Database:**
+- PostgreSQL (self-hosted) — user data, session logs; chạy trên Railway/Render, full control, không vendor lock-in
+- Neo4j Aura — knowledge graph
+- Redis — cache, realtime state
+
+**Infrastructure:**
+- Railway / Render (giai đoạn đầu)
+- Cloudflare CDN (media assets)
+- S3-compatible storage
+
+**AI/Content:**
+- Claude API — draft content
+- Internal CMS — review + publish workflow
+
+### Lý do chọn Hybrid
+- Java xử lý high-throughput traffic và business logic
+- Python sở hữu ML ecosystem (scikit-learn, numpy) cần thiết khi Adaptive Engine tiến hóa sang Phase 3
+- Hai service giao tiếp qua internal HTTP call
+
+### Lý do chọn React web (không phải mobile app)
+- Tiếp cận người dùng ngay qua browser, không cần cài app
+- Dễ iterate nhanh hơn trong giai đoạn MVP
+- React ecosystem trưởng thành, nhiều thư viện visualization cho knowledge graph
+
+### Lý do chọn PostgreSQL self-hosted (không phải Supabase)
+- Full control schema, không bị ràng buộc BaaS API
+- Không tốn chi phí Supabase khi traffic tăng
+- Tương thích hoàn toàn với Java (JDBC, Spring Data JPA) và Python (SQLAlchemy)
+
+---
+
 ## 12. Bước tiếp theo đề xuất
 
 1. **Xác định MVP scope** — lĩnh vực nào, độ tuổi nào ra mắt trước
