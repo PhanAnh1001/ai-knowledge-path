@@ -121,6 +121,12 @@ mvn exec:java -Dexec.mainClass="com.aiwisdombattle.Main"
 
 No environment variables are required at this time. Add a `.env.example` file when environment-specific configuration is introduced.
 
+## Ngôn ngữ / Language
+
+- Mọi phản hồi của AI assistant phải bằng **tiếng Việt**
+- Mã nguồn, tên biến, comment trong code vẫn dùng tiếng Anh theo chuẩn Java
+- Tài liệu kỹ thuật (Javadoc) dùng tiếng Anh; giải thích nội bộ dùng tiếng Việt
+
 ## Key Instructions for AI Assistants
 
 1. **Always work on the designated branch** — never commit directly to `master`
@@ -129,3 +135,4 @@ No environment variables are required at this time. Add a `.env.example` file wh
 4. **No security vulnerabilities** — avoid SQL injection, command injection, XSS, and other OWASP Top 10 issues
 5. **Commit and push** — always commit your work and push to the remote branch when done
 6. **Verify** — after making changes, confirm the build still passes (once a build system exists)
+7. **Ngôn ngữ phản hồi** — luôn trả lời bằng tiếng Việt trong tất cả các tương tác với người dùng
