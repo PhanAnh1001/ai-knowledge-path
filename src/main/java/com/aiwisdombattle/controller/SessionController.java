@@ -5,6 +5,10 @@ import com.aiwisdombattle.dto.request.CompleteSessionRequest;
 import com.aiwisdombattle.dto.request.StartSessionRequest;
 import com.aiwisdombattle.dto.response.SessionCompleteResponse;
 import com.aiwisdombattle.service.SessionService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,14 +21,17 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/sessions")
 @RequiredArgsConstructor
+@Tag(name = "Sessions", description = "Bắt đầu và hoàn thành session học")
+@SecurityRequirement(name = "bearerAuth")
 public class SessionController {
 
     private final SessionService sessionService;
 
-    /**
-     * POST /api/v1/sessions
-     * Bắt đầu một session học mới.
-     */
+    @Operation(summary = "Bắt đầu session học mới",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Session được tạo hoặc trả về session đang diễn ra"),
+            @ApiResponse(responseCode = "404", description = "User hoặc node không tồn tại")
+        })
     @PostMapping
     public ResponseEntity<Session> start(
         @AuthenticationPrincipal UserDetails principal,
@@ -35,10 +42,11 @@ public class SessionController {
         return ResponseEntity.ok(session);
     }
 
-    /**
-     * POST /api/v1/sessions/complete
-     * Hoàn thành session và nhận gợi ý 3 node tiếp theo.
-     */
+    @Operation(summary = "Hoàn thành session và nhận gợi ý node tiếp theo",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Trả về adaptive score + 3 node gợi ý"),
+            @ApiResponse(responseCode = "404", description = "Session không tồn tại")
+        })
     @PostMapping("/complete")
     public ResponseEntity<SessionCompleteResponse> complete(
         @AuthenticationPrincipal UserDetails principal,
