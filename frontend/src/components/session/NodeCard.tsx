@@ -56,7 +56,6 @@ export function NodeCard({ node }: NodeCardProps) {
         onClick={() => mutation.mutate()}
         isLoading={mutation.isPending}
         className="mt-auto w-full"
-        size="sm"
       >
         Bắt đầu khám phá
       </Button>
