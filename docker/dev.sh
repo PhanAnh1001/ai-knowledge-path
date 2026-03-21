@@ -29,6 +29,14 @@ case "${1:-help}" in
         $COMPOSE ps
         ;;
 
+    # Khởi động chỉ backend (infra + app + adaptive-engine, không build frontend)
+    backend)
+        check_env
+        echo "Khởi động backend services..."
+        $COMPOSE up -d postgres neo4j redis app adaptive-engine
+        $COMPOSE ps
+        ;;
+
     # Khởi động toàn bộ (bao gồm build app)
     up)
         check_env
@@ -53,7 +61,17 @@ case "${1:-help}" in
         fi
         ;;
 
-    # Xem log app
+    # Xem log adaptive-engine
+    logs-engine)
+        $COMPOSE logs -f adaptive-engine
+        ;;
+
+    # Xem log frontend
+    logs-fe)
+        $COMPOSE logs -f frontend
+        ;;
+
+    # Xem log app (hoặc service bất kỳ: bash dev.sh logs neo4j)
     logs)
         $COMPOSE logs -f "${2:-app}"
         ;;
@@ -89,10 +107,13 @@ case "${1:-help}" in
 Sử dụng: bash docker/dev.sh <command>
 
   infra        Khởi động postgres + neo4j + redis (không build app)
-  up           Build và khởi động toàn bộ
+  backend      Khởi động backend: infra + app + adaptive-engine
+  up           Build và khởi động toàn bộ (bao gồm frontend)
   down         Dừng tất cả containers
   reset        Xoá toàn bộ containers + volumes (mất dữ liệu!)
   logs [svc]   Xem log (mặc định: app)
+  logs-engine  Xem log adaptive-engine
+  logs-fe      Xem log frontend
   psql         Mở psql shell
   redis        Mở redis-cli
   seed-neo4j   Chạy Neo4j seed script thủ công
