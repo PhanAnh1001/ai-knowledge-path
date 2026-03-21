@@ -1,6 +1,6 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-21 12:16:43
+> Cập nhật lần cuối: 2026-03-21 12:23:38
 > Session: `7944462a-3c9`
 > Branch: `claude/add-claude-documentation-OLqcO`
 
@@ -11,6 +11,8 @@
 ### Các commit gần nhất
 
 ```
+599ee1e feat: integrate Python Adaptive Engine + fix JPQL/controller bugs
+10241cc Update PROJECT_LOG: 2026-03-21 7944462a
 30e3f1f Add seed data, CI pipeline, and dev config
 97f3fc6 Update PROJECT_LOG: 2026-03-21 d918d96e
 5c1f108 Add infrastructure: complete Docker Compose stack (7 services)
@@ -24,8 +26,6 @@ b97bd4c Update PROJECT_LOG: 2026-03-21 cab0392c
 df52930 Update README with full project documentation
 2671e4d Update PROJECT_LOG: 2026-03-21 c63df2c7
 5474e4c Add Auth Controller with register/login, JWT, exception handling, tests
-0a9a84a Update PROJECT_LOG: 2026-03-21 c63df2c7
-a877549 Add Docker Compose, Dockerfile, PostgreSQL init schema, dev scripts
 ```
 
 ---
