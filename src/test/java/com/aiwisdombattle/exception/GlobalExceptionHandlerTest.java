@@ -31,19 +31,18 @@ class GlobalExceptionHandlerTest {
 
     @MockBean AuthService authService;
     @MockBean com.aiwisdombattle.security.JwtAuthFilter jwtAuthFilter;
+    @MockBean com.aiwisdombattle.security.RateLimitFilter rateLimitFilter;
     @MockBean com.aiwisdombattle.security.JwtTokenProvider jwtTokenProvider;
 
     @BeforeEach
     void allowFilterChain() throws Exception {
-        doAnswer((Answer<Void>) inv -> {
+        Answer<Void> passThrough = inv -> {
             ((FilterChain) inv.getArgument(2))
                 .doFilter(inv.getArgument(0), inv.getArgument(1));
             return null;
-        }).when(jwtAuthFilter).doFilter(
-            any(HttpServletRequest.class),
-            any(HttpServletResponse.class),
-            any(FilterChain.class)
-        );
+        };
+        doAnswer(passThrough).when(jwtAuthFilter).doFilter(any(), any(), any());
+        doAnswer(passThrough).when(rateLimitFilter).doFilter(any(), any(), any());
     }
 
     @Test

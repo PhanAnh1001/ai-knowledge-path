@@ -35,18 +35,19 @@ class AuthControllerTest {
 
     @MockBean AuthService authService;
     @MockBean com.aiwisdombattle.security.JwtAuthFilter jwtAuthFilter;
+    @MockBean com.aiwisdombattle.security.RateLimitFilter rateLimitFilter;
     @MockBean com.aiwisdombattle.security.JwtTokenProvider jwtTokenProvider;
 
     @BeforeEach
     void setUpFilter() throws Exception {
-        // JwtAuthFilter mock phải pass-through để request đến được controller
-        doAnswer((Answer<Void>) inv -> {
-            HttpServletRequest req = inv.getArgument(0);
-            HttpServletResponse res = inv.getArgument(1);
-            FilterChain chain = inv.getArgument(2);
-            chain.doFilter(req, res);
+        // Tất cả filter mock phải pass-through để request đến được controller
+        Answer<Void> passThrough = inv -> {
+            ((FilterChain) inv.getArgument(2))
+                .doFilter(inv.getArgument(0), inv.getArgument(1));
             return null;
-        }).when(jwtAuthFilter).doFilter(any(), any(), any());
+        };
+        doAnswer(passThrough).when(jwtAuthFilter).doFilter(any(), any(), any());
+        doAnswer(passThrough).when(rateLimitFilter).doFilter(any(), any(), any());
     }
 
     private static final AuthResponse SAMPLE_RESPONSE = AuthResponse.builder()
