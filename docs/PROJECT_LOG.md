@@ -1,7 +1,7 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-21 13:27:01
-> Session: `2fb0391a-903`
+> Cập nhật lần cuối: 2026-03-21 13:41:07
+> Session: `5b55e094-413`
 > Branch: `claude/add-claude-documentation-OLqcO`
 
 ---
@@ -11,6 +11,8 @@
 ### Các commit gần nhất
 
 ```
+f3f8a3f fix: correct 3 bugs in deploy.yml
+41156f6 Update PROJECT_LOG: 2026-03-21 2fb0391a
 3d908f3 Update PROJECT_LOG: 2026-03-21 2fb0391a
 a97a7ac Update PROJECT_LOG: 2026-03-21 7f075d87
 2ca3edd feat: production deployment via Fly.io + Cloudflare Pages (no docker-compose)
@@ -24,8 +26,6 @@ eb5db92 feat: add Redis-based rate limiting on /api/v1/auth/** endpoints
 d68c65d feat: configure CORS with allowed-origins from environment
 be71aa1 Update PROJECT_LOG: 2026-03-21 2d16b9f6
 f4c57fd feat: enhance global exception handling with RFC 7807 ProblemDetail
-3d2ad66 Update PROJECT_LOG: 2026-03-21 2d16b9f6
-4efb0fd feat: add SpringDoc OpenAPI + Redis caching for knowledge nodes
 ```
 
 ---
