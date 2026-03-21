@@ -39,7 +39,7 @@ public class KnowledgeNodeGraph {
     private List<KnowledgeNodeGraph> deepDives = new ArrayList<>();
 
     /** Kết nối xuyên domain */
-    @Relationship(type = "CROSS_DOMAIN", direction = Relationship.Direction.BOTH)
+    @Relationship(type = "CROSS_DOMAIN", direction = Relationship.Direction.OUTGOING)
     @Builder.Default
     private List<CrossDomainRelationship> crossDomains = new ArrayList<>();
 }

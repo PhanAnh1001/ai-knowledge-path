@@ -5,7 +5,12 @@ import com.aiwisdombattle.exception.EmailAlreadyUsedException;
 import com.aiwisdombattle.exception.InvalidCredentialsException;
 import com.aiwisdombattle.service.AuthService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -16,6 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -30,6 +36,18 @@ class AuthControllerTest {
     @MockBean AuthService authService;
     @MockBean com.aiwisdombattle.security.JwtAuthFilter jwtAuthFilter;
     @MockBean com.aiwisdombattle.security.JwtTokenProvider jwtTokenProvider;
+
+    @BeforeEach
+    void setUpFilter() throws Exception {
+        // JwtAuthFilter mock phải pass-through để request đến được controller
+        doAnswer((Answer<Void>) inv -> {
+            HttpServletRequest req = inv.getArgument(0);
+            HttpServletResponse res = inv.getArgument(1);
+            FilterChain chain = inv.getArgument(2);
+            chain.doFilter(req, res);
+            return null;
+        }).when(jwtAuthFilter).doFilter(any(), any(), any());
+    }
 
     private static final AuthResponse SAMPLE_RESPONSE = AuthResponse.builder()
         .accessToken("jwt.token.here")
