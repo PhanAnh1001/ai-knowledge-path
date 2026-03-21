@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+
+  neo4j:
+    uri: bolt://localhost:7687      # override trong CI với Neo4j testcontainer
+    authentication:
+      username: neo4j
+      password: test
+
+  session:
+    store-type: none                # không cần Redis khi test
+
+app:
+  jwt:
+    secret: test-secret-key-minimum-32-characters!!
+    expiration-ms: 3600000
