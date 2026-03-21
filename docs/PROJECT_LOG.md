@@ -1,6 +1,6 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-21 10:24:18
+> Cập nhật lần cuối: 2026-03-21 10:26:44
 > Session: `c63df2c7-1bd`
 > Branch: `claude/add-claude-documentation-OLqcO`
 
@@ -11,6 +11,8 @@
 ### Các commit gần nhất
 
 ```
+5474e4c Add Auth Controller with register/login, JWT, exception handling, tests
+0a9a84a Update PROJECT_LOG: 2026-03-21 c63df2c7
 a877549 Add Docker Compose, Dockerfile, PostgreSQL init schema, dev scripts
 0e18088 Update PROJECT_LOG: 2026-03-21 c63df2c7
 fa85f32 Add Spring Boot project skeleton with PostgreSQL, Neo4j, Redis, JWT
@@ -24,8 +26,6 @@ bc6b658 Update PROJECT_LOG: 2026-03-21 43a10bb1
 e827ca2 Update PRD v0.4: switch to React web, replace Supabase with PostgreSQL self-hosted
 abf94d3 Update PROJECT_LOG: 2026-03-21 4c77b79d
 d23a3b0 Update PRD v0.3: add hybrid tech stack architecture decision
-b93d30a Update PROJECT_LOG: 2026-03-21 4c77b79d
-724aa34 Update PROJECT_LOG: 2026-03-21 4c77b79d
 ```
 
 ---
