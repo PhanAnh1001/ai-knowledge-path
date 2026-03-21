@@ -1,6 +1,6 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-21 12:39:23
+> Cập nhật lần cuối: 2026-03-21 12:45:48
 > Session: `2d16b9f6-e31`
 > Branch: `claude/add-claude-documentation-OLqcO`
 
@@ -11,6 +11,8 @@
 ### Các commit gần nhất
 
 ```
+4efb0fd feat: add SpringDoc OpenAPI + Redis caching for knowledge nodes
+70af1b1 Update PROJECT_LOG: 2026-03-21 2d16b9f6
 77303c0 feat: add Flyway database migrations (V1–V3)
 0ffbd49 Update PROJECT_LOG: 2026-03-21 2d16b9f6
 4434078 fix: resolve TypeScript build errors in frontend CI
@@ -24,8 +26,6 @@ f3de7d9 Update PROJECT_LOG: 2026-03-21 04701916
 9dbc0ff Add React + TypeScript Frontend (Vite + TanStack Query + Tailwind)
 df71711 Update PROJECT_LOG: 2026-03-21 1bbc183f
 40e2642 Add Python FastAPI Adaptive Engine (Phase 1 — rule-based)
-8f427bc Update PROJECT_LOG: 2026-03-21 98e994b5
-48b9f67 Fix build: add Lombok version, fix Neo4j Direction.BOTH, fix filter mock in controller tests
 ```
 
 ---
