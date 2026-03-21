@@ -1,7 +1,7 @@
 # Product Requirements Document
 ## AI Wisdom Battle — Nền tảng khám phá kiến thức
 
-**Phiên bản:** 0.1 (Draft)
+**Phiên bản:** 0.2 (Draft)
 **Ngày:** 2026-03-21
 **Trạng thái:** Concept / Pre-development
 
@@ -33,10 +33,11 @@ Sản phẩm không phải là một ứng dụng học tập. Đây là một *
 
 ## 3. Đối tượng người dùng
 
-### Primary: Trẻ em 8–14 tuổi
-- Đang trong giai đoạn hình thành bản sắc và tư duy
-- Học qua chuyện kể và khám phá tự nhiên hơn qua bài giảng
+### Primary: Trẻ em 8–10 tuổi (lớp 2–4)
+- Tò mò tự nhiên ở đỉnh cao, chưa có định kiến "học là nhàm"
+- Học qua chuyện kể, hình ảnh, nhân vật — không qua text dài
 - Cần môi trường an toàn tâm lý — không sợ sai
+- Phụ huynh vẫn kiểm soát việc dùng app → kênh upsell Family Plan tự nhiên
 
 ### Secondary: Phụ huynh (người trả tiền)
 - Muốn con học nhưng không muốn con nghiện màn hình vô bổ
@@ -199,6 +200,40 @@ Lớp 3 (safety net): Story-first
 - Không khóa chủ đề theo gói
 - Không đối xử trẻ em và người lớn như nhau
 - Không scope quá rộng ngay từ đầu
+
+---
+
+## 11. Lĩnh vực và nội dung MVP
+
+### Lĩnh vực ra mắt
+- **Khoa học tự nhiên** — hiện tượng hàng ngày, dễ visual, không tranh cãi
+- **Danh nhân lịch sử** — narrative tự nhiên, cửa vào kiến thức liên ngành
+
+### Danh nhân batch đầu tiên (7 nhân vật)
+Marie Curie, Leonardo da Vinci, Nikola Tesla, Katherine Johnson,
+Eratosthenes, Ibn Battuta, Ada Lovelace
+
+### Mục tiêu nội dung 3 tháng đầu
+```
+Tháng 1: 50 session (30 khoa học cấp 1 + 20 danh nhân)
+Tháng 2: 50 session (20 khoa học cấp 2 + 20 giao thoa + 10 danh nhân mới)
+Tháng 3: Polish + 20 session buffer cho ngày ra mắt
+```
+
+### Quy trình tạo nội dung — Hybrid (Option C)
+1. Content Designer viết session brief (15 phút)
+2. AI draft toàn bộ 6 giai đoạn (5 phút)
+3. Domain Expert review accuracy (20 phút)
+4. Editor kiểm tra ngôn ngữ phù hợp 8–10 tuổi (10 phút)
+5. QA + publish (10 phút)
+
+**Tốc độ:** 4–6 session/ngày với team 2–3 người
+
+### Team tối thiểu
+- 1 Content Designer (full-time)
+- 1 Expert khoa học tự nhiên (part-time)
+- 1 Expert lịch sử (part-time)
+- 1 Editor / UX Writer (full-time)
 
 ---
 
