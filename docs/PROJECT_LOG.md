@@ -1,6 +1,6 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-21 10:03:46
+> Cập nhật lần cuối: 2026-03-21 10:07:11
 > Session: `8bf3af5d-492`
 > Branch: `claude/add-claude-documentation-OLqcO`
 
@@ -11,6 +11,8 @@
 ### Các commit gần nhất
 
 ```
+31623be Add REST API endpoints documentation v1.0
+aea09ee Update PROJECT_LOG: 2026-03-21 8bf3af5d
 361293e Add PostgreSQL database schema v1.0
 bc6b658 Update PROJECT_LOG: 2026-03-21 43a10bb1
 e827ca2 Update PRD v0.4: switch to React web, replace Supabase with PostgreSQL self-hosted
@@ -24,8 +26,6 @@ d7b764a Update PROJECT_LOG: 2026-03-21 1f0dc5cc
 1e5fec6 Update PROJECT_LOG: 2026-03-21 1f0dc5cc
 99d9229 Update PROJECT_LOG: 2026-03-21 d46370d2
 93c3e5f Update PRD v0.2: add primary age group, content domains, and hybrid workflow
-79096ed Update PROJECT_LOG: 2026-03-21 60afa1d2
-5e91eaf Update PROJECT_LOG: 2026-03-21 60afa1d2
 ```
 
 ---
