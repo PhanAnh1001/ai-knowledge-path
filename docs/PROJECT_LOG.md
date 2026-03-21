@@ -1,6 +1,6 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-21 12:45:48
+> Cập nhật lần cuối: 2026-03-21 12:53:07
 > Session: `2d16b9f6-e31`
 > Branch: `claude/add-claude-documentation-OLqcO`
 
@@ -11,6 +11,8 @@
 ### Các commit gần nhất
 
 ```
+f4c57fd feat: enhance global exception handling with RFC 7807 ProblemDetail
+3d2ad66 Update PROJECT_LOG: 2026-03-21 2d16b9f6
 4efb0fd feat: add SpringDoc OpenAPI + Redis caching for knowledge nodes
 70af1b1 Update PROJECT_LOG: 2026-03-21 2d16b9f6
 77303c0 feat: add Flyway database migrations (V1–V3)
@@ -24,8 +26,6 @@ cd8057a Update PROJECT_LOG: 2026-03-21 7944462a
 5c1f108 Add infrastructure: complete Docker Compose stack (7 services)
 f3de7d9 Update PROJECT_LOG: 2026-03-21 04701916
 9dbc0ff Add React + TypeScript Frontend (Vite + TanStack Query + Tailwind)
-df71711 Update PROJECT_LOG: 2026-03-21 1bbc183f
-40e2642 Add Python FastAPI Adaptive Engine (Phase 1 — rule-based)
 ```
 
 ---
