@@ -1,0 +1,41 @@
+# Fly.io config — AI Wisdom Battle (Spring Boot Backend)
+# Deploy: flyctl deploy
+# Secrets: flyctl secrets set KEY=value ...
+
+app            = "awb-backend"
+primary_region = "sin"       # Singapore — đổi thành "nrt" (Tokyo), "lax", v.v.
+
+[build]
+  dockerfile = "Dockerfile"
+
+# Biến môi trường không nhạy cảm — secrets dùng: flyctl secrets set
+[env]
+  SPRING_PROFILES_ACTIVE = "prod"
+  REDIS_SSL              = "true"
+
+[http_service]
+  internal_port        = 8080
+  force_https          = true
+  auto_stop_machines   = "stop"   # tắt máy khi không có traffic (tiết kiệm)
+  auto_start_machines  = true
+  min_machines_running = 1        # luôn giữ ít nhất 1 máy chạy
+
+  [http_service.concurrency]
+    type       = "requests"
+    hard_limit = 200
+    soft_limit = 150
+
+[[vm]]
+  memory   = "512mb"    # Spring Boot cần tối thiểu 256MB; 512MB để ổn định
+  cpu_kind = "shared"
+  cpus     = 1
+
+[checks]
+  [checks.health]
+    grace_period = "30s"
+    interval     = "15s"
+    method       = "GET"
+    path         = "/actuator/health"
+    port         = 8080
+    timeout      = "10s"
+    type         = "http"
