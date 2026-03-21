@@ -1,5 +1,6 @@
 package com.aiwisdombattle.service;
 
+import com.aiwisdombattle.client.AdaptiveEngineClient;
 import com.aiwisdombattle.domain.entity.KnowledgeNode;
 import com.aiwisdombattle.domain.entity.Session;
 import com.aiwisdombattle.domain.entity.Session.SessionStatus;
@@ -24,6 +25,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,6 +35,7 @@ class SessionServiceTest {
     @Mock KnowledgeNodeRepository nodeRepository;
     @Mock KnowledgeNodeGraphRepository graphRepository;
     @Mock UserRepository userRepository;
+    @Mock AdaptiveEngineClient adaptiveEngineClient;
 
     @InjectMocks SessionService sessionService;
 
@@ -110,11 +113,14 @@ class SessionServiceTest {
             .thenReturn(List.of(node.getId()));
         when(graphRepository.findNextSuggestions(any(), any()))
             .thenReturn(List.of(new KnowledgeNodeGraph()));
+        when(adaptiveEngineClient.computeAdaptiveScore(anyInt(), anyInt(), anyInt()))
+            .thenReturn(88.5);
 
         SessionCompleteResponse response = sessionService.completeSession(session.getId(), 85, 300);
 
         assertThat(response.getSessionId()).isEqualTo(session.getId());
         assertThat(response.getScore()).isEqualTo(85);
+        assertThat(response.getAdaptiveScore()).isEqualTo(88.5);
         assertThat(response.getNextSuggestions()).hasSize(1);
         assertThat(session.getStatus()).isEqualTo(SessionStatus.COMPLETED);
     }

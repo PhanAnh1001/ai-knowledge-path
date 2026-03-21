@@ -1,5 +1,6 @@
 package com.aiwisdombattle.service;
 
+import com.aiwisdombattle.client.AdaptiveEngineClient;
 import com.aiwisdombattle.domain.entity.KnowledgeNode;
 import com.aiwisdombattle.domain.entity.Session;
 import com.aiwisdombattle.domain.entity.Session.SessionStatus;
@@ -27,6 +28,7 @@ public class SessionService {
     private final KnowledgeNodeRepository nodeRepository;
     private final KnowledgeNodeGraphRepository graphRepository;
     private final UserRepository userRepository;
+    private final AdaptiveEngineClient adaptiveEngineClient;
 
     /** Bắt đầu một session mới. Nếu đã có IN_PROGRESS thì trả về session cũ. */
     @Transactional
@@ -47,6 +49,7 @@ public class SessionService {
 
     /**
      * Hoàn thành một session và trả về gợi ý 3 node tiếp theo.
+     * Adaptive score được tính từ Python FastAPI engine (fallback = rawScore nếu engine down).
      */
     @Transactional
     public SessionCompleteResponse completeSession(UUID sessionId, int score, int durationSeconds) {
@@ -59,21 +62,25 @@ public class SessionService {
         session.setCompletedAt(Instant.now());
         sessionRepository.save(session);
 
-        // Cập nhật streak và tổng số session
+        // Cập nhật tổng số session của user
         User user = session.getUser();
         user.setTotalSessions(user.getTotalSessions() + 1);
         userRepository.save(user);
+
+        // Gọi Python Adaptive Engine để tính điểm thích nghi
+        int difficulty = session.getKnowledgeNode().getDifficulty();
+        double adaptiveScore = adaptiveEngineClient.computeAdaptiveScore(score, durationSeconds, difficulty);
 
         // Lấy gợi ý tiếp theo từ Neo4j
         List<UUID> seenUuids = sessionRepository.findCompletedNodeIdsByUserId(user.getId());
         List<String> seenIds = seenUuids.stream().map(UUID::toString).toList();
         String completedNodeId = session.getKnowledgeNode().getId().toString();
-
         List<KnowledgeNodeGraph> suggestions = graphRepository.findNextSuggestions(completedNodeId, seenIds);
 
         return SessionCompleteResponse.builder()
             .sessionId(session.getId())
             .score(score)
+            .adaptiveScore(adaptiveScore)
             .nextSuggestions(suggestions)
             .build();
     }

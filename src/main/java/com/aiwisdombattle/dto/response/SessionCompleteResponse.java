@@ -13,6 +13,9 @@ public class SessionCompleteResponse {
     private UUID sessionId;
     private int score;
 
+    /** Điểm thích nghi từ Python Adaptive Engine (fallback = score nếu engine down) */
+    private double adaptiveScore;
+
     /** 3 node gợi ý tiếp theo từ Neo4j */
     private List<KnowledgeNodeGraph> nextSuggestions;
 }

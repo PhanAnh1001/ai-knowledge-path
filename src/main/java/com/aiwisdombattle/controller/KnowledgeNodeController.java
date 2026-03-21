@@ -24,17 +24,19 @@ public class KnowledgeNodeController {
     private final SessionRepository sessionRepository;
 
     /**
-     * GET /api/v1/nodes?domain=nature
-     * Danh sách node theo domain, lọc bỏ những node đã học.
+     * GET /api/v1/nodes?domain=nature   (domain là optional)
+     * Danh sách node chưa học, lọc theo domain nếu có.
      */
     @GetMapping
-    public ResponseEntity<List<KnowledgeNode>> listByDomain(
-        @RequestParam String domain,
+    public ResponseEntity<List<KnowledgeNode>> listNodes(
+        @RequestParam(required = false) String domain,
         @AuthenticationPrincipal UserDetails principal
     ) {
         UUID userId = UUID.fromString(principal.getUsername());
         List<UUID> seenIds = sessionRepository.findCompletedNodeIdsByUserId(userId);
-        List<KnowledgeNode> nodes = nodeRepository.findUnseenByDomain(domain, seenIds);
+        List<KnowledgeNode> nodes = (domain != null && !domain.isBlank())
+            ? nodeRepository.findUnseenByDomain(domain, seenIds)
+            : nodeRepository.findAllUnseen(seenIds);
         return ResponseEntity.ok(nodes);
     }
 
