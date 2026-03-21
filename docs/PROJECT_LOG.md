@@ -1,7 +1,7 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-21 11:05:20
-> Session: `98e994b5-07b`
+> Cập nhật lần cuối: 2026-03-21 11:31:36
+> Session: `1bbc183f-5b8`
 > Branch: `claude/add-claude-documentation-OLqcO`
 
 ---
@@ -11,6 +11,8 @@
 ### Các commit gần nhất
 
 ```
+40e2642 Add Python FastAPI Adaptive Engine (Phase 1 — rule-based)
+8f427bc Update PROJECT_LOG: 2026-03-21 98e994b5
 48b9f67 Fix build: add Lombok version, fix Neo4j Direction.BOTH, fix filter mock in controller tests
 b97bd4c Update PROJECT_LOG: 2026-03-21 cab0392c
 df52930 Update README with full project documentation
@@ -24,8 +26,6 @@ fa85f32 Add Spring Boot project skeleton with PostgreSQL, Neo4j, Redis, JWT
 37f585e Add Neo4j knowledge graph schema v1.0
 59789df Update PROJECT_LOG: 2026-03-21 8bf3af5d
 31623be Add REST API endpoints documentation v1.0
-aea09ee Update PROJECT_LOG: 2026-03-21 8bf3af5d
-361293e Add PostgreSQL database schema v1.0
 ```
 
 ---
