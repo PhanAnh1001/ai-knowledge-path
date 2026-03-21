@@ -1,0 +1,30 @@
+# Production profile — override application.yml
+spring:
+  jpa:
+    show-sql: false
+
+  # Redis session vẫn bật (dùng Redis đã config trong application.yml)
+
+# Tắt Swagger UI trong production
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
+
+# Actuator chỉ expose health (không expose metrics/info ra ngoài)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+
+logging:
+  level:
+    root: WARN
+    com.aiwisdombattle: INFO
+    org.springframework.security: WARN
+    org.flywaydb: INFO
