@@ -1,7 +1,7 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-21 12:23:38
-> Session: `7944462a-3c9`
+> Cập nhật lần cuối: 2026-03-21 12:32:35
+> Session: `2d16b9f6-e31`
 > Branch: `claude/add-claude-documentation-OLqcO`
 
 ---
@@ -11,6 +11,8 @@
 ### Các commit gần nhất
 
 ```
+4434078 fix: resolve TypeScript build errors in frontend CI
+cd8057a Update PROJECT_LOG: 2026-03-21 7944462a
 599ee1e feat: integrate Python Adaptive Engine + fix JPQL/controller bugs
 10241cc Update PROJECT_LOG: 2026-03-21 7944462a
 30e3f1f Add seed data, CI pipeline, and dev config
@@ -24,8 +26,6 @@ df71711 Update PROJECT_LOG: 2026-03-21 1bbc183f
 48b9f67 Fix build: add Lombok version, fix Neo4j Direction.BOTH, fix filter mock in controller tests
 b97bd4c Update PROJECT_LOG: 2026-03-21 cab0392c
 df52930 Update README with full project documentation
-2671e4d Update PROJECT_LOG: 2026-03-21 c63df2c7
-5474e4c Add Auth Controller with register/login, JWT, exception handling, tests
 ```
 
 ---
