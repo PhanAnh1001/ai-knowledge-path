@@ -249,6 +249,44 @@ Tháng 3: Polish + 20 session buffer cho ngày ra mắt
 
 ---
 
+## 12. Kiến trúc kỹ thuật
+
+### Tech Stack
+
+**Mobile:** Flutter (1 codebase iOS + Android)
+
+**Backend — Hybrid Architecture:**
+```
+Java (Spring Boot)          Python (FastAPI)
+────────────────────        ────────────────────
+API Gateway                 Adaptive Engine
+User Service                  - Scoring Function
+Session Service               - Spaced Repetition
+Content Service               - Entry Point Selector
+Auth / Billing                - ML Pipeline (Phase 3)
+```
+
+**Database:**
+- PostgreSQL / Supabase — user data, session logs
+- Neo4j Aura — knowledge graph
+- Redis — cache, realtime state
+
+**Infrastructure:**
+- Railway / Render (giai đoạn đầu)
+- Cloudflare CDN (media assets)
+- S3-compatible storage
+
+**AI/Content:**
+- Claude API — draft content
+- Internal CMS — review + publish workflow
+
+### Lý do chọn Hybrid
+- Java xử lý high-throughput traffic và business logic
+- Python sở hữu ML ecosystem (scikit-learn, numpy) cần thiết khi Adaptive Engine tiến hóa sang Phase 3
+- Hai service giao tiếp qua internal HTTP call
+
+---
+
 ## 12. Bước tiếp theo đề xuất
 
 1. **Xác định MVP scope** — lĩnh vực nào, độ tuổi nào ra mắt trước
