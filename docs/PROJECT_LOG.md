@@ -1,7 +1,7 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-21 11:50:45
-> Session: `04701916-f1c`
+> Cập nhật lần cuối: 2026-03-21 12:00:54
+> Session: `d918d96e-570`
 > Branch: `claude/add-claude-documentation-OLqcO`
 
 ---
@@ -11,6 +11,8 @@
 ### Các commit gần nhất
 
 ```
+5c1f108 Add infrastructure: complete Docker Compose stack (7 services)
+f3de7d9 Update PROJECT_LOG: 2026-03-21 04701916
 9dbc0ff Add React + TypeScript Frontend (Vite + TanStack Query + Tailwind)
 df71711 Update PROJECT_LOG: 2026-03-21 1bbc183f
 40e2642 Add Python FastAPI Adaptive Engine (Phase 1 — rule-based)
@@ -24,8 +26,6 @@ df52930 Update README with full project documentation
 a877549 Add Docker Compose, Dockerfile, PostgreSQL init schema, dev scripts
 0e18088 Update PROJECT_LOG: 2026-03-21 c63df2c7
 fa85f32 Add Spring Boot project skeleton with PostgreSQL, Neo4j, Redis, JWT
-8cbc4f6 Update PROJECT_LOG: 2026-03-21 8bf3af5d
-37f585e Add Neo4j knowledge graph schema v1.0
 ```
 
 ---
