@@ -1,7 +1,7 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-21 09:54:10
-> Session: `43a10bb1-9ac`
+> Cập nhật lần cuối: 2026-03-21 10:03:46
+> Session: `8bf3af5d-492`
 > Branch: `claude/add-claude-documentation-OLqcO`
 
 ---
@@ -11,6 +11,8 @@
 ### Các commit gần nhất
 
 ```
+361293e Add PostgreSQL database schema v1.0
+bc6b658 Update PROJECT_LOG: 2026-03-21 43a10bb1
 e827ca2 Update PRD v0.4: switch to React web, replace Supabase with PostgreSQL self-hosted
 abf94d3 Update PROJECT_LOG: 2026-03-21 4c77b79d
 d23a3b0 Update PRD v0.3: add hybrid tech stack architecture decision
@@ -24,8 +26,6 @@ d7b764a Update PROJECT_LOG: 2026-03-21 1f0dc5cc
 93c3e5f Update PRD v0.2: add primary age group, content domains, and hybrid workflow
 79096ed Update PROJECT_LOG: 2026-03-21 60afa1d2
 5e91eaf Update PROJECT_LOG: 2026-03-21 60afa1d2
-cd96f16 Update PROJECT_LOG: 2026-03-21 fdcc3706
-6b07628 Add Product Requirements Document for AI Wisdom Battle
 ```
 
 ---
