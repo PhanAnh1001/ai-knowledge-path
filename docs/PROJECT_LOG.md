@@ -1,7 +1,7 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-21 08:46:10
-> Session: `60afa1d2-ced`
+> Cập nhật lần cuối: 2026-03-21 08:59:56
+> Session: `d46370d2-fd8`
 > Branch: `claude/add-claude-documentation-OLqcO`
 
 ---
@@ -11,6 +11,8 @@
 ### Các commit gần nhất
 
 ```
+93c3e5f Update PRD v0.2: add primary age group, content domains, and hybrid workflow
+79096ed Update PROJECT_LOG: 2026-03-21 60afa1d2
 5e91eaf Update PROJECT_LOG: 2026-03-21 60afa1d2
 cd96f16 Update PROJECT_LOG: 2026-03-21 fdcc3706
 6b07628 Add Product Requirements Document for AI Wisdom Battle
@@ -24,8 +26,6 @@ fcc07e1 Update PROJECT_LOG: 2026-03-21 a1d64ade
 242931a Update PROJECT_LOG: 2026-03-21 af0a7d8a
 69386f7 Update PROJECT_LOG: 2026-03-21 28a3417b
 5ca5aae Update PROJECT_LOG: 2026-03-21 28a3417b
-b63a662 Update PROJECT_LOG: 2026-03-21 c5f54823
-5dd646b Update PROJECT_LOG: 2026-03-21 c5f54823
 ```
 
 ---
