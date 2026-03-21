@@ -1,7 +1,7 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-21 10:07:11
-> Session: `8bf3af5d-492`
+> Cập nhật lần cuối: 2026-03-21 12:23:38
+> Session: `7944462a-3c9`
 > Branch: `claude/add-claude-documentation-OLqcO`
 
 ---
@@ -11,21 +11,21 @@
 ### Các commit gần nhất
 
 ```
-31623be Add REST API endpoints documentation v1.0
-aea09ee Update PROJECT_LOG: 2026-03-21 8bf3af5d
-361293e Add PostgreSQL database schema v1.0
-bc6b658 Update PROJECT_LOG: 2026-03-21 43a10bb1
-e827ca2 Update PRD v0.4: switch to React web, replace Supabase with PostgreSQL self-hosted
-abf94d3 Update PROJECT_LOG: 2026-03-21 4c77b79d
-d23a3b0 Update PRD v0.3: add hybrid tech stack architecture decision
-b93d30a Update PROJECT_LOG: 2026-03-21 4c77b79d
-724aa34 Update PROJECT_LOG: 2026-03-21 4c77b79d
-3658a82 Update PROJECT_LOG: 2026-03-21 7dd9d8da
-28d5d00 Update PROJECT_LOG: 2026-03-21 7dd9d8da
-d7b764a Update PROJECT_LOG: 2026-03-21 1f0dc5cc
-1e5fec6 Update PROJECT_LOG: 2026-03-21 1f0dc5cc
-99d9229 Update PROJECT_LOG: 2026-03-21 d46370d2
-93c3e5f Update PRD v0.2: add primary age group, content domains, and hybrid workflow
+599ee1e feat: integrate Python Adaptive Engine + fix JPQL/controller bugs
+10241cc Update PROJECT_LOG: 2026-03-21 7944462a
+30e3f1f Add seed data, CI pipeline, and dev config
+97f3fc6 Update PROJECT_LOG: 2026-03-21 d918d96e
+5c1f108 Add infrastructure: complete Docker Compose stack (7 services)
+f3de7d9 Update PROJECT_LOG: 2026-03-21 04701916
+9dbc0ff Add React + TypeScript Frontend (Vite + TanStack Query + Tailwind)
+df71711 Update PROJECT_LOG: 2026-03-21 1bbc183f
+40e2642 Add Python FastAPI Adaptive Engine (Phase 1 — rule-based)
+8f427bc Update PROJECT_LOG: 2026-03-21 98e994b5
+48b9f67 Fix build: add Lombok version, fix Neo4j Direction.BOTH, fix filter mock in controller tests
+b97bd4c Update PROJECT_LOG: 2026-03-21 cab0392c
+df52930 Update README with full project documentation
+2671e4d Update PROJECT_LOG: 2026-03-21 c63df2c7
+5474e4c Add Auth Controller with register/login, JWT, exception handling, tests
 ```
 
 ---

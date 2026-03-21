@@ -421,3 +421,148 @@ MERGE (a)-[:REQUIRES {soft: true}]->(b);
 // WHERE NOT n.id IN $completedNodeIds
 // RETURN n ORDER BY n.curiosity_score DESC, n.difficulty ASC
 // LIMIT 10
+
+
+// =============================================================================
+// SEED DATA — 12 KnowledgeNode (đồng bộ UUID với PostgreSQL init.sql)
+// =============================================================================
+
+// ── Nature ───────────────────────────────────────────────────────────────────
+MERGE (n1:KnowledgeNode {id: '11111111-0000-0000-0000-000000000001'})
+  SET n1.title = 'Tại sao bướm phải trải qua biến thái hoàn toàn?',
+      n1.domain = 'nature', n1.age_group = 'child_8_10',
+      n1.difficulty = 2, n1.curiosity_score = 9, n1.is_published = true;
+
+MERGE (n2:KnowledgeNode {id: '11111111-0000-0000-0000-000000000002'})
+  SET n2.title = 'Tại sao bầu trời có màu xanh mà hoàng hôn lại đỏ?',
+      n2.domain = 'nature', n2.age_group = 'teen_11_17',
+      n2.difficulty = 3, n2.curiosity_score = 8, n2.is_published = true;
+
+MERGE (n3:KnowledgeNode {id: '11111111-0000-0000-0000-000000000003'})
+  SET n3.title = 'Cây cối giao tiếp với nhau qua đất như thế nào?',
+      n3.domain = 'nature', n3.age_group = 'adult_18_plus',
+      n3.difficulty = 4, n3.curiosity_score = 10, n3.is_published = true;
+
+// ── Technology ───────────────────────────────────────────────────────────────
+MERGE (t1:KnowledgeNode {id: '22222222-0000-0000-0000-000000000001'})
+  SET t1.title = 'GPS biết bạn đang ở đâu chính xác đến từng mét bằng cách nào?',
+      t1.domain = 'technology', t1.age_group = 'teen_11_17',
+      t1.difficulty = 3, t1.curiosity_score = 9, t1.is_published = true;
+
+MERGE (t2:KnowledgeNode {id: '22222222-0000-0000-0000-000000000002'})
+  SET t2.title = 'Internet thực ra là gì — vật lý mà nói?',
+      t2.domain = 'technology', t2.age_group = 'child_8_10',
+      t2.difficulty = 2, t2.curiosity_score = 8, t2.is_published = true;
+
+MERGE (t3:KnowledgeNode {id: '22222222-0000-0000-0000-000000000003'})
+  SET t3.title = 'Mã hóa hoạt động như thế nào — và tại sao ngay cả NSA cũng không crack được?',
+      t3.domain = 'technology', t3.age_group = 'adult_18_plus',
+      t3.difficulty = 5, t3.curiosity_score = 9, t3.is_published = true;
+
+// ── History ───────────────────────────────────────────────────────────────────
+MERGE (h1:KnowledgeNode {id: '33333333-0000-0000-0000-000000000001'})
+  SET h1.title = 'Kim tự tháp được xây thế nào khi chưa có máy móc hiện đại?',
+      h1.domain = 'history', h1.age_group = 'child_8_10',
+      h1.difficulty = 2, h1.curiosity_score = 9, h1.is_published = true;
+
+MERGE (h2:KnowledgeNode {id: '33333333-0000-0000-0000-000000000002'})
+  SET h2.title = 'Thư viện Alexandria thực sự bị phá hủy như thế nào?',
+      h2.domain = 'history', h2.age_group = 'teen_11_17',
+      h2.difficulty = 3, h2.curiosity_score = 8, h2.is_published = true;
+
+MERGE (h3:KnowledgeNode {id: '33333333-0000-0000-0000-000000000003'})
+  SET h3.title = 'Con đường Tơ Lụa đã thay đổi thế giới như thế nào?',
+      h3.domain = 'history', h3.age_group = 'adult_18_plus',
+      h3.difficulty = 4, h3.curiosity_score = 8, h3.is_published = true;
+
+// ── Creative ──────────────────────────────────────────────────────────────────
+MERGE (c1:KnowledgeNode {id: '44444444-0000-0000-0000-000000000001'})
+  SET c1.title = 'Tại sao âm nhạc làm chúng ta rùng mình và khóc?',
+      c1.domain = 'creative', c1.age_group = 'teen_11_17',
+      c1.difficulty = 3, c1.curiosity_score = 10, c1.is_published = true;
+
+MERGE (c2:KnowledgeNode {id: '44444444-0000-0000-0000-000000000002'})
+  SET c2.title = 'Màu sắc trộn lẫn: tại sao máy in dùng CMYK còn màn hình dùng RGB?',
+      c2.domain = 'creative', c2.age_group = 'child_8_10',
+      c2.difficulty = 2, c2.curiosity_score = 7, c2.is_published = true;
+
+MERGE (c3:KnowledgeNode {id: '44444444-0000-0000-0000-000000000003'})
+  SET c3.title = 'Khoa học của storytelling: tại sao não người bị cuốn vào câu chuyện?',
+      c3.domain = 'creative', c3.age_group = 'adult_18_plus',
+      c3.difficulty = 4, c3.curiosity_score = 9, c3.is_published = true;
+
+
+// =============================================================================
+// RELATIONSHIPS — Knowledge Graph Edges
+// LEADS_TO: hoàn thành node A mở ra node B
+// DEEP_DIVE: đi sâu hơn vào cùng chủ đề (Rabbit Hole Mode)
+// CROSS_DOMAIN: kết nối liên ngành bất ngờ
+// =============================================================================
+
+// ── Nature LEADS_TO chain ─────────────────────────────────────────────────────
+MATCH (a:KnowledgeNode {id: '11111111-0000-0000-0000-000000000001'}),
+      (b:KnowledgeNode {id: '11111111-0000-0000-0000-000000000002'})
+MERGE (a)-[:LEADS_TO {curiosity_boost: 0.8}]->(b);
+
+MATCH (a:KnowledgeNode {id: '11111111-0000-0000-0000-000000000002'}),
+      (b:KnowledgeNode {id: '11111111-0000-0000-0000-000000000003'})
+MERGE (a)-[:LEADS_TO {curiosity_boost: 0.9}]->(b);
+
+// ── Technology LEADS_TO chain ─────────────────────────────────────────────────
+MATCH (a:KnowledgeNode {id: '22222222-0000-0000-0000-000000000002'}),
+      (b:KnowledgeNode {id: '22222222-0000-0000-0000-000000000001'})
+MERGE (a)-[:LEADS_TO {curiosity_boost: 0.85}]->(b);
+
+MATCH (a:KnowledgeNode {id: '22222222-0000-0000-0000-000000000001'}),
+      (b:KnowledgeNode {id: '22222222-0000-0000-0000-000000000003'})
+MERGE (a)-[:LEADS_TO {curiosity_boost: 0.9}]->(b);
+
+// ── History LEADS_TO chain ────────────────────────────────────────────────────
+MATCH (a:KnowledgeNode {id: '33333333-0000-0000-0000-000000000001'}),
+      (b:KnowledgeNode {id: '33333333-0000-0000-0000-000000000002'})
+MERGE (a)-[:LEADS_TO {curiosity_boost: 0.8}]->(b);
+
+MATCH (a:KnowledgeNode {id: '33333333-0000-0000-0000-000000000002'}),
+      (b:KnowledgeNode {id: '33333333-0000-0000-0000-000000000003'})
+MERGE (a)-[:LEADS_TO {curiosity_boost: 0.85}]->(b);
+
+// ── Creative LEADS_TO chain ───────────────────────────────────────────────────
+MATCH (a:KnowledgeNode {id: '44444444-0000-0000-0000-000000000002'}),
+      (b:KnowledgeNode {id: '44444444-0000-0000-0000-000000000001'})
+MERGE (a)-[:LEADS_TO {curiosity_boost: 0.9}]->(b);
+
+MATCH (a:KnowledgeNode {id: '44444444-0000-0000-0000-000000000001'}),
+      (b:KnowledgeNode {id: '44444444-0000-0000-0000-000000000003'})
+MERGE (a)-[:LEADS_TO {curiosity_boost: 0.95}]->(b);
+
+// ── DEEP_DIVE — cùng chủ đề, sâu hơn ────────────────────────────────────────
+// Bướm → ánh sáng (cùng "tại sao thiên nhiên phức tạp?")
+MATCH (a:KnowledgeNode {id: '11111111-0000-0000-0000-000000000001'}),
+      (b:KnowledgeNode {id: '11111111-0000-0000-0000-000000000002'})
+MERGE (a)-[:DEEP_DIVE]->(b);
+
+// Cây cối → storytelling (cùng "giao tiếp không lời")
+MATCH (a:KnowledgeNode {id: '11111111-0000-0000-0000-000000000003'}),
+      (b:KnowledgeNode {id: '44444444-0000-0000-0000-000000000003'})
+MERGE (a)-[:DEEP_DIVE]->(b);
+
+// ── CROSS_DOMAIN — kết nối liên ngành bất ngờ ────────────────────────────────
+// Ánh sáng (nature) ↔ RGB/CMYK (creative): cùng là vật lý ánh sáng
+MATCH (a:KnowledgeNode {id: '11111111-0000-0000-0000-000000000002'}),
+      (b:KnowledgeNode {id: '44444444-0000-0000-0000-000000000002'})
+MERGE (a)-[:CROSS_DOMAIN {surprise_factor: 0.9}]->(b);
+
+// Mã hóa (technology) ↔ Con đường Tơ Lụa (history): bí mật và thông tin
+MATCH (a:KnowledgeNode {id: '22222222-0000-0000-0000-000000000003'}),
+      (b:KnowledgeNode {id: '33333333-0000-0000-0000-000000000003'})
+MERGE (a)-[:CROSS_DOMAIN {surprise_factor: 0.85}]->(b);
+
+// Storytelling (creative) ↔ GPS (technology): cách não xử lý "vị trí"
+MATCH (a:KnowledgeNode {id: '44444444-0000-0000-0000-000000000003'}),
+      (b:KnowledgeNode {id: '22222222-0000-0000-0000-000000000001'})
+MERGE (a)-[:CROSS_DOMAIN {surprise_factor: 0.75}]->(b);
+
+// Âm nhạc (creative) ↔ Biến thái bướm (nature): cùng chủ đề "biến đổi"
+MATCH (a:KnowledgeNode {id: '44444444-0000-0000-0000-000000000001'}),
+      (b:KnowledgeNode {id: '11111111-0000-0000-0000-000000000001'})
+MERGE (a)-[:CROSS_DOMAIN {surprise_factor: 0.8}]->(b);
