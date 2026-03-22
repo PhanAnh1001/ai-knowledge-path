@@ -2,8 +2,10 @@ package com.aiwisdombattle.service;
 
 import com.aiwisdombattle.domain.entity.User;
 import com.aiwisdombattle.dto.request.LoginRequest;
+import com.aiwisdombattle.dto.request.RefreshTokenRequest;
 import com.aiwisdombattle.dto.request.RegisterRequest;
 import com.aiwisdombattle.dto.response.AuthResponse;
+import com.aiwisdombattle.dto.response.UserProfileResponse;
 import com.aiwisdombattle.exception.EmailAlreadyUsedException;
 import com.aiwisdombattle.exception.InvalidCredentialsException;
 import com.aiwisdombattle.repository.UserRepository;
@@ -13,6 +15,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -65,11 +69,57 @@ public class AuthService {
         return buildAuthResponse(user);
     }
 
-    private AuthResponse buildAuthResponse(User user) {
-        String token = tokenProvider.generate(user.getId());
+    /**
+     * Lấy profile người dùng hiện tại theo userId.
+     * Ném {@link InvalidCredentialsException} nếu không tìm thấy.
+     */
+    @Transactional(readOnly = true)
+    public UserProfileResponse getUserProfile(String userId) {
+        User user = userRepository.findById(UUID.fromString(userId))
+            .orElseThrow(InvalidCredentialsException::new);
+
+        return UserProfileResponse.builder()
+            .userId(user.getId().toString())
+            .email(user.getEmail())
+            .displayName(user.getDisplayName())
+            .explorerType(user.getExplorerType())
+            .ageGroup(user.getAgeGroup())
+            .premium(user.isPremium())
+            .totalSessions(user.getTotalSessions())
+            .build();
+    }
+
+    /**
+     * Làm mới access token bằng refresh token hợp lệ.
+     * Ném {@link InvalidCredentialsException} nếu refresh token không hợp lệ hoặc sai loại.
+     */
+    @Transactional(readOnly = true)
+    public AuthResponse refreshAccessToken(RefreshTokenRequest request) {
+        String refreshToken = request.getRefreshToken();
+
+        if (!tokenProvider.isValidRefreshToken(refreshToken)) {
+            throw new InvalidCredentialsException();
+        }
+
+        UUID userId = UUID.fromString(tokenProvider.extractUserId(refreshToken));
+
+        if (!userRepository.existsById(userId)) {
+            throw new InvalidCredentialsException();
+        }
 
         return AuthResponse.builder()
-            .accessToken(token)
+            .accessToken(tokenProvider.generate(userId))
+            .expiresIn(jwtExpirationMs)
+            .build();
+    }
+
+    private AuthResponse buildAuthResponse(User user) {
+        String accessToken  = tokenProvider.generate(user.getId());
+        String refreshToken = tokenProvider.generateRefreshToken(user.getId());
+
+        return AuthResponse.builder()
+            .accessToken(accessToken)
+            .refreshToken(refreshToken)
             .expiresIn(jwtExpirationMs)
             .userId(user.getId())
             .displayName(user.getDisplayName())

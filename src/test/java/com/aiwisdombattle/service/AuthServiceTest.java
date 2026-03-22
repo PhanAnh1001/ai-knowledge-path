@@ -2,6 +2,7 @@ package com.aiwisdombattle.service;
 
 import com.aiwisdombattle.domain.entity.User;
 import com.aiwisdombattle.dto.request.LoginRequest;
+import com.aiwisdombattle.dto.request.RefreshTokenRequest;
 import com.aiwisdombattle.dto.request.RegisterRequest;
 import com.aiwisdombattle.dto.response.AuthResponse;
 import com.aiwisdombattle.exception.EmailAlreadyUsedException;
@@ -64,10 +65,12 @@ class AuthServiceTest {
         when(passwordEncoder.encode(anyString())).thenReturn("$2a$hashed");
         when(userRepository.save(any())).thenReturn(existingUser);
         when(tokenProvider.generate(any())).thenReturn("jwt.token.here");
+        when(tokenProvider.generateRefreshToken(any())).thenReturn("refresh.token.here");
 
         AuthResponse response = authService.register(registerRequest);
 
         assertThat(response.getAccessToken()).isEqualTo("jwt.token.here");
+        assertThat(response.getRefreshToken()).isEqualTo("refresh.token.here");
         assertThat(response.getTokenType()).isEqualTo("Bearer");
         assertThat(response.getDisplayName()).isEqualTo(existingUser.getDisplayName());
         assertThat(response.getExplorerType()).isEqualTo("nature");
@@ -97,6 +100,7 @@ class AuthServiceTest {
             return existingUser;
         });
         when(tokenProvider.generate(any())).thenReturn("token");
+        when(tokenProvider.generateRefreshToken(any())).thenReturn("refresh");
 
         authService.register(registerRequest);
 
@@ -110,6 +114,7 @@ class AuthServiceTest {
         when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(existingUser));
         when(passwordEncoder.matches("Secret123", "$2a$hashed")).thenReturn(true);
         when(tokenProvider.generate(existingUser.getId())).thenReturn("jwt.token.here");
+        when(tokenProvider.generateRefreshToken(existingUser.getId())).thenReturn("refresh.token.here");
 
         AuthResponse response = authService.login(loginRequest);
 
@@ -147,6 +152,66 @@ class AuthServiceTest {
         assertThatThrownBy(() -> authService.login(loginRequest))
             .isInstanceOf(InvalidCredentialsException.class)
             .hasMessage("Email hoặc mật khẩu không chính xác");
+    }
+
+    // ── refreshAccessToken ────────────────────────────────────────────────────
+
+    @Test
+    void refreshAccessToken_returnsNewAccessToken_withValidRefreshToken() {
+        String refreshTokenStr = "valid.refresh.token";
+        RefreshTokenRequest req = new RefreshTokenRequest();
+        ReflectionTestUtils.setField(req, "refreshToken", refreshTokenStr);
+
+        when(tokenProvider.isValidRefreshToken(refreshTokenStr)).thenReturn(true);
+        when(tokenProvider.extractUserId(refreshTokenStr)).thenReturn(existingUser.getId().toString());
+        when(userRepository.existsById(existingUser.getId())).thenReturn(true);
+        when(tokenProvider.generate(existingUser.getId())).thenReturn("new.access.token");
+
+        AuthResponse response = authService.refreshAccessToken(req);
+
+        assertThat(response.getAccessToken()).isEqualTo("new.access.token");
+        assertThat(response.getRefreshToken()).isNull();
+    }
+
+    @Test
+    void refreshAccessToken_throws_whenTokenIsInvalidOrWrongType() {
+        String badToken = "expired.or.access.type.token";
+        RefreshTokenRequest req = new RefreshTokenRequest();
+        ReflectionTestUtils.setField(req, "refreshToken", badToken);
+
+        when(tokenProvider.isValidRefreshToken(badToken)).thenReturn(false);
+
+        assertThatThrownBy(() -> authService.refreshAccessToken(req))
+            .isInstanceOf(InvalidCredentialsException.class);
+
+        verify(userRepository, never()).existsById(any());
+    }
+
+    @Test
+    void refreshAccessToken_throws_whenUserNoLongerExists() {
+        String refreshTokenStr = "valid.refresh.token";
+        RefreshTokenRequest req = new RefreshTokenRequest();
+        ReflectionTestUtils.setField(req, "refreshToken", refreshTokenStr);
+
+        when(tokenProvider.isValidRefreshToken(refreshTokenStr)).thenReturn(true);
+        when(tokenProvider.extractUserId(refreshTokenStr)).thenReturn(existingUser.getId().toString());
+        when(userRepository.existsById(existingUser.getId())).thenReturn(false);
+
+        assertThatThrownBy(() -> authService.refreshAccessToken(req))
+            .isInstanceOf(InvalidCredentialsException.class);
+    }
+
+    @Test
+    void login_includesRefreshToken_inResponse() {
+        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(existingUser));
+        when(passwordEncoder.matches("Secret123", "$2a$hashed")).thenReturn(true);
+        when(tokenProvider.generate(existingUser.getId())).thenReturn("access.token");
+        when(tokenProvider.generateRefreshToken(existingUser.getId())).thenReturn("refresh.token");
+
+        AuthResponse response = authService.login(loginRequest);
+
+        assertThat(response.getAccessToken()).isEqualTo("access.token");
+        assertThat(response.getRefreshToken()).isEqualTo("refresh.token");
     }
 
     // ── helpers ───────────────────────────────────────────────────────────────

@@ -4,6 +4,7 @@ import { LoginPage } from '@/pages/LoginPage'
 import { OnboardingPage } from '@/pages/OnboardingPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { SessionPage } from '@/pages/SessionPage'
+import { ProfilePage } from '@/pages/ProfilePage'
 import { useAuthStore } from '@/store/authStore'
 
 const queryClient = new QueryClient({
@@ -56,6 +57,14 @@ export default function App() {
             element={
               <PrivateRoute>
                 <SessionPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <PrivateRoute>
+                <ProfilePage />
               </PrivateRoute>
             }
           />
