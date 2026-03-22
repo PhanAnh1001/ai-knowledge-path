@@ -1,7 +1,7 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-22 14:56:06
-> Session: `a9315047-862`
+> Cập nhật lần cuối: 2026-03-22 15:14:55
+> Session: `407b28f4-d9f`
 > Branch: `claude/fix-ssh-key-fips-error-JyQcn`
 
 ---
@@ -11,6 +11,8 @@
 ### Các commit gần nhất
 
 ```
+224f51e Add permissions for artifact check in terraform workflow
+59d73fc Update PROJECT_LOG: 2026-03-22 a9315047
 d0661d2 Fix artifact-not-found error on first terraform plan run
 280739e Update PROJECT_LOG: 2026-03-22 2f99eacb
 195412d Fix SSH key docs for OCI Cloud Shell FIPS mode
@@ -24,8 +26,6 @@ d9e8cfd Update PROJECT_LOG: 2026-03-22 38b20392
 f12e043 Add GET /me endpoint, Neo4j graph initializer, and Profile page
 08f6590 add terraform guide
 11dfd87 Update CLAUDE.md and README.md to reflect GitHub Actions workflows
-8951606 Update PROJECT_LOG: 2026-03-22 1dd081ab
-6ac129d Add GITHUB-SECRETS-SETUP.md: step-by-step guide for OCI secrets
 ```
 
 ---
