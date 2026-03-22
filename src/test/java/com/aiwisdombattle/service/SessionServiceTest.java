@@ -96,6 +96,7 @@ class SessionServiceTest {
 
     @Test
     void startSession_throwsException_whenUserNotFound() {
+        when(nodeRepository.findById(node.getId())).thenReturn(Optional.of(node));
         when(sessionRepository.findByUserIdAndKnowledgeNodeId(any(), any()))
             .thenReturn(Optional.empty());
         when(userRepository.findById(any())).thenReturn(Optional.empty());
