@@ -1,6 +1,6 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-22 10:38:23
+> Cập nhật lần cuối: 2026-03-22 10:38:28
 > Session: `b250881f-87f`
 > Branch: `claude/update-docs-0NlNK`
 
@@ -11,6 +11,7 @@
 ### Các commit gần nhất
 
 ```
+fcfc38f Update PROJECT_LOG: 2026-03-22 b250881f
 e6ba5ea Update PROJECT_LOG: 2026-03-22 b250881f
 c9c4bbb Remove Fly.io setup and deployment guide
 8574340 Update PROJECT_LOG: 2026-03-22 bebb1ea4
@@ -25,7 +26,6 @@ ec78bfe Fix startSession_returnsExistingSession test: mock nodeRepository
 17499a5 feat: implement 6-phase SessionPage, onboarding wizard, Dashboard tabs
 876c468 Update PROJECT_LOG: 2026-03-22 fbb52693
 09020e0 Update PROJECT_LOG: 2026-03-22 fbb52693
-a8dbf5a Update PROJECT_LOG: 2026-03-22 f4a45c40
 ```
 
 ---
