@@ -1,6 +1,6 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-22 10:06:14
+> Cập nhật lần cuối: 2026-03-22 10:09:00
 > Session: `fbb52693-894`
 > Branch: `claude/add-deployment-guides-WfWPp`
 
@@ -11,6 +11,8 @@
 ### Các commit gần nhất
 
 ```
+71466d9 Fix startSession_throwsException_whenUserNotFound test
+3b6ecb9 Update PROJECT_LOG: 2026-03-22 fbb52693
 1d94c4b Fix SessionServiceTest: update return type to SessionStartResponse
 840efb2 Update PROJECT_LOG: 2026-03-22 fbb52693
 17499a5 feat: implement 6-phase SessionPage, onboarding wizard, Dashboard tabs
@@ -24,8 +26,6 @@ a4e1fb3 Add V7 migration: seed 7 Technology knowledge nodes
 a628dc1 Update PROJECT_LOG: 2026-03-22 5f2ccfd7
 b7e3d9b Simplify V5 migration: remove comment noise, improve header
 04ee61a Update PROJECT_LOG: 2026-03-22 c2dc16c3
-1305307 Update PROJECT_LOG: 2026-03-22 c2dc16c3
-f2a2d85 Add V5 migration: seed 10 Nature knowledge nodes
 ```
 
 ---
