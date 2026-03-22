@@ -8,130 +8,73 @@ on:
     branches: [master]
 
 # ── Secrets cần cấu hình (GitHub → Settings → Secrets and variables → Actions) ──
-#   FLY_API_TOKEN         — lấy từ: flyctl auth token
-#   CLOUDFLARE_API_TOKEN  — Cloudflare → My Profile → API Tokens
-#                           (template: "Edit Cloudflare Pages")
-#   CLOUDFLARE_ACCOUNT_ID — Cloudflare dashboard → bên phải trang chủ
+#   ORACLE_VM_IP          — Public IP của Oracle Cloud VM
+#   ORACLE_SSH_KEY        — Nội dung private key SSH của user deploy
+#                           (tạo bằng: ssh-keygen -t ed25519 -C "github-actions")
+#                           Public key tương ứng thêm vào /home/deploy/.ssh/authorized_keys trên VM
 #
-# ── Variables cần cấu hình (Settings → Secrets and variables → Variables) ───────
-#   VITE_API_BASE_URL     — ví dụ: https://awb-backend.fly.dev/api/v1
-#
-# ── Chạy một lần thủ công trước khi dùng workflow này ────────────────────────────
-#   1. flyctl launch --no-deploy --name awb-backend   (từ thư mục gốc)
-#   2. flyctl launch --no-deploy --name awb-engine    (từ thư mục adaptive-engine/)
-#   3. flyctl secrets set --app awb-backend DB_URL="..." ...
-#   4. Tạo project Cloudflare Pages tên "ai-wisdom-battle" tại pages.cloudflare.com
+# ── Variables (Settings → Variables) ──────────────────────────────────────────
+#   (không cần thêm variable, SITE_ADDRESS nằm trong .env trên VM)
 
 jobs:
-
-  # ── Deploy Spring Boot lên Fly.io ───────────────────────────────────────────
-  deploy-backend:
-    name: Deploy Backend (Fly.io)
+  deploy:
+    name: Deploy to Oracle Cloud VM
     runs-on: ubuntu-latest
     if: github.event.workflow_run.conclusion == 'success'
 
     steps:
-      # QUAN TRỌNG: checkout đúng commit đã pass CI, không phải HEAD của master
+      # QUAN TRỌNG: checkout đúng commit đã pass CI
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
 
-      - name: Setup flyctl
-        uses: superfly/flyctl-actions/setup-flyctl@master
-
-      - name: Verify app exists on Fly.io
-        run: flyctl status --app awb-backend
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-
-      - name: Deploy Spring Boot
-        run: flyctl deploy --remote-only --app awb-backend
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-
-  # ── Deploy Python Engine lên Fly.io ─────────────────────────────────────────
-  deploy-engine:
-    name: Deploy Engine (Fly.io)
-    runs-on: ubuntu-latest
-    if: github.event.workflow_run.conclusion == 'success'
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
-
-      - name: Setup flyctl
-        uses: superfly/flyctl-actions/setup-flyctl@master
-
-      - name: Verify app exists on Fly.io
-        run: flyctl status --app awb-engine
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-
-      - name: Deploy Adaptive Engine
-        # working-directory: adaptive-engine → --config chỉ cần "fly.toml" (relative)
-        run: flyctl deploy --remote-only --app awb-engine --config fly.toml
-        working-directory: adaptive-engine
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-
-  # ── Deploy React lên Cloudflare Pages ───────────────────────────────────────
-  deploy-frontend:
-    name: Deploy Frontend (Cloudflare Pages)
-    runs-on: ubuntu-latest
-    if: github.event.workflow_run.conclusion == 'success'
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
-
-      - name: Setup Node.js 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-        working-directory: frontend
-
-      - name: Build
-        run: npm run build
-        working-directory: frontend
-        env:
-          # Đặt giá trị tại: Settings → Variables → VITE_API_BASE_URL
-          # Ví dụ: https://awb-backend.fly.dev/api/v1
-          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
-
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: ai-wisdom-battle    # phải khớp tên project trên Cloudflare Pages
-          directory: frontend/dist
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
-
-  # ── Tóm tắt kết quả ─────────────────────────────────────────────────────────
-  deploy-summary:
-    name: Deploy Summary
-    runs-on: ubuntu-latest
-    needs: [deploy-backend, deploy-engine, deploy-frontend]
-    if: always() && github.event.workflow_run.conclusion == 'success'
-
-    steps:
-      - name: Report status
+      # ── Cấu hình SSH ──────────────────────────────────────────────────────
+      - name: Setup SSH
         run: |
-          echo "Backend  : ${{ needs.deploy-backend.result }}"
-          echo "Engine   : ${{ needs.deploy-engine.result }}"
-          echo "Frontend : ${{ needs.deploy-frontend.result }}"
+          mkdir -p ~/.ssh
+          echo "${{ secrets.ORACLE_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ secrets.ORACLE_VM_IP }}" >> ~/.ssh/known_hosts
 
-          if [[ "${{ needs.deploy-backend.result }}"  == "failure" ||
-                "${{ needs.deploy-engine.result }}"   == "failure" ||
-                "${{ needs.deploy-frontend.result }}" == "failure" ]]; then
-            echo "Một hoặc nhiều deploy thất bại"
-            exit 1
-          fi
-          echo "Tất cả deploy thành công"
+      # ── SSH vào VM: pull code + build frontend + rebuild containers ────────
+      - name: Deploy
+        env:
+          VM_IP: ${{ secrets.ORACLE_VM_IP }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes \
+            deploy@${VM_IP} << 'ENDSSH'
+            set -euo pipefail
+            cd /opt/ai-wisdom-battle
+
+            echo "=== [1/5] Pull code ==="
+            git fetch origin master
+            git reset --hard origin/master
+
+            echo "=== [2/5] Build frontend ==="
+            cd frontend
+            npm ci --prefer-offline
+            npm run build
+            cd ..
+
+            echo "=== [3/5] Build app containers ==="
+            docker compose -f docker-compose.prod.yml build app adaptive-engine
+
+            echo "=== [4/5] Reload services ==="
+            docker compose -f docker-compose.prod.yml up -d \
+              --remove-orphans \
+              --no-deps app adaptive-engine caddy
+
+            echo "=== [5/5] Health check ==="
+            sleep 15
+            curl -fsS http://localhost:8080/actuator/health | grep -q '"status":"UP"'
+            echo "Deploy OK"
+          ENDSSH
+
+      # ── Báo kết quả ───────────────────────────────────────────────────────
+      - name: Notify success
+        if: success()
+        run: echo "Deploy thanh cong len Oracle Cloud VM ${{ secrets.ORACLE_VM_IP }}"
+
+      - name: Notify failure
+        if: failure()
+        run: echo "Deploy that bai — kiem tra logs tren VM"
