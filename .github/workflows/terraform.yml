@@ -56,13 +56,28 @@ jobs:
           echo "${{ secrets.OCI_API_PRIVATE_KEY }}" > ~/.oci/oci_api_key.pem
           chmod 600 ~/.oci/oci_api_key.pem
 
-      # ── 4. Khôi phục terraform.tfstate từ artifact lần chạy trước ─────────
+      # ── 4a. Kiểm tra artifact terraform-state có tồn tại không ───────────
+      - name: Check terraform state artifact
+        id: check-state
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const artifacts = await github.rest.actions.listArtifactsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'terraform-state',
+              per_page: 1,
+            });
+            const exists = artifacts.data.total_count > 0;
+            core.setOutput('exists', exists.toString());
+
+      # ── 4b. Khôi phục terraform.tfstate từ artifact lần chạy trước ────────
       - name: Download terraform state (nếu có)
+        if: steps.check-state.outputs.exists == 'true'
         uses: actions/download-artifact@v4
         with:
           name: terraform-state
           path: infra/oracle
-        continue-on-error: true  # lần đầu chạy chưa có artifact
 
       # ── 5. Cache provider plugins (tăng tốc init) ─────────────────────────
       - name: Cache Terraform providers
