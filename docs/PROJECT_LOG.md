@@ -1,6 +1,6 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-22 08:36:37
+> Cập nhật lần cuối: 2026-03-22 08:36:44
 > Session: `c2dc16c3-bcc`
 > Branch: `claude/add-deployment-guides-WfWPp`
 
@@ -11,6 +11,7 @@
 ### Các commit gần nhất
 
 ```
+1305307 Update PROJECT_LOG: 2026-03-22 c2dc16c3
 f2a2d85 Add V5 migration: seed 10 Nature knowledge nodes
 6eb27fb Update PROJECT_LOG: 2026-03-22 19d638d0
 891bee1 Add session start response with 6-phase node content
@@ -25,7 +26,6 @@ e848975 Update PROJECT_LOG: 2026-03-22 8d3c3c85
 0905986 feat: Oracle Cloud Always Free production deployment
 4ec7ac2 Update PROJECT_LOG: 2026-03-22 b50265c2
 da8855e docs: add web UI guide for Fly.io secrets and Cloudflare Pages step-by-step
-a38664b Update PROJECT_LOG: 2026-03-21 5b55e094
 ```
 
 ---
