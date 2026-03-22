@@ -6,7 +6,9 @@ import com.aiwisdombattle.domain.entity.Session;
 import com.aiwisdombattle.domain.entity.Session.SessionStatus;
 import com.aiwisdombattle.domain.entity.User;
 import com.aiwisdombattle.domain.model.KnowledgeNodeGraph;
+import com.aiwisdombattle.dto.response.KnowledgeNodeResponse;
 import com.aiwisdombattle.dto.response.SessionCompleteResponse;
+import com.aiwisdombattle.dto.response.SessionStartResponse;
 import com.aiwisdombattle.exception.ResourceNotFoundException;
 import com.aiwisdombattle.repository.KnowledgeNodeGraphRepository;
 import com.aiwisdombattle.repository.KnowledgeNodeRepository;
@@ -30,21 +32,30 @@ public class SessionService {
     private final UserRepository userRepository;
     private final AdaptiveEngineClient adaptiveEngineClient;
 
-    /** Bắt đầu một session mới. Nếu đã có IN_PROGRESS thì trả về session cũ. */
+    /**
+     * Bắt đầu một session mới. Nếu đã có IN_PROGRESS thì trả về session cũ.
+     * Trả về sessionId + toàn bộ nội dung 6 giai đoạn của node để frontend
+     * render ngay mà không cần gọi thêm request.
+     */
     @Transactional
-    public Session startSession(UUID userId, UUID nodeId) {
-        return sessionRepository.findByUserIdAndKnowledgeNodeId(userId, nodeId)
+    public SessionStartResponse startSession(UUID userId, UUID nodeId) {
+        KnowledgeNode node = nodeRepository.findById(nodeId)
+            .orElseThrow(() -> ResourceNotFoundException.of("Node", nodeId));
+
+        Session session = sessionRepository.findByUserIdAndKnowledgeNodeId(userId, nodeId)
             .filter(s -> s.getStatus() == SessionStatus.IN_PROGRESS)
             .orElseGet(() -> {
                 User user = userRepository.findById(userId)
                     .orElseThrow(() -> ResourceNotFoundException.of("User", userId));
-                KnowledgeNode node = nodeRepository.findById(nodeId)
-                    .orElseThrow(() -> ResourceNotFoundException.of("Node", nodeId));
-
                 return sessionRepository.save(
                     Session.builder().user(user).knowledgeNode(node).build()
                 );
             });
+
+        return SessionStartResponse.builder()
+            .sessionId(session.getId())
+            .node(KnowledgeNodeResponse.from(node))
+            .build();
     }
 
     /**

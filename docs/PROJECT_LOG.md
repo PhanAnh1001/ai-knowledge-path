@@ -1,8 +1,8 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-22 04:19:50
-> Session: `346041f1-1ee`
-> Branch: `claude/add-claude-documentation-OLqcO`
+> Cập nhật lần cuối: 2026-03-22 10:09:00
+> Session: `fbb52693-894`
+> Branch: `claude/add-deployment-guides-WfWPp`
 
 ---
 
@@ -11,21 +11,21 @@
 ### Các commit gần nhất
 
 ```
-af7eab0 Update PROJECT_LOG: 2026-03-22 346041f1
-ef39bb5 feat: Oracle VM + Cloudflare Pages hybrid + PostgreSQL backup
-e848975 Update PROJECT_LOG: 2026-03-22 8d3c3c85
-0905986 feat: Oracle Cloud Always Free production deployment
-4ec7ac2 Update PROJECT_LOG: 2026-03-22 b50265c2
-da8855e docs: add web UI guide for Fly.io secrets and Cloudflare Pages step-by-step
-a38664b Update PROJECT_LOG: 2026-03-21 5b55e094
-f3f8a3f fix: correct 3 bugs in deploy.yml
-41156f6 Update PROJECT_LOG: 2026-03-21 2fb0391a
-3d908f3 Update PROJECT_LOG: 2026-03-21 2fb0391a
-a97a7ac Update PROJECT_LOG: 2026-03-21 7f075d87
-2ca3edd feat: production deployment via Fly.io + Cloudflare Pages (no docker-compose)
-928856b Update PROJECT_LOG: 2026-03-21 7f075d87
-f23218f docs: add free production deployment guide (DEPLOY-FREE.md)
-80aa843 Update PROJECT_LOG: 2026-03-21 d6d66afb
+71466d9 Fix startSession_throwsException_whenUserNotFound test
+3b6ecb9 Update PROJECT_LOG: 2026-03-22 fbb52693
+1d94c4b Fix SessionServiceTest: update return type to SessionStartResponse
+840efb2 Update PROJECT_LOG: 2026-03-22 fbb52693
+17499a5 feat: implement 6-phase SessionPage, onboarding wizard, Dashboard tabs
+876c468 Update PROJECT_LOG: 2026-03-22 fbb52693
+09020e0 Update PROJECT_LOG: 2026-03-22 fbb52693
+a8dbf5a Update PROJECT_LOG: 2026-03-22 f4a45c40
+21c7009 Update neo4j-schema.cypher: add 30 nodes + 33 relationships (V5-V8 sync)
+a9caad8 Add V8 migration: seed 6 Creative knowledge nodes
+a4e1fb3 Add V7 migration: seed 7 Technology knowledge nodes
+176e27a Add V6 migration: schema fixes + 7 History knowledge nodes
+a628dc1 Update PROJECT_LOG: 2026-03-22 5f2ccfd7
+b7e3d9b Simplify V5 migration: remove comment noise, improve header
+04ee61a Update PROJECT_LOG: 2026-03-22 c2dc16c3
 ```
 
 ---

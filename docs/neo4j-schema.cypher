@@ -424,7 +424,9 @@ MERGE (a)-[:REQUIRES {soft: true}]->(b);
 
 
 // =============================================================================
-// SEED DATA — 12 KnowledgeNode (đồng bộ UUID với PostgreSQL init.sql)
+// SEED DATA — 12 KnowledgeNode legacy (đồng bộ UUID với PostgreSQL init.sql)
+// NOTE: IDs 11111111-001..003, 22222222-001..003, 44444444-001..003 được
+//       ghi đè bởi V5-V8 migrations (xem section "V5–V8 SEED DATA" bên dưới)
 // =============================================================================
 
 // ── Nature ───────────────────────────────────────────────────────────────────
@@ -566,3 +568,284 @@ MERGE (a)-[:CROSS_DOMAIN {surprise_factor: 0.75}]->(b);
 MATCH (a:KnowledgeNode {id: '44444444-0000-0000-0000-000000000001'}),
       (b:KnowledgeNode {id: '11111111-0000-0000-0000-000000000001'})
 MERGE (a)-[:CROSS_DOMAIN {surprise_factor: 0.8}]->(b);
+
+// =============================================================================
+// V5–V8 SEED DATA — 30 KnowledgeNode (sync với PostgreSQL V5–V8 migrations)
+// Version: 2.0  |  Added: 2026-03-22
+// Dùng MERGE để upsert — an toàn khi chạy lại
+// =============================================================================
+
+// ── NATURE (V5) — IDs: 11111111-0000-0000-0000-00000000000{1..10} ─────────────
+
+MERGE (nat01:KnowledgeNode {id: '11111111-0000-0000-0000-000000000001'})
+SET nat01 += {title: 'Photosynthesis: How Plants Make Food from Light',
+              domain: 'nature', age_group: 'all', difficulty: 2, curiosity_score: 8, is_published: true};
+MERGE (nat02:KnowledgeNode {id: '11111111-0000-0000-0000-000000000002'})
+SET nat02 += {title: 'Monarch Butterflies: A 4,500 km Journey with No GPS',
+              domain: 'nature', age_group: 'all', difficulty: 3, curiosity_score: 9, is_published: true};
+MERGE (nat03:KnowledgeNode {id: '11111111-0000-0000-0000-000000000003'})
+SET nat03 += {title: 'Bioluminescence: Why the Deep Ocean Glows',
+              domain: 'nature', age_group: 'all', difficulty: 2, curiosity_score: 9, is_published: true};
+MERGE (nat04:KnowledgeNode {id: '11111111-0000-0000-0000-000000000004'})
+SET nat04 += {title: 'The Wood Wide Web: How Trees Talk Through Fungi',
+              domain: 'nature', age_group: 'all', difficulty: 3, curiosity_score: 10, is_published: true};
+MERGE (nat05:KnowledgeNode {id: '11111111-0000-0000-0000-000000000005'})
+SET nat05 += {title: 'Tardigrades: The Indestructible Animal',
+              domain: 'nature', age_group: 'all', difficulty: 2, curiosity_score: 10, is_published: true};
+MERGE (nat06:KnowledgeNode {id: '11111111-0000-0000-0000-000000000006'})
+SET nat06 += {title: 'Pistol Shrimp: The Animal That Shoots Hotter Than the Sun',
+              domain: 'nature', age_group: 'all', difficulty: 3, curiosity_score: 10, is_published: true};
+MERGE (nat07:KnowledgeNode {id: '11111111-0000-0000-0000-000000000007'})
+SET nat07 += {title: 'Elephants: Giants with Grief, Joy, and 60-Year Memories',
+              domain: 'nature', age_group: 'all', difficulty: 2, curiosity_score: 8, is_published: true};
+MERGE (nat08:KnowledgeNode {id: '11111111-0000-0000-0000-000000000008'})
+SET nat08 += {title: 'Coral Bleaching: Why Reefs Turn White and Die',
+              domain: 'nature', age_group: 'all', difficulty: 2, curiosity_score: 8, is_published: true};
+MERGE (nat09:KnowledgeNode {id: '11111111-0000-0000-0000-000000000009'})
+SET nat09 += {title: 'Birdsong: How Birds Learn Music Like Children Learn Language',
+              domain: 'nature', age_group: 'all', difficulty: 2, curiosity_score: 7, is_published: true};
+MERGE (nat10:KnowledgeNode {id: '11111111-0000-0000-0000-000000000010'})
+SET nat10 += {title: 'The Nitrogen Cycle: The Invisible Process That Feeds the World',
+              domain: 'nature', age_group: 'all', difficulty: 3, curiosity_score: 7, is_published: true};
+
+// ── HISTORY (V6) — IDs: 55555555-0000-0000-0000-00000000000{1..7} ─────────────
+
+MERGE (his01:KnowledgeNode {id: '55555555-0000-0000-0000-000000000001'})
+SET his01 += {title: 'Marie Curie: The Scientist Who Died for Her Discoveries',
+              domain: 'history', age_group: 'all', difficulty: 2, curiosity_score: 9, is_published: true};
+MERGE (his02:KnowledgeNode {id: '55555555-0000-0000-0000-000000000002'})
+SET his02 += {title: 'Ada Lovelace: The First Programmer — 100 Years Before Computers Existed',
+              domain: 'history', age_group: 'all', difficulty: 3, curiosity_score: 9, is_published: true};
+MERGE (his03:KnowledgeNode {id: '55555555-0000-0000-0000-000000000003'})
+SET his03 += {title: 'Alan Turing: The Man Who Saved Millions and Was Destroyed by His Country',
+              domain: 'history', age_group: 'all', difficulty: 3, curiosity_score: 10, is_published: true};
+MERGE (his04:KnowledgeNode {id: '55555555-0000-0000-0000-000000000004'})
+SET his04 += {title: 'Cleopatra: The Scholar-Queen History Turned Into a Symbol',
+              domain: 'history', age_group: 'all', difficulty: 2, curiosity_score: 8, is_published: true};
+MERGE (his05:KnowledgeNode {id: '55555555-0000-0000-0000-000000000005'})
+SET his05 += {title: 'Nikola Tesla: The Architect of the Modern Electrical World',
+              domain: 'history', age_group: 'all', difficulty: 2, curiosity_score: 8, is_published: true};
+MERGE (his06:KnowledgeNode {id: '55555555-0000-0000-0000-000000000006'})
+SET his06 += {title: 'Genghis Khan: The Conqueror Who Accidentally Globalized the World',
+              domain: 'history', age_group: 'all', difficulty: 3, curiosity_score: 9, is_published: true};
+MERGE (his07:KnowledgeNode {id: '55555555-0000-0000-0000-000000000007'})
+SET his07 += {title: 'Leonardo da Vinci: The Man Whose Notebooks Were 500 Years Ahead',
+              domain: 'history', age_group: 'all', difficulty: 2, curiosity_score: 8, is_published: true};
+
+// ── TECHNOLOGY (V7) — IDs: 22222222-0000-0000-0000-00000000000{1..7} ──────────
+
+MERGE (tec01:KnowledgeNode {id: '22222222-0000-0000-0000-000000000001'})
+SET tec01 += {title: 'How GPS Actually Works: Satellites and the Speed of Light',
+              domain: 'technology', age_group: 'all', difficulty: 3, curiosity_score: 9, is_published: true};
+MERGE (tec02:KnowledgeNode {id: '22222222-0000-0000-0000-000000000002'})
+SET tec02 += {title: 'How the Internet Actually Works: Packets, Routing, and TCP/IP',
+              domain: 'technology', age_group: 'all', difficulty: 3, curiosity_score: 9, is_published: true};
+MERGE (tec03:KnowledgeNode {id: '22222222-0000-0000-0000-000000000003'})
+SET tec03 += {title: 'Encryption: How HTTPS Keeps Your Passwords Secret',
+              domain: 'technology', age_group: 'all', difficulty: 3, curiosity_score: 9, is_published: true};
+MERGE (tec04:KnowledgeNode {id: '22222222-0000-0000-0000-000000000004'})
+SET tec04 += {title: 'How LLMs Work: Predicting the Next Word at Massive Scale',
+              domain: 'technology', age_group: 'all', difficulty: 4, curiosity_score: 10, is_published: true};
+MERGE (tec05:KnowledgeNode {id: '22222222-0000-0000-0000-000000000005'})
+SET tec05 += {title: 'Moore''s Law: Why Computers Double in Power Every Two Years',
+              domain: 'technology', age_group: 'all', difficulty: 3, curiosity_score: 8, is_published: true};
+MERGE (tec06:KnowledgeNode {id: '22222222-0000-0000-0000-000000000006'})
+SET tec06 += {title: 'The Algorithm Behind Your Feed: Recommendation Systems',
+              domain: 'technology', age_group: 'all', difficulty: 2, curiosity_score: 9, is_published: true};
+MERGE (tec07:KnowledgeNode {id: '22222222-0000-0000-0000-000000000007'})
+SET tec07 += {title: 'CRISPR: How Scientists Learned to Edit the Code of Life',
+              domain: 'technology', age_group: 'all', difficulty: 3, curiosity_score: 10, is_published: true};
+
+// ── CREATIVE (V8) — IDs: 44444444-0000-0000-0000-00000000000{1..6} ───────────
+
+MERGE (cre01:KnowledgeNode {id: '44444444-0000-0000-0000-000000000001'})
+SET cre01 += {title: 'Jazz Improvisation: How Musicians Compose in Real Time',
+              domain: 'creative', age_group: 'all', difficulty: 2, curiosity_score: 9, is_published: true};
+MERGE (cre02:KnowledgeNode {id: '44444444-0000-0000-0000-000000000002'})
+SET cre02 += {title: 'The Science of Color: Why Colors Don''t Exist Outside Your Brain',
+              domain: 'creative', age_group: 'all', difficulty: 3, curiosity_score: 10, is_published: true};
+MERGE (cre03:KnowledgeNode {id: '44444444-0000-0000-0000-000000000003'})
+SET cre03 += {title: 'Shakespeare''s Language: How He Invented Words We Still Use Daily',
+              domain: 'creative', age_group: 'all', difficulty: 2, curiosity_score: 8, is_published: true};
+MERGE (cre04:KnowledgeNode {id: '44444444-0000-0000-0000-000000000004'})
+SET cre04 += {title: 'Architecture of Cathedrals: Engineering Miracles Built Without Computers',
+              domain: 'creative', age_group: 'all', difficulty: 3, curiosity_score: 9, is_published: true};
+MERGE (cre05:KnowledgeNode {id: '44444444-0000-0000-0000-000000000005'})
+SET cre05 += {title: 'The Psychology of Music: Why Minor Keys Make You Sad',
+              domain: 'creative', age_group: 'all', difficulty: 2, curiosity_score: 8, is_published: true};
+MERGE (cre06:KnowledgeNode {id: '44444444-0000-0000-0000-000000000006'})
+SET cre06 += {title: 'The Golden Ratio: The Math That Appears in Art, Nature, and Architecture',
+              domain: 'creative', age_group: 'all', difficulty: 3, curiosity_score: 8, is_published: true};
+
+
+// =============================================================================
+// V5–V8 RELATIONSHIPS
+// =============================================================================
+
+// ── BELONGS_TO Domain (bulk — covers all 30 new nodes) ───────────────────────
+MATCH (n:KnowledgeNode), (d:Domain) WHERE n.domain = d.name MERGE (n)-[:BELONGS_TO]->(d);
+
+// ── NATURE LEADS_TO chain ─────────────────────────────────────────────────────
+// Photosynthesis → Wood Wide Web (both about how plants work)
+MATCH (a:KnowledgeNode {id: '11111111-0000-0000-0000-000000000001'}),
+      (b:KnowledgeNode {id: '11111111-0000-0000-0000-000000000004'})
+MERGE (a)-[:LEADS_TO {weight: 0.90, relation_vi: 'Thực vật còn làm được nhiều hơn thế'}]->(b);
+
+// Wood Wide Web → Tardigrades (both: life is more resilient than you think)
+MATCH (a:KnowledgeNode {id: '11111111-0000-0000-0000-000000000004'}),
+      (b:KnowledgeNode {id: '11111111-0000-0000-0000-000000000005'})
+MERGE (a)-[:LEADS_TO {weight: 0.80, relation_vi: 'Sự sống phi thường khác'}]->(b);
+
+// Bioluminescence → Pistol Shrimp (both: deep ocean physics surprises)
+MATCH (a:KnowledgeNode {id: '11111111-0000-0000-0000-000000000003'}),
+      (b:KnowledgeNode {id: '11111111-0000-0000-0000-000000000006'})
+MERGE (a)-[:LEADS_TO {weight: 0.85, relation_vi: 'Vũ khí vật lý khác của đại dương'}]->(b);
+
+// Monarch butterflies → Elephant memory (both: animal intelligence surprises)
+MATCH (a:KnowledgeNode {id: '11111111-0000-0000-0000-000000000002'}),
+      (b:KnowledgeNode {id: '11111111-0000-0000-0000-000000000007'})
+MERGE (a)-[:LEADS_TO {weight: 0.75, relation_vi: 'Trí tuệ bẩm sinh của động vật'}]->(b);
+
+// Coral Bleaching → Nitrogen Cycle (both: ecosystem-level processes)
+MATCH (a:KnowledgeNode {id: '11111111-0000-0000-0000-000000000008'}),
+      (b:KnowledgeNode {id: '11111111-0000-0000-0000-000000000010'})
+MERGE (a)-[:LEADS_TO {weight: 0.70, relation_vi: 'Chu trình vô hình khác của tự nhiên'}]->(b);
+
+// Birdsong → Elephant memory (both: animal learning & culture)
+MATCH (a:KnowledgeNode {id: '11111111-0000-0000-0000-000000000009'}),
+      (b:KnowledgeNode {id: '11111111-0000-0000-0000-000000000007'})
+MERGE (a)-[:LEADS_TO {weight: 0.80, relation_vi: 'Trí nhớ và văn hóa động vật'}]->(b);
+
+// ── HISTORY LEADS_TO chain ────────────────────────────────────────────────────
+// Ada Lovelace → Alan Turing (direct historical lineage: computing)
+MATCH (a:KnowledgeNode {id: '55555555-0000-0000-0000-000000000002'}),
+      (b:KnowledgeNode {id: '55555555-0000-0000-0000-000000000003'})
+MERGE (a)-[:LEADS_TO {weight: 0.95, relation_vi: 'Người kế thừa ý tưởng lập trình'}]->(b);
+
+// Marie Curie → Nikola Tesla (both: genius vs. institutional resistance)
+MATCH (a:KnowledgeNode {id: '55555555-0000-0000-0000-000000000001'}),
+      (b:KnowledgeNode {id: '55555555-0000-0000-0000-000000000005'})
+MERGE (a)-[:LEADS_TO {weight: 0.80, relation_vi: 'Thiên tài bị hệ thống cản trở'}]->(b);
+
+// Cleopatra → Genghis Khan (both: power, strategy, and historical misrepresentation)
+MATCH (a:KnowledgeNode {id: '55555555-0000-0000-0000-000000000004'}),
+      (b:KnowledgeNode {id: '55555555-0000-0000-0000-000000000006'})
+MERGE (a)-[:LEADS_TO {weight: 0.75, relation_vi: 'Lịch sử viết bởi kẻ chiến thắng'}]->(b);
+
+// Leonardo da Vinci → Ada Lovelace (both: imagined technology before it existed)
+MATCH (a:KnowledgeNode {id: '55555555-0000-0000-0000-000000000007'}),
+      (b:KnowledgeNode {id: '55555555-0000-0000-0000-000000000002'})
+MERGE (a)-[:LEADS_TO {weight: 0.85, relation_vi: 'Tầm nhìn vượt thời đại'}]->(b);
+
+// ── TECHNOLOGY LEADS_TO chain ─────────────────────────────────────────────────
+// Internet → Encryption (packets flow, encryption protects them)
+MATCH (a:KnowledgeNode {id: '22222222-0000-0000-0000-000000000002'}),
+      (b:KnowledgeNode {id: '22222222-0000-0000-0000-000000000003'})
+MERGE (a)-[:LEADS_TO {weight: 0.90, relation_vi: 'Bảo mật lớp trên của mạng'}]->(b);
+
+// GPS → Moore's Law (both: physics constraints on computation)
+MATCH (a:KnowledgeNode {id: '22222222-0000-0000-0000-000000000001'}),
+      (b:KnowledgeNode {id: '22222222-0000-0000-0000-000000000005'})
+MERGE (a)-[:LEADS_TO {weight: 0.70, relation_vi: 'Giới hạn vật lý của công nghệ'}]->(b);
+
+// LLMs → Recommendation Algorithms (both: ML optimizing for a metric)
+MATCH (a:KnowledgeNode {id: '22222222-0000-0000-0000-000000000004'}),
+      (b:KnowledgeNode {id: '22222222-0000-0000-0000-000000000006'})
+MERGE (a)-[:LEADS_TO {weight: 0.85, relation_vi: 'AI tối ưu hóa cho mục tiêu'}]->(b);
+
+// CRISPR → LLMs (both: emergent capabilities from scale/optimization)
+MATCH (a:KnowledgeNode {id: '22222222-0000-0000-0000-000000000007'}),
+      (b:KnowledgeNode {id: '22222222-0000-0000-0000-000000000004'})
+MERGE (a)-[:LEADS_TO {weight: 0.75, relation_vi: 'Công nghệ thay đổi định nghĩa sự sống'}]->(b);
+
+// ── CREATIVE LEADS_TO chain ───────────────────────────────────────────────────
+// Color science → Golden Ratio (both: perception vs. reality in art)
+MATCH (a:KnowledgeNode {id: '44444444-0000-0000-0000-000000000002'}),
+      (b:KnowledgeNode {id: '44444444-0000-0000-0000-000000000006'})
+MERGE (a)-[:LEADS_TO {weight: 0.85, relation_vi: 'Nhận thức trong nghệ thuật'}]->(b);
+
+// Jazz → Psychology of Music (flow state → emotional response)
+MATCH (a:KnowledgeNode {id: '44444444-0000-0000-0000-000000000001'}),
+      (b:KnowledgeNode {id: '44444444-0000-0000-0000-000000000005'})
+MERGE (a)-[:LEADS_TO {weight: 0.90, relation_vi: 'Tại sao âm nhạc tác động đến cảm xúc'}]->(b);
+
+// Shakespeare → Cathedral architecture (both: human creativity without modern tools)
+MATCH (a:KnowledgeNode {id: '44444444-0000-0000-0000-000000000003'}),
+      (b:KnowledgeNode {id: '44444444-0000-0000-0000-000000000004'})
+MERGE (a)-[:LEADS_TO {weight: 0.70, relation_vi: 'Sáng tạo thời trung cổ'}]->(b);
+
+// ── CROSS_DOMAIN — liên kết liên ngành bất ngờ ───────────────────────────────
+// Ada Lovelace (history) ↔ LLMs (technology): conceptual lineage of computing
+MATCH (a:KnowledgeNode {id: '55555555-0000-0000-0000-000000000002'}),
+      (b:KnowledgeNode {id: '22222222-0000-0000-0000-000000000004'})
+MERGE (a)-[:CROSS_DOMAIN {surprise_factor: 0.95,
+  concept: 'computing_origins',
+  insight_vi: 'Ada tưởng tượng LLM 180 năm trước khi nó được tạo ra'}]->(b);
+
+// Alan Turing (history) ↔ Encryption (technology): Turing's direct legacy
+MATCH (a:KnowledgeNode {id: '55555555-0000-0000-0000-000000000003'}),
+      (b:KnowledgeNode {id: '22222222-0000-0000-0000-000000000003'})
+MERGE (a)-[:CROSS_DOMAIN {surprise_factor: 0.90,
+  concept: 'cryptography',
+  insight_vi: 'Turing phá mã Enigma — cha đẻ của mật mã học hiện đại'}]->(b);
+
+// Nitrogen Cycle (nature) ↔ CRISPR (technology): both rewrite "the code of life"
+MATCH (a:KnowledgeNode {id: '11111111-0000-0000-0000-000000000010'}),
+      (b:KnowledgeNode {id: '22222222-0000-0000-0000-000000000007'})
+MERGE (a)-[:CROSS_DOMAIN {surprise_factor: 0.85,
+  concept: 'life_chemistry',
+  insight_vi: 'Vi khuẩn cố định N₂ và vi khuẩn tạo CRISPR: đều là công cụ tự nhiên con người mượn'}]->(b);
+
+// Golden Ratio (creative) ↔ Photosynthesis (nature): math in nature
+MATCH (a:KnowledgeNode {id: '44444444-0000-0000-0000-000000000006'}),
+      (b:KnowledgeNode {id: '11111111-0000-0000-0000-000000000001'})
+MERGE (a)-[:CROSS_DOMAIN {surprise_factor: 0.80,
+  concept: 'natural_pattern',
+  insight_vi: 'Fibonacci trong hoa hướng dương và hiệu quả đóng gói — toán học và tự nhiên là một'}]->(b);
+
+// Color science (creative) ↔ Bioluminescence (nature): light perception
+MATCH (a:KnowledgeNode {id: '44444444-0000-0000-0000-000000000002'}),
+      (b:KnowledgeNode {id: '11111111-0000-0000-0000-000000000003'})
+MERGE (a)-[:CROSS_DOMAIN {surprise_factor: 0.88,
+  concept: 'light_perception',
+  insight_vi: 'Ánh sáng không có màu — từ đại dương sâu đến não người'}]->(b);
+
+// Psychology of Music (creative) ↔ Birdsong (nature): cultural transmission
+MATCH (a:KnowledgeNode {id: '44444444-0000-0000-0000-000000000005'}),
+      (b:KnowledgeNode {id: '11111111-0000-0000-0000-000000000009'})
+MERGE (a)-[:CROSS_DOMAIN {surprise_factor: 0.85,
+  concept: 'cultural_sound',
+  insight_vi: 'Chim và người đều học âm nhạc qua văn hóa, không phải bản năng thuần túy'}]->(b);
+
+// Marie Curie (history) ↔ CRISPR (technology): science that changes everything at personal cost
+MATCH (a:KnowledgeNode {id: '55555555-0000-0000-0000-000000000001'}),
+      (b:KnowledgeNode {id: '22222222-0000-0000-0000-000000000007'})
+MERGE (a)-[:CROSS_DOMAIN {surprise_factor: 0.78,
+  concept: 'science_ethics',
+  insight_vi: 'Khoa học thay đổi thế giới đôi khi phá hủy người tạo ra nó'}]->(b);
+
+// ── DEEP_DIVE — cùng chủ đề, sâu hơn ────────────────────────────────────────
+// Photosynthesis → Wood Wide Web (deeper: plants network, not just photosynthesize)
+MATCH (a:KnowledgeNode {id: '11111111-0000-0000-0000-000000000001'}),
+      (b:KnowledgeNode {id: '11111111-0000-0000-0000-000000000004'})
+MERGE (a)-[:DEEP_DIVE {depth_level: 1}]->(b);
+
+// Internet → Encryption (deeper: what travels over those packets)
+MATCH (a:KnowledgeNode {id: '22222222-0000-0000-0000-000000000002'}),
+      (b:KnowledgeNode {id: '22222222-0000-0000-0000-000000000003'})
+MERGE (a)-[:DEEP_DIVE {depth_level: 1}]->(b);
+
+// Ada Lovelace → Alan Turing (deeper: from first program to first computer)
+MATCH (a:KnowledgeNode {id: '55555555-0000-0000-0000-000000000002'}),
+      (b:KnowledgeNode {id: '55555555-0000-0000-0000-000000000003'})
+MERGE (a)-[:DEEP_DIVE {depth_level: 1}]->(b);
+
+// Jazz → Psychology of Music (deeper: from performance to brain science)
+MATCH (a:KnowledgeNode {id: '44444444-0000-0000-0000-000000000001'}),
+      (b:KnowledgeNode {id: '44444444-0000-0000-0000-000000000005'})
+MERGE (a)-[:DEEP_DIVE {depth_level: 1}]->(b);
+
+// Moore's Law → LLMs (deeper: the hardware that made AI possible)
+MATCH (a:KnowledgeNode {id: '22222222-0000-0000-0000-000000000005'}),
+      (b:KnowledgeNode {id: '22222222-0000-0000-0000-000000000004'})
+MERGE (a)-[:DEEP_DIVE {depth_level: 2}]->(b);

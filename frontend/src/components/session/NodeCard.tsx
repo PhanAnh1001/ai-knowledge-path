@@ -22,8 +22,8 @@ export function NodeCard({ node }: NodeCardProps) {
 
   const mutation = useMutation({
     mutationFn: () => startSession({ nodeId: node.id }),
-    onSuccess: (session) => {
-      navigate(`/session/${session.sessionId}`)
+    onSuccess: (data) => {
+      navigate(`/session/${data.sessionId}`, { state: { node: data.node } })
     },
   })
 
@@ -48,8 +48,12 @@ export function NodeCard({ node }: NodeCardProps) {
 
       <h3 className="font-semibold text-gray-900 leading-snug">{node.title}</h3>
 
-      <div className="flex items-center gap-1 text-xs text-gray-500">
-        <span>✨ Curiosity {node.curiosityScore}/10</span>
+      {node.hook && (
+        <p className="text-sm text-gray-500 leading-relaxed line-clamp-2">{node.hook}</p>
+      )}
+
+      <div className="flex items-center gap-1 text-xs text-gray-400">
+        <span>✨ {node.curiosityScore}/10</span>
       </div>
 
       <Button

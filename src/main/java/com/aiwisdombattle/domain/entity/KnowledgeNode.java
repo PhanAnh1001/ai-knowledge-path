@@ -54,6 +54,26 @@ public class KnowledgeNode {
     @Builder.Default
     private boolean published = false;
 
+    /** ② YOUR GUESS — câu hỏi để người dùng đoán trước khi xem lời giải */
+    @Column(name = "guess_prompt", columnDefinition = "TEXT")
+    private String guessPrompt;
+
+    /** ③ THE JOURNEY — mảng 3–4 insights dạng JSON: [{step, text}] */
+    @Column(name = "journey_steps", columnDefinition = "JSONB")
+    private String journeySteps;
+
+    /** ④ THE REVEAL — đối chiếu dự đoán với câu trả lời thật */
+    @Column(name = "reveal_text", columnDefinition = "TEXT")
+    private String revealText;
+
+    /** ⑤ TEACH IT BACK — prompt Feynman Technique: giải thích lại cho nhân vật ảo */
+    @Column(name = "teach_back_prompt", columnDefinition = "TEXT")
+    private String teachBackPrompt;
+
+    /** ⑥ THE PAYOFF — insight "wow" kết thúc session, mở cửa cho hành trình tiếp theo */
+    @Column(name = "payoff_insight", columnDefinition = "TEXT")
+    private String payoffInsight;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     @Builder.Default
     private Instant createdAt = Instant.now();
