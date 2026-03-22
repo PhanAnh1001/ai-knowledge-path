@@ -37,6 +37,28 @@ export interface KnowledgeNode {
   difficulty: number
   curiosityScore: number
   published: boolean
+  hook?: string
+}
+
+export interface JourneyStep {
+  step: number
+  text: string
+}
+
+/** Full node content returned inside SessionStartResponse */
+export interface SessionNodeContent {
+  id: string
+  title: string
+  domain: string
+  ageGroup: string
+  difficulty: number
+  curiosityScore: number
+  hook: string
+  guessPrompt: string
+  journeySteps: string   // JSON string: JourneyStep[]
+  revealText: string
+  teachBackPrompt: string
+  payoffInsight: string
 }
 
 export interface NodeMap {
@@ -56,6 +78,11 @@ export interface Session {
   nodeTitle: string
   status: SessionStatus
   startedAt: string
+}
+
+export interface SessionStartResponse {
+  sessionId: string
+  node: SessionNodeContent
 }
 
 export interface StartSessionRequest {

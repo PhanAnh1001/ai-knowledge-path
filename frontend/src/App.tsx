@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { LoginPage } from '@/pages/LoginPage'
-import { RegisterPage } from '@/pages/RegisterPage'
+import { OnboardingPage } from '@/pages/OnboardingPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { SessionPage } from '@/pages/SessionPage'
 import { useAuthStore } from '@/store/authStore'
@@ -39,7 +39,7 @@ export default function App() {
             path="/register"
             element={
               <PublicRoute>
-                <RegisterPage />
+                <OnboardingPage />
               </PublicRoute>
             }
           />

@@ -2,12 +2,12 @@ import { apiClient } from './client'
 import type {
   CompleteSessionRequest,
   CompleteSessionResponse,
-  Session,
+  SessionStartResponse,
   StartSessionRequest,
 } from '@/types'
 
-export async function startSession(data: StartSessionRequest): Promise<Session> {
-  const res = await apiClient.post<Session>('/sessions', data)
+export async function startSession(data: StartSessionRequest): Promise<SessionStartResponse> {
+  const res = await apiClient.post<SessionStartResponse>('/sessions', data)
   return res.data
 }
 
