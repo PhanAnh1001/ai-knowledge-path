@@ -97,20 +97,18 @@ public class AuthService {
     public AuthResponse refreshAccessToken(RefreshTokenRequest request) {
         String refreshToken = request.getRefreshToken();
 
-        if (!tokenProvider.isValid(refreshToken) || !tokenProvider.isRefreshToken(refreshToken)) {
+        if (!tokenProvider.isValidRefreshToken(refreshToken)) {
             throw new InvalidCredentialsException();
         }
 
-        String userIdStr = tokenProvider.extractUserId(refreshToken);
-        UUID userId = UUID.fromString(userIdStr);
+        UUID userId = UUID.fromString(tokenProvider.extractUserId(refreshToken));
 
-        User user = userRepository.findById(userId)
-            .orElseThrow(InvalidCredentialsException::new);
-
-        String newAccessToken = tokenProvider.generate(user.getId());
+        if (!userRepository.existsById(userId)) {
+            throw new InvalidCredentialsException();
+        }
 
         return AuthResponse.builder()
-            .accessToken(newAccessToken)
+            .accessToken(tokenProvider.generate(userId))
             .expiresIn(jwtExpirationMs)
             .build();
     }

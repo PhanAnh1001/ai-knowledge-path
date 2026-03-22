@@ -162,40 +162,40 @@ class AuthServiceTest {
         RefreshTokenRequest req = new RefreshTokenRequest();
         ReflectionTestUtils.setField(req, "refreshToken", refreshTokenStr);
 
-        when(tokenProvider.isValid(refreshTokenStr)).thenReturn(true);
-        when(tokenProvider.isRefreshToken(refreshTokenStr)).thenReturn(true);
+        when(tokenProvider.isValidRefreshToken(refreshTokenStr)).thenReturn(true);
         when(tokenProvider.extractUserId(refreshTokenStr)).thenReturn(existingUser.getId().toString());
-        when(userRepository.findById(existingUser.getId())).thenReturn(Optional.of(existingUser));
+        when(userRepository.existsById(existingUser.getId())).thenReturn(true);
         when(tokenProvider.generate(existingUser.getId())).thenReturn("new.access.token");
 
         AuthResponse response = authService.refreshAccessToken(req);
 
         assertThat(response.getAccessToken()).isEqualTo("new.access.token");
-        assertThat(response.getRefreshToken()).isNull();  // không trả refresh token mới
+        assertThat(response.getRefreshToken()).isNull();
     }
 
     @Test
-    void refreshAccessToken_throws_whenTokenIsInvalid() {
-        String badToken = "expired.or.malformed";
+    void refreshAccessToken_throws_whenTokenIsInvalidOrWrongType() {
+        String badToken = "expired.or.access.type.token";
         RefreshTokenRequest req = new RefreshTokenRequest();
         ReflectionTestUtils.setField(req, "refreshToken", badToken);
 
-        when(tokenProvider.isValid(badToken)).thenReturn(false);
+        when(tokenProvider.isValidRefreshToken(badToken)).thenReturn(false);
 
         assertThatThrownBy(() -> authService.refreshAccessToken(req))
             .isInstanceOf(InvalidCredentialsException.class);
 
-        verify(userRepository, never()).findById(any());
+        verify(userRepository, never()).existsById(any());
     }
 
     @Test
-    void refreshAccessToken_throws_whenTokenIsAccessToken() {
-        String accessToken = "valid.but.access.type";
+    void refreshAccessToken_throws_whenUserNoLongerExists() {
+        String refreshTokenStr = "valid.refresh.token";
         RefreshTokenRequest req = new RefreshTokenRequest();
-        ReflectionTestUtils.setField(req, "refreshToken", accessToken);
+        ReflectionTestUtils.setField(req, "refreshToken", refreshTokenStr);
 
-        when(tokenProvider.isValid(accessToken)).thenReturn(true);
-        when(tokenProvider.isRefreshToken(accessToken)).thenReturn(false);  // type=access
+        when(tokenProvider.isValidRefreshToken(refreshTokenStr)).thenReturn(true);
+        when(tokenProvider.extractUserId(refreshTokenStr)).thenReturn(existingUser.getId().toString());
+        when(userRepository.existsById(existingUser.getId())).thenReturn(false);
 
         assertThatThrownBy(() -> authService.refreshAccessToken(req))
             .isInstanceOf(InvalidCredentialsException.class);

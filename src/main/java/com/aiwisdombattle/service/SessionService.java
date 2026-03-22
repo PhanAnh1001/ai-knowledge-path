@@ -112,18 +112,18 @@ public class SessionService {
      * Nếu engine không phản hồi, fallback về interval 1 ngày.
      */
     private void updateSpacedRepetition(UUID userId, KnowledgeNode node, double adaptiveScore) {
-        int quality = (int) Math.round(adaptiveScore / 100.0 * 5);
-        quality = Math.max(0, Math.min(5, quality));
+        int quality = Math.max(0, Math.min(5, (int) Math.round(adaptiveScore / 100.0 * 5)));
 
+        UUID nodeId = node.getId();
         UserNodeProgress progress = progressRepository
-            .findByUserIdAndNodeId(userId, node.getId())
+            .findByUserIdAndNodeId(userId, nodeId)
             .orElseGet(() -> UserNodeProgress.builder()
                 .userId(userId)
-                .nodeId(node.getId())
+                .nodeId(nodeId)
                 .build());
 
         SpacedRepetitionResponse sm2 = adaptiveEngineClient.computeNextReview(
-            node.getId().toString(),
+            nodeId.toString(),
             quality,
             progress.getSm2Interval(),
             progress.getSm2Easiness(),
@@ -136,9 +136,8 @@ public class SessionService {
             progress.setSm2Interval(sm2.nextInterval());
             progress.setNextReviewDate(LocalDate.parse(sm2.nextReviewDate()));
         } else {
-            // Fallback: ôn lại sau 1 ngày nếu engine không phản hồi
             progress.setNextReviewDate(LocalDate.now().plusDays(1));
-            log.warn("SM-2 fallback for user={} node={}", userId, node.getId());
+            log.warn("SM-2 fallback for user={} node={}", userId, nodeId);
         }
 
         progress.setLastReviewedAt(Instant.now());

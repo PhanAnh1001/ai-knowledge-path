@@ -64,6 +64,21 @@ public class JwtTokenProvider {
         }
     }
 
+    /**
+     * Kết hợp kiểm tra hợp lệ và loại token trong một lần parse.
+     * Dùng thay cho gọi riêng isValid() + isRefreshToken().
+     *
+     * @return true nếu token hợp lệ VÀ có type=refresh
+     */
+    public boolean isValidRefreshToken(String token) {
+        try {
+            Claims claims = parseClaims(token);
+            return TYPE_REFRESH.equals(claims.get(CLAIM_TOKEN_TYPE, String.class));
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
     private String buildToken(UUID userId, String type, long ttlMs) {
         Date now = new Date();
         return Jwts.builder()
