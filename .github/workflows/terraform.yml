@@ -34,6 +34,10 @@ jobs:
     name: Terraform ${{ github.event.inputs.action }}
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read   # checkout code
+      actions: read    # listArtifactsForRepo API (bước check-state)
+
     defaults:
       run:
         working-directory: infra/oracle
