@@ -2,6 +2,7 @@ package com.aiwisdombattle.service;
 
 import com.aiwisdombattle.config.CacheConfig;
 import com.aiwisdombattle.domain.entity.KnowledgeNode;
+import com.aiwisdombattle.exception.ResourceNotFoundException;
 import com.aiwisdombattle.repository.KnowledgeNodeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
@@ -38,6 +39,12 @@ public class KnowledgeNodeService {
     @CacheEvict(value = {CacheConfig.NODES_BY_DOMAIN, CacheConfig.ALL_NODES}, allEntries = true)
     public void evictNodeCaches() {
         // triggered externally when nodes are published/unpublished
+    }
+
+    /** Lấy một node theo ID — ném ResourceNotFoundException nếu không tìm thấy. */
+    public KnowledgeNode getById(UUID nodeId) {
+        return nodeRepository.findById(nodeId)
+            .orElseThrow(() -> ResourceNotFoundException.of("Node", nodeId));
     }
 
     /** Lọc bỏ những node đã học — áp dụng sau khi lấy từ cache. */

@@ -1,9 +1,9 @@
 package com.aiwisdombattle.controller;
 
-import com.aiwisdombattle.domain.entity.Session;
 import com.aiwisdombattle.dto.request.CompleteSessionRequest;
 import com.aiwisdombattle.dto.request.StartSessionRequest;
 import com.aiwisdombattle.dto.response.SessionCompleteResponse;
+import com.aiwisdombattle.dto.response.SessionStartResponse;
 import com.aiwisdombattle.service.SessionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -29,17 +29,16 @@ public class SessionController {
 
     @Operation(summary = "Bắt đầu session học mới",
         responses = {
-            @ApiResponse(responseCode = "200", description = "Session được tạo hoặc trả về session đang diễn ra"),
+            @ApiResponse(responseCode = "200", description = "Trả về sessionId + nội dung 6 giai đoạn của node"),
             @ApiResponse(responseCode = "404", description = "User hoặc node không tồn tại")
         })
     @PostMapping
-    public ResponseEntity<Session> start(
+    public ResponseEntity<SessionStartResponse> start(
         @AuthenticationPrincipal UserDetails principal,
         @Valid @RequestBody StartSessionRequest request
     ) {
         UUID userId = UUID.fromString(principal.getUsername());
-        Session session = sessionService.startSession(userId, request.getNodeId());
-        return ResponseEntity.ok(session);
+        return ResponseEntity.ok(sessionService.startSession(userId, request.getNodeId()));
     }
 
     @Operation(summary = "Hoàn thành session và nhận gợi ý node tiếp theo",

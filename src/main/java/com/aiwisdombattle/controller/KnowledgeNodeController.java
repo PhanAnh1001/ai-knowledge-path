@@ -2,6 +2,7 @@ package com.aiwisdombattle.controller;
 
 import com.aiwisdombattle.domain.entity.KnowledgeNode;
 import com.aiwisdombattle.domain.model.KnowledgeNodeGraph;
+import com.aiwisdombattle.dto.response.KnowledgeNodeResponse;
 import com.aiwisdombattle.repository.KnowledgeNodeGraphRepository;
 import com.aiwisdombattle.repository.SessionRepository;
 import com.aiwisdombattle.service.KnowledgeNodeService;
@@ -42,6 +43,12 @@ public class KnowledgeNodeController {
             : nodeService.getAllPublished();
 
         return ResponseEntity.ok(nodeService.filterUnseen(published, seenIds));
+    }
+
+    @Operation(summary = "Nội dung đầy đủ 6 giai đoạn của một node")
+    @GetMapping("/{nodeId}")
+    public ResponseEntity<KnowledgeNodeResponse> getNode(@PathVariable UUID nodeId) {
+        return ResponseEntity.ok(KnowledgeNodeResponse.from(nodeService.getById(nodeId)));
     }
 
     @Operation(summary = "Subgraph xung quanh node để render knowledge map")
