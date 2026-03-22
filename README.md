@@ -14,6 +14,7 @@ Nền tảng học tập hướng tò mò — kích thích khám phá tri thức
 - [API](#api)
 - [Biến môi trường](#biến-môi-trường)
 - [Chạy test](#chạy-test)
+- [Deploy lên Oracle Cloud](#deploy-lên-oracle-cloud)
 - [Cấu trúc project](#cấu-trúc-project)
 - [Tài liệu kỹ thuật](#tài-liệu-kỹ-thuật)
 
@@ -269,6 +270,41 @@ pytest tests/     # Chỉ thư mục tests
 
 ---
 
+## Deploy lên Oracle Cloud
+
+Hạ tầng được quản lý bằng Terraform và có thể chạy hoàn toàn qua **GitHub Actions** — không cần cài gì trên máy.
+
+### Quy trình 3 bước
+
+```
+1. Cấu hình secrets  →  2. Terraform apply  →  3. CD tự động
+   (1 lần duy nhất)        (tạo Oracle VM)       (mỗi lần push master)
+```
+
+### Bước 1 — Cấu hình GitHub Secrets
+
+Xem hướng dẫn chi tiết từng bước lấy thông tin và paste vào GitHub tại:
+
+**[docs/GITHUB-SECRETS-SETUP.md](docs/GITHUB-SECRETS-SETUP.md)**
+
+Cần 7 secrets cho Terraform + 4 secrets cho CD deploy.
+
+### Bước 2 — Tạo VM bằng Terraform
+
+1. Vào tab **Actions** → **Terraform (Oracle Cloud)** → **Run workflow**
+2. Chọn `plan` để xem trước, sau đó `apply` để tạo VM
+3. Lấy Public IP từ log bước **Terraform Output**
+
+### Bước 3 — CI/CD tự động
+
+Sau khi VM đã có IP, mỗi lần push lên `master`:
+- **CI** build + test toàn bộ service
+- **Deploy** SSH vào VM rebuild + restart, đồng thời deploy frontend lên Cloudflare Pages
+
+Xem thêm: [docs/DEPLOY-TERRAFORM.md](docs/DEPLOY-TERRAFORM.md) | [docs/DEPLOY-ORACLE.md](docs/DEPLOY-ORACLE.md)
+
+---
+
 ## Cấu trúc project
 
 ```
@@ -290,9 +326,14 @@ ai-wisdom-battle/
 ├── adaptive-engine/              # Python FastAPI — tính toán độ khó thích nghi
 │   ├── app/
 │   └── tests/
+├── .github/
+│   └── workflows/
+│       ├── ci.yml                # Build + test
+│       ├── deploy.yml            # Deploy backend + frontend
+│       └── terraform.yml         # Quản lý hạ tầng Oracle Cloud
 ├── docs/                         # Tài liệu kỹ thuật
 ├── docker/                       # Docker helper scripts
-├── infra/                        # Infrastructure config
+├── infra/                        # Infrastructure config (Terraform)
 ├── scripts/                      # Utility scripts
 ├── pom.xml                       # Maven build descriptor
 ├── Dockerfile                    # Backend Docker image
@@ -314,4 +355,5 @@ ai-wisdom-battle/
 - [Hướng dẫn Deploy](docs/DEPLOY.md)
 - [Deploy Oracle Cloud](docs/DEPLOY-ORACLE.md)
 - [Deploy Terraform](docs/DEPLOY-TERRAFORM.md)
+- [Lấy GitHub Secrets (OCI)](docs/GITHUB-SECRETS-SETUP.md)
 - [AI Assistant Guide](CLAUDE.md)

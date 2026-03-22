@@ -42,7 +42,13 @@ ai-wisdom-battle/
 │   ├── PROJECT_LOG.md
 │   ├── DEPLOY.md
 │   ├── DEPLOY-ORACLE.md
-│   └── DEPLOY-TERRAFORM.md
+│   ├── DEPLOY-TERRAFORM.md
+│   └── GITHUB-SECRETS-SETUP.md
+├── .github/
+│   └── workflows/
+│       ├── ci.yml                # CI: build + test
+│       ├── deploy.yml            # CD: deploy backend lên Oracle VM, frontend lên Cloudflare
+│       └── terraform.yml         # Tạo/phá hạ tầng Oracle Cloud qua GitHub Actions
 ├── docker/                       # Docker helper scripts
 ├── infra/                        # Infrastructure config (Terraform, v.v.)
 ├── scripts/                      # Utility scripts
@@ -226,6 +232,37 @@ Các biến bắt buộc:
 - Mọi phản hồi của AI assistant phải bằng **tiếng Việt**
 - Mã nguồn, tên biến, comment trong code vẫn dùng tiếng Anh theo chuẩn Java/TS/Python
 - Tài liệu kỹ thuật (Javadoc) dùng tiếng Anh; giải thích nội bộ dùng tiếng Việt
+
+## CI/CD Workflows
+
+| Workflow | File | Trigger | Chức năng |
+|---|---|---|---|
+| CI | `.github/workflows/ci.yml` | Push / PR | Build + test toàn bộ service |
+| Deploy | `.github/workflows/deploy.yml` | CI pass trên `master` | Deploy backend (SSH) + frontend (Cloudflare Pages) |
+| Terraform | `.github/workflows/terraform.yml` | Manual (`workflow_dispatch`) | Tạo / plan / destroy hạ tầng Oracle Cloud |
+
+### GitHub Secrets cần thiết
+
+**Cho Deploy workflow:**
+
+| Secret | Mô tả |
+|---|---|
+| `ORACLE_VM_IP` | Public IP của Oracle VM |
+| `ORACLE_SSH_KEY` | Private key SSH (ed25519) để vào VM |
+| `CLOUDFLARE_API_TOKEN` | CF token quyền "Edit Cloudflare Pages" |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare Account ID |
+
+**Cho Terraform workflow** (xem hướng dẫn đầy đủ tại [`docs/GITHUB-SECRETS-SETUP.md`](docs/GITHUB-SECRETS-SETUP.md)):
+
+| Secret | Mô tả |
+|---|---|
+| `OCI_TENANCY_OCID` | OCID tenancy Oracle Cloud |
+| `OCI_USER_OCID` | OCID user API |
+| `OCI_FINGERPRINT` | Fingerprint API key |
+| `OCI_API_PRIVATE_KEY` | Nội dung file private key PEM |
+| `OCI_REGION` | Region OCI (vd: `ap-singapore-1`) |
+| `OCI_COMPARTMENT_OCID` | OCID compartment (= tenancy với root) |
+| `SSH_PUBLIC_KEY` | SSH public key để vào VM |
 
 ## Key Instructions for AI Assistants
 
