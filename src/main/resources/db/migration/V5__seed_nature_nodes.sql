@@ -1,11 +1,11 @@
 -- V5: Seed 10 Knowledge Nodes — Domain: NATURE
--- Mỗi node đủ 6 giai đoạn: hook, guess_prompt, journey_steps, reveal_text, teach_back_prompt, payoff_insight
+-- Shared values for all rows: domain='NATURE', age_group='all', is_published=TRUE
+-- 6 session phases per node: hook, guess_prompt, journey_steps (JSONB), reveal_text, teach_back_prompt, payoff_insight
 
 INSERT INTO knowledge_nodes (id, title, hook, domain, age_group, difficulty, curiosity_score, is_published,
                               guess_prompt, journey_steps, reveal_text, teach_back_prompt, payoff_insight)
 VALUES
-
--- 1. Photosynthesis
+-- IDs: 11111111-0000-0000-0000-00000000000{1..10}
 ('11111111-0000-0000-0000-000000000001',
  'Photosynthesis: How Plants Make Food from Light',
  'Plants sit in sunlight all day — but they''re not just sunbathing. They''re running a chemical factory that feeds almost every living thing on Earth.',
@@ -21,7 +21,6 @@ VALUES
  'Imagine explaining this to a curious 8-year-old: "Plants eat sunlight. How does light become a cookie?" Walk through it step by step.',
  'Every calorie you''ve ever eaten traces back to a plant capturing sunlight. You are, quite literally, made of stored light.'),
 
--- 2. Migration of Monarch Butterflies
 ('11111111-0000-0000-0000-000000000002',
  'Monarch Butterflies: A 4,500 km Journey with No GPS',
  'A butterfly weighing less than a paperclip navigates thousands of kilometers to a forest it has never visited — guided by mechanisms scientists are still unraveling.',
@@ -37,7 +36,6 @@ VALUES
  'Explain to a friend: "Why is the monarch migration considered a mystery even though we know the mechanism?" Think about what we still don''t fully understand.',
  'The monarchs that winter in Mexico carry a genetic memory of a place no living ancestor has visited. Nature solves GPS with DNA.'),
 
--- 3. Deep Ocean Bioluminescence
 ('11111111-0000-0000-0000-000000000003',
  'Bioluminescence: Why the Deep Ocean Glows',
  'Below 200 meters, sunlight vanishes — yet 76% of deep-sea creatures make their own light. The dark ocean is full of living lanterns.',
@@ -53,7 +51,6 @@ VALUES
  'Explain bioluminescence to someone who''s never heard of it. How would you describe the chemistry without using the word "chemical reaction"?',
  'The deep ocean is the largest inhabited space on Earth, and most of its creatures are invisible to us — blinking in languages we''re only beginning to decode.'),
 
--- 4. Mycelial Networks
 ('11111111-0000-0000-0000-000000000004',
  'The Wood Wide Web: How Trees Talk Through Fungi',
  'Beneath every forest floor runs a network older than the internet — fungi threads that let trees share food, send warnings, and even care for their young.',
@@ -69,7 +66,6 @@ VALUES
  'If you had to explain the mycelial network to someone using only a human economy analogy, what would the fungi be? The trees? The nutrients?',
  'Forests are not collections of individual trees — they are superorganisms connected by underground networks that predate human civilization by hundreds of millions of years.'),
 
--- 5. Tardigrades
 ('11111111-0000-0000-0000-000000000005',
  'Tardigrades: The Indestructible Animal',
  'There is a microscopic animal that can survive outer space, boiling water, extreme radiation, and 30 years without food. It''s probably living on your roof right now.',
@@ -85,7 +81,6 @@ VALUES
  'Explain to a friend what "cryptobiosis" is without using that word. How would you describe what a tardigrade does to survive?',
  'Tardigrades have survived all five mass extinctions. Whatever ends human civilization, these microscopic bears will likely still be crawling through the moss of whatever comes next.'),
 
--- 6. The Pistol Shrimp's Sonic Weapon
 ('11111111-0000-0000-0000-000000000006',
  'Pistol Shrimp: The Animal That Shoots Hotter Than the Sun',
  'A shrimp the size of your thumb snaps its claw so fast it creates a bubble hotter than the surface of the sun — and uses it to stun prey.',
@@ -101,7 +96,6 @@ VALUES
  'Walk someone through why a collapsing bubble creates heat. What''s actually happening at the physics level — where does the energy come from?',
  'The ocean is full of creatures that discovered physics solutions to biological problems millions of years before humans wrote their first equations.'),
 
--- 7. Elephant Memory and Empathy
 ('11111111-0000-0000-0000-000000000007',
  'Elephants: Giants with Grief, Joy, and 60-Year Memories',
  'Elephants mourn their dead, recognize themselves in mirrors, comfort grieving herd members, and remember individual humans decades after a single meeting.',
@@ -117,7 +111,6 @@ VALUES
  'How would you explain elephant social intelligence to someone who believes only humans have complex emotions? What evidence would you use?',
  'The oldest elephant in a herd is not just a member — she is a living library. When she dies, decades of survival knowledge disappear with her.'),
 
--- 8. Coral Reef Bleaching
 ('11111111-0000-0000-0000-000000000008',
  'Coral Bleaching: Why Reefs Turn White and Die',
  'Coral reefs cover 1% of the ocean floor but support 25% of all marine species. They''re dying — and the mechanism is more intimate than most people realize.',
@@ -133,7 +126,6 @@ VALUES
  'Explain to someone why losing zooxanthellae is like a human''s digestive system evicting all gut bacteria at once. What are the consequences?',
  'Coral reefs are sometimes called the rainforests of the sea — yet we have mapped the moon''s surface more thoroughly than we have documented what lives in them.'),
 
--- 9. Bird Song Learning
 ('11111111-0000-0000-0000-000000000009',
  'Birdsong: How Birds Learn Music Like Children Learn Language',
  'Baby birds are born knowing nothing of their species'' song. They have a critical learning window, a babbling phase, and even regional dialects — just like human language.',
@@ -149,7 +141,6 @@ VALUES
  'How would you explain to someone skeptical of animal intelligence why birdsong learning is more like culture than instinct?',
  'When a bird sings at dawn, it may be performing a song passed down through hundreds of generations of learning — a cultural tradition older than any human musical tradition.'),
 
--- 10. The Nitrogen Cycle
 ('11111111-0000-0000-0000-000000000010',
  'The Nitrogen Cycle: The Invisible Process That Feeds the World',
  'Your body is 3% nitrogen. That nitrogen was recently in the air — invisible, inert, and utterly useless until bacteria performed a chemical miracle to make it edible.',
