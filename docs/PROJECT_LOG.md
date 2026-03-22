@@ -1,6 +1,6 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-22 11:47:14
+> Cập nhật lần cuối: 2026-03-22 11:47:25
 > Session: `38b20392-d5d`
 > Branch: `claude/plan-next-steps-EKBop`
 
@@ -11,6 +11,7 @@
 ### Các commit gần nhất
 
 ```
+1847ab4 Update PROJECT_LOG: 2026-03-22 38b20392
 f12e043 Add GET /me endpoint, Neo4j graph initializer, and Profile page
 08f6590 add terraform guide
 11dfd87 Update CLAUDE.md and README.md to reflect GitHub Actions workflows
@@ -25,7 +26,6 @@ c9c4bbb Remove Fly.io setup and deployment guide
 8574340 Update PROJECT_LOG: 2026-03-22 bebb1ea4
 6253880 Update CLAUDE.md and README.md to reflect actual project state
 889ea6d Add seed data
-ec78bfe Fix startSession_returnsExistingSession test: mock nodeRepository
 ```
 
 ---
