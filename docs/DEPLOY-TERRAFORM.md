@@ -7,6 +7,66 @@ một lệnh `terraform apply` tạo xong VCN, Security List, Subnet, và ARM VM
 
 ---
 
+## Chạy Terraform ở đâu?
+
+| Phương án | Yêu cầu | Phù hợp |
+|---|---|---|
+| **[GitHub Actions](#github-actions-không-cần-cài-gì)** | Chỉ cần tài khoản GitHub | Điện thoại, không muốn cài công cụ |
+| **[Máy local](#chạy-terraform-trên-máy-local)** | Terraform + OCI CLI | Máy tính cá nhân |
+
+---
+
+## GitHub Actions — Không cần cài gì
+
+Workflow `.github/workflows/terraform.yml` đã có sẵn. Chỉ cần cấu hình secrets trên GitHub rồi nhấn nút.
+
+### Bước A — Cấu hình secrets
+
+Vào **GitHub repo → Settings → Secrets and variables → Actions → New repository secret**, thêm 7 secrets:
+
+| Secret | Giá trị | Cách lấy |
+|---|---|---|
+| `OCI_TENANCY_OCID` | `ocid1.tenancy.oc1..xxx` | OCI Console → Profile → Tenancy |
+| `OCI_USER_OCID` | `ocid1.user.oc1..xxx` | Profile → User settings → OCID |
+| `OCI_FINGERPRINT` | `aa:bb:cc:...` | User settings → API Keys → fingerprint |
+| `OCI_API_PRIVATE_KEY` | Toàn bộ nội dung file `.pem` | Download khi tạo API Key (bao gồm `-----BEGIN...-----END-----`) |
+| `OCI_REGION` | `ap-singapore-1` | Region gần nhất |
+| `OCI_COMPARTMENT_OCID` | Giống `OCI_TENANCY_OCID` | Root compartment = tenancy OCID |
+| `SSH_PUBLIC_KEY` | `ssh-ed25519 AAAA...` | Nội dung file `~/.ssh/oracle_awb.pub` |
+
+> Tạo SSH key nếu chưa có (chạy trên máy tính hoặc Cloud Shell):
+> ```bash
+> ssh-keygen -t ed25519 -C "oracle-awb" -f ~/.ssh/oracle_awb
+> cat ~/.ssh/oracle_awb.pub   # copy giá trị này vào SSH_PUBLIC_KEY
+> ```
+
+### Bước B — Chạy từ GitHub UI (điện thoại được)
+
+1. Vào tab **Actions** trong repo
+2. Sidebar trái → **Terraform (Oracle Cloud)**
+3. Nhấn **Run workflow**
+4. Chọn action:
+   - `plan` — xem trước, không tạo gì (an toàn, chạy trước)
+   - `apply` — tạo hạ tầng thật
+   - `destroy` — xóa toàn bộ hạ tầng
+5. Nhấn **Run workflow** (nút xanh)
+
+### Bước C — Xem kết quả
+
+Nhấn vào run vừa tạo → job **Terraform apply** → bước **Terraform Output** để lấy Public IP:
+
+```
+public_ip    = "140.238.x.x"
+ssh_command  = "ssh -i <key> ubuntu@140.238.x.x"
+site_address = "140.238.x.x.sslip.io"
+```
+
+> **State file:** Sau mỗi lần `apply`/`destroy`, `terraform.tfstate` được lưu tự động vào **Actions → Artifacts** (giữ 90 ngày). Lần chạy sau sẽ tự tải về để Terraform biết infra hiện tại.
+
+---
+
+## Chạy Terraform trên máy local
+
 ## Mục lục
 
 1. [Kiến trúc hạ tầng](#1-kiến-trúc-hạ-tầng)

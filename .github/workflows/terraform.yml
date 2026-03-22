@@ -1,0 +1,146 @@
+name: Terraform (Oracle Cloud)
+
+# Chạy thủ công từ GitHub UI (Actions tab → chọn workflow → Run workflow)
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Hành động Terraform cần chạy"
+        required: true
+        default: plan
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+
+# ── Secrets cần cấu hình trong GitHub repo ─────────────────────────────────
+# Settings → Secrets and variables → Actions → New repository secret
+#
+#   OCI_TENANCY_OCID      — OCID tenancy (OCI Console → Profile → Tenancy)
+#   OCI_USER_OCID         — OCID user (Profile → User settings → OCID)
+#   OCI_FINGERPRINT       — Fingerprint API key (User settings → API Keys)
+#   OCI_API_PRIVATE_KEY   — Nội dung file private key PEM (paste toàn bộ)
+#   OCI_REGION            — Region, ví dụ: ap-singapore-1
+#   OCI_COMPARTMENT_OCID  — Thường bằng OCI_TENANCY_OCID (root compartment)
+#   SSH_PUBLIC_KEY        — Nội dung ~/.ssh/oracle_awb.pub (để SSH vào VM)
+
+env:
+  TF_WORKING_DIR: infra/oracle
+  TF_VERSION: "1.7.5"
+
+jobs:
+  terraform:
+    name: Terraform ${{ github.event.inputs.action }}
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: infra/oracle
+
+    steps:
+      # ── 1. Checkout code ──────────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── 2. Cài Terraform ──────────────────────────────────────────────────
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      # ── 3. Ghi OCI private key ra file tạm ───────────────────────────────
+      - name: Write OCI API private key
+        run: |
+          mkdir -p ~/.oci
+          echo "${{ secrets.OCI_API_PRIVATE_KEY }}" > ~/.oci/oci_api_key.pem
+          chmod 600 ~/.oci/oci_api_key.pem
+
+      # ── 4. Khôi phục terraform.tfstate từ artifact lần chạy trước ─────────
+      - name: Download terraform state (nếu có)
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-state
+          path: infra/oracle
+        continue-on-error: true  # lần đầu chạy chưa có artifact
+
+      # ── 5. Cache provider plugins (tăng tốc init) ─────────────────────────
+      - name: Cache Terraform providers
+        uses: actions/cache@v4
+        with:
+          path: infra/oracle/.terraform
+          key: terraform-providers-${{ hashFiles('infra/oracle/.terraform.lock.hcl') }}
+          restore-keys: terraform-providers-
+
+      # ── 6. Terraform Init ─────────────────────────────────────────────────
+      - name: Terraform Init
+        run: terraform init
+        env:
+          TF_VAR_tenancy_ocid:     ${{ secrets.OCI_TENANCY_OCID }}
+          TF_VAR_user_ocid:        ${{ secrets.OCI_USER_OCID }}
+          TF_VAR_fingerprint:      ${{ secrets.OCI_FINGERPRINT }}
+          TF_VAR_private_key_path: ~/.oci/oci_api_key.pem
+          TF_VAR_region:           ${{ secrets.OCI_REGION }}
+          TF_VAR_compartment_ocid: ${{ secrets.OCI_COMPARTMENT_OCID }}
+          TF_VAR_ssh_public_key:   ${{ secrets.SSH_PUBLIC_KEY }}
+
+      # ── 7. Terraform Plan ─────────────────────────────────────────────────
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan -input=false
+        env:
+          TF_VAR_tenancy_ocid:     ${{ secrets.OCI_TENANCY_OCID }}
+          TF_VAR_user_ocid:        ${{ secrets.OCI_USER_OCID }}
+          TF_VAR_fingerprint:      ${{ secrets.OCI_FINGERPRINT }}
+          TF_VAR_private_key_path: ~/.oci/oci_api_key.pem
+          TF_VAR_region:           ${{ secrets.OCI_REGION }}
+          TF_VAR_compartment_ocid: ${{ secrets.OCI_COMPARTMENT_OCID }}
+          TF_VAR_ssh_public_key:   ${{ secrets.SSH_PUBLIC_KEY }}
+
+      # ── 8. Terraform Apply (chỉ khi chọn apply) ──────────────────────────
+      - name: Terraform Apply
+        if: github.event.inputs.action == 'apply'
+        run: terraform apply -auto-approve tfplan
+        env:
+          TF_VAR_tenancy_ocid:     ${{ secrets.OCI_TENANCY_OCID }}
+          TF_VAR_user_ocid:        ${{ secrets.OCI_USER_OCID }}
+          TF_VAR_fingerprint:      ${{ secrets.OCI_FINGERPRINT }}
+          TF_VAR_private_key_path: ~/.oci/oci_api_key.pem
+          TF_VAR_region:           ${{ secrets.OCI_REGION }}
+          TF_VAR_compartment_ocid: ${{ secrets.OCI_COMPARTMENT_OCID }}
+          TF_VAR_ssh_public_key:   ${{ secrets.SSH_PUBLIC_KEY }}
+
+      # ── 9. Terraform Destroy (chỉ khi chọn destroy) ──────────────────────
+      - name: Terraform Destroy
+        if: github.event.inputs.action == 'destroy'
+        run: terraform destroy -auto-approve -input=false
+        env:
+          TF_VAR_tenancy_ocid:     ${{ secrets.OCI_TENANCY_OCID }}
+          TF_VAR_user_ocid:        ${{ secrets.OCI_USER_OCID }}
+          TF_VAR_fingerprint:      ${{ secrets.OCI_FINGERPRINT }}
+          TF_VAR_private_key_path: ~/.oci/oci_api_key.pem
+          TF_VAR_region:           ${{ secrets.OCI_REGION }}
+          TF_VAR_compartment_ocid: ${{ secrets.OCI_COMPARTMENT_OCID }}
+          TF_VAR_ssh_public_key:   ${{ secrets.SSH_PUBLIC_KEY }}
+
+      # ── 10. Lưu terraform.tfstate vào artifact sau mỗi lần apply/destroy ──
+      - name: Upload terraform state
+        if: always() && (github.event.inputs.action == 'apply' || github.event.inputs.action == 'destroy')
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-state
+          path: infra/oracle/terraform.tfstate
+          retention-days: 90
+          overwrite: true
+
+      # ── 11. In outputs sau apply ──────────────────────────────────────────
+      - name: Terraform Output
+        if: github.event.inputs.action == 'apply'
+        run: terraform output
+        env:
+          TF_VAR_tenancy_ocid:     ${{ secrets.OCI_TENANCY_OCID }}
+          TF_VAR_user_ocid:        ${{ secrets.OCI_USER_OCID }}
+          TF_VAR_fingerprint:      ${{ secrets.OCI_FINGERPRINT }}
+          TF_VAR_private_key_path: ~/.oci/oci_api_key.pem
+          TF_VAR_region:           ${{ secrets.OCI_REGION }}
+          TF_VAR_compartment_ocid: ${{ secrets.OCI_COMPARTMENT_OCID }}
+          TF_VAR_ssh_public_key:   ${{ secrets.SSH_PUBLIC_KEY }}
