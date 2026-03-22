@@ -2,6 +2,7 @@ package com.aiwisdombattle.service;
 
 import com.aiwisdombattle.domain.entity.User;
 import com.aiwisdombattle.dto.request.LoginRequest;
+import com.aiwisdombattle.dto.request.RefreshTokenRequest;
 import com.aiwisdombattle.dto.request.RegisterRequest;
 import com.aiwisdombattle.dto.response.AuthResponse;
 import com.aiwisdombattle.dto.response.UserProfileResponse;
@@ -88,11 +89,39 @@ public class AuthService {
             .build();
     }
 
-    private AuthResponse buildAuthResponse(User user) {
-        String token = tokenProvider.generate(user.getId());
+    /**
+     * Làm mới access token bằng refresh token hợp lệ.
+     * Ném {@link InvalidCredentialsException} nếu refresh token không hợp lệ hoặc sai loại.
+     */
+    @Transactional(readOnly = true)
+    public AuthResponse refreshAccessToken(RefreshTokenRequest request) {
+        String refreshToken = request.getRefreshToken();
+
+        if (!tokenProvider.isValid(refreshToken) || !tokenProvider.isRefreshToken(refreshToken)) {
+            throw new InvalidCredentialsException();
+        }
+
+        String userIdStr = tokenProvider.extractUserId(refreshToken);
+        UUID userId = UUID.fromString(userIdStr);
+
+        User user = userRepository.findById(userId)
+            .orElseThrow(InvalidCredentialsException::new);
+
+        String newAccessToken = tokenProvider.generate(user.getId());
 
         return AuthResponse.builder()
-            .accessToken(token)
+            .accessToken(newAccessToken)
+            .expiresIn(jwtExpirationMs)
+            .build();
+    }
+
+    private AuthResponse buildAuthResponse(User user) {
+        String accessToken  = tokenProvider.generate(user.getId());
+        String refreshToken = tokenProvider.generateRefreshToken(user.getId());
+
+        return AuthResponse.builder()
+            .accessToken(accessToken)
+            .refreshToken(refreshToken)
             .expiresIn(jwtExpirationMs)
             .userId(user.getId())
             .displayName(user.getDisplayName())

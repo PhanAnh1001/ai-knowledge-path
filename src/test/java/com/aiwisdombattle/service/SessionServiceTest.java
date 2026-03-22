@@ -1,16 +1,19 @@
 package com.aiwisdombattle.service;
 
 import com.aiwisdombattle.client.AdaptiveEngineClient;
+import com.aiwisdombattle.client.AdaptiveEngineClient.SpacedRepetitionResponse;
 import com.aiwisdombattle.domain.entity.KnowledgeNode;
 import com.aiwisdombattle.domain.entity.Session;
 import com.aiwisdombattle.domain.entity.Session.SessionStatus;
 import com.aiwisdombattle.dto.response.SessionStartResponse;
 import com.aiwisdombattle.domain.entity.User;
+import com.aiwisdombattle.domain.entity.UserNodeProgress;
 import com.aiwisdombattle.domain.model.KnowledgeNodeGraph;
 import com.aiwisdombattle.dto.response.SessionCompleteResponse;
 import com.aiwisdombattle.repository.KnowledgeNodeGraphRepository;
 import com.aiwisdombattle.repository.KnowledgeNodeRepository;
 import com.aiwisdombattle.repository.SessionRepository;
+import com.aiwisdombattle.repository.UserNodeProgressRepository;
 import com.aiwisdombattle.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +29,9 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,6 +41,7 @@ class SessionServiceTest {
     @Mock KnowledgeNodeRepository nodeRepository;
     @Mock KnowledgeNodeGraphRepository graphRepository;
     @Mock UserRepository userRepository;
+    @Mock UserNodeProgressRepository progressRepository;
     @Mock AdaptiveEngineClient adaptiveEngineClient;
 
     @InjectMocks SessionService sessionService;
@@ -109,6 +115,9 @@ class SessionServiceTest {
 
     @Test
     void completeSession_updatesStatusAndReturnsSuggestions() {
+        SpacedRepetitionResponse sm2 = new SpacedRepetitionResponse(
+            node.getId().toString(), 6, 2.5, 1, "2026-04-01", false
+        );
         when(sessionRepository.findById(session.getId())).thenReturn(Optional.of(session));
         when(sessionRepository.save(any())).thenReturn(session);
         when(userRepository.save(any())).thenReturn(user);
@@ -118,6 +127,12 @@ class SessionServiceTest {
             .thenReturn(List.of(new KnowledgeNodeGraph()));
         when(adaptiveEngineClient.computeAdaptiveScore(anyInt(), anyInt(), anyInt()))
             .thenReturn(88.5);
+        when(progressRepository.findByUserIdAndNodeId(any(), any()))
+            .thenReturn(Optional.empty());
+        when(adaptiveEngineClient.computeNextReview(anyString(), anyInt(), anyInt(), anyDouble(), anyInt()))
+            .thenReturn(sm2);
+        when(progressRepository.save(any())).thenReturn(UserNodeProgress.builder()
+            .userId(user.getId()).nodeId(node.getId()).build());
 
         SessionCompleteResponse response = sessionService.completeSession(session.getId(), 85, 300);
 
@@ -126,5 +141,26 @@ class SessionServiceTest {
         assertThat(response.getAdaptiveScore()).isEqualTo(88.5);
         assertThat(response.getNextSuggestions()).hasSize(1);
         assertThat(session.getStatus()).isEqualTo(SessionStatus.COMPLETED);
+        verify(progressRepository).save(any(UserNodeProgress.class));
+    }
+
+    @Test
+    void completeSession_savesProgress_withSm2FallbackWhenEngineDown() {
+        when(sessionRepository.findById(session.getId())).thenReturn(Optional.of(session));
+        when(sessionRepository.save(any())).thenReturn(session);
+        when(userRepository.save(any())).thenReturn(user);
+        when(sessionRepository.findCompletedNodeIdsByUserId(user.getId())).thenReturn(List.of());
+        when(graphRepository.findNextSuggestions(any(), any())).thenReturn(List.of());
+        when(adaptiveEngineClient.computeAdaptiveScore(anyInt(), anyInt(), anyInt())).thenReturn(70.0);
+        when(progressRepository.findByUserIdAndNodeId(any(), any())).thenReturn(Optional.empty());
+        when(adaptiveEngineClient.computeNextReview(anyString(), anyInt(), anyInt(), anyDouble(), anyInt()))
+            .thenReturn(null);  // engine down
+        when(progressRepository.save(any())).thenReturn(UserNodeProgress.builder()
+            .userId(user.getId()).nodeId(node.getId()).build());
+
+        sessionService.completeSession(session.getId(), 70, 200);
+
+        // Phải vẫn save progress dù engine không phản hồi (fallback 1 ngày)
+        verify(progressRepository).save(any(UserNodeProgress.class));
     }
 }

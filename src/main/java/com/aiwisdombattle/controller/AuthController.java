@@ -1,6 +1,7 @@
 package com.aiwisdombattle.controller;
 
 import com.aiwisdombattle.dto.request.LoginRequest;
+import com.aiwisdombattle.dto.request.RefreshTokenRequest;
 import com.aiwisdombattle.dto.request.RegisterRequest;
 import com.aiwisdombattle.dto.response.AuthResponse;
 import com.aiwisdombattle.dto.response.UserProfileResponse;
@@ -57,6 +58,16 @@ public class AuthController {
         @AuthenticationPrincipal UserDetails principal
     ) {
         return ResponseEntity.ok(authService.getUserProfile(principal.getUsername()));
+    }
+
+    @Operation(summary = "Làm mới access token bằng refresh token",
+        responses = {
+            @ApiResponse(responseCode = "200", description = "Trả về access token mới"),
+            @ApiResponse(responseCode = "401", description = "Refresh token không hợp lệ hoặc hết hạn")
+        })
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        return ResponseEntity.ok(authService.refreshAccessToken(request));
     }
 
     @Operation(summary = "Đăng xuất (client xóa token)",

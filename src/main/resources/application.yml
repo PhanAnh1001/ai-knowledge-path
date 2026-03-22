@@ -49,7 +49,8 @@ spring:
 app:
   jwt:
     secret: ${JWT_SECRET:changeme-at-least-32-chars-long!!!}
-    expiration-ms: ${JWT_EXPIRATION_MS:86400000}   # 24h
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}           # 24h
+    refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:2592000000}  # 30 ngày
   adaptive-engine:
     url: ${ADAPTIVE_ENGINE_URL:http://localhost:8001}
   cors:
