@@ -1,7 +1,7 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-22 05:07:11
-> Session: `03b7fb2d-8db`
+> Cập nhật lần cuối: 2026-03-22 06:51:36
+> Session: `19d638d0-8bb`
 > Branch: `claude/add-deployment-guides-WfWPp`
 
 ---
@@ -11,6 +11,8 @@
 ### Các commit gần nhất
 
 ```
+d121478 Add 6-phase session content fields to KnowledgeNode
+6edca32 Update PROJECT_LOG: 2026-03-22 03b7fb2d
 5be3020 Add comprehensive Terraform deployment guide and update DEPLOY.md overview
 c9347bd Update PROJECT_LOG: 2026-03-22 346041f1
 af7eab0 Update PROJECT_LOG: 2026-03-22 346041f1
@@ -24,8 +26,6 @@ f3f8a3f fix: correct 3 bugs in deploy.yml
 41156f6 Update PROJECT_LOG: 2026-03-21 2fb0391a
 3d908f3 Update PROJECT_LOG: 2026-03-21 2fb0391a
 a97a7ac Update PROJECT_LOG: 2026-03-21 7f075d87
-2ca3edd feat: production deployment via Fly.io + Cloudflare Pages (no docker-compose)
-928856b Update PROJECT_LOG: 2026-03-21 7f075d87
 ```
 
 ---
