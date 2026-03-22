@@ -85,6 +85,7 @@ class SessionServiceTest {
 
     @Test
     void startSession_returnsExistingSession_whenInProgress() {
+        when(nodeRepository.findById(node.getId())).thenReturn(Optional.of(node));
         when(sessionRepository.findByUserIdAndKnowledgeNodeId(user.getId(), node.getId()))
             .thenReturn(Optional.of(session));
 
