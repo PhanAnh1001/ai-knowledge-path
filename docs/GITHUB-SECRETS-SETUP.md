@@ -135,9 +135,20 @@ ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx orac
 
 Vào OCI Console → nhấn icon **Cloud Shell** (terminal) góc trên phải:
 
+> **Lưu ý:** OCI Cloud Shell chạy ở chế độ FIPS 140-2, không hỗ trợ ED25519. Dùng RSA 4096 thay thế:
+
 ```bash
-ssh-keygen -t ed25519 -C "oracle-awb" -f ~/.ssh/oracle_awb
+ssh-keygen -t rsa -b 4096 -C "oracle-awb" -f ~/.ssh/oracle_awb
+
+# Nhấn Enter 2 lần (không cần passphrase)
+
 cat ~/.ssh/oracle_awb.pub
+```
+
+Kết quả dạng:
+
+```
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx oracle-awb
 ```
 
 ---
@@ -269,3 +280,4 @@ site_address = "140.238.x.x.sslip.io"
 | `user not authorized` | User không có quyền trên compartment | Dùng `OCI_COMPARTMENT_OCID` = `OCI_TENANCY_OCID` |
 | `out of host capacity` | OCI hết Always Free capacity | Thử region khác hoặc thử lại sau |
 | `context deadline exceeded` | Timeout mạng | Chạy lại workflow |
+| `ED25519 keys are not allowed in FIPS mode` | OCI Cloud Shell chạy FIPS 140-2, không hỗ trợ ED25519 | Dùng `ssh-keygen -t rsa -b 4096` thay cho `-t ed25519` |

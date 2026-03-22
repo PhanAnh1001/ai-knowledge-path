@@ -34,9 +34,14 @@ Vào **GitHub repo → Settings → Secrets and variables → Actions → New re
 | `OCI_COMPARTMENT_OCID` | Giống `OCI_TENANCY_OCID` | Root compartment = tenancy OCID |
 | `SSH_PUBLIC_KEY` | `ssh-ed25519 AAAA...` | Nội dung file `~/.ssh/oracle_awb.pub` |
 
-> Tạo SSH key nếu chưa có (chạy trên máy tính hoặc Cloud Shell):
+> Tạo SSH key nếu chưa có:
 > ```bash
+> # Trên máy tính (Linux/macOS/WSL):
 > ssh-keygen -t ed25519 -C "oracle-awb" -f ~/.ssh/oracle_awb
+>
+> # Trên OCI Cloud Shell (FIPS mode — không hỗ trợ ED25519):
+> ssh-keygen -t rsa -b 4096 -C "oracle-awb" -f ~/.ssh/oracle_awb
+>
 > cat ~/.ssh/oracle_awb.pub   # copy giá trị này vào SSH_PUBLIC_KEY
 > ```
 
