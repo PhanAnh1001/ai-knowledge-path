@@ -4,39 +4,81 @@ This file provides context and conventions for AI assistants (Claude and others)
 
 ## Project Overview
 
-**ai-wisdom-battle** is a Java-based project intended to facilitate AI wisdom competitions or battle scenarios. The project is in its earliest stage — no source code exists yet. This document establishes conventions to follow as the codebase grows.
+**AI Wisdom Battle** là nền tảng học tập hướng tò mò, kích thích khám phá tri thức thông qua knowledge graph và các phiên học thích nghi. Hệ thống bao gồm ba thành phần chính:
+
+1. **Backend Java/Spring Boot** — REST API, xác thực JWT, tích hợp PostgreSQL, Neo4j, Redis
+2. **Frontend React/TypeScript** — SPA với Vite + Tailwind CSS
+3. **Adaptive Engine (Python/FastAPI)** — dịch vụ micro tính toán độ khó thích nghi
 
 ## Current Repository State
 
 ```
 ai-wisdom-battle/
-├── .gitignore        # Java-standard ignore patterns
-├── README.md         # Minimal project description
-└── CLAUDE.md         # This file
+├── src/                          # Java Spring Boot backend
+│   └── main/java/com/aiwisdombattle/
+│       ├── AiWisdomBattleApplication.java
+│       ├── controller/           # REST endpoints
+│       ├── service/              # Business logic
+│       ├── domain/
+│       │   ├── entity/           # JPA entities (PostgreSQL)
+│       │   └── model/            # Neo4j graph nodes
+│       ├── dto/                  # Request / Response DTOs
+│       ├── repository/           # JPA + Neo4j repositories
+│       ├── security/             # JWT filter + token provider
+│       ├── exception/            # Exception classes + GlobalExceptionHandler
+│       └── config/               # Spring Security config
+├── frontend/                     # React 18 + TypeScript + Vite + Tailwind
+│   ├── src/
+│   └── package.json
+├── adaptive-engine/              # Python FastAPI micro-service
+│   ├── app/
+│   ├── tests/
+│   └── requirements.txt
+├── docs/                         # Tài liệu kỹ thuật
+│   ├── PRD.md
+│   ├── api-endpoints.md
+│   ├── database-schema.sql
+│   ├── neo4j-schema.cypher
+│   ├── PROJECT_LOG.md
+│   ├── DEPLOY.md
+│   ├── DEPLOY-FREE.md
+│   ├── DEPLOY-ORACLE.md
+│   └── DEPLOY-TERRAFORM.md
+├── docker/                       # Docker helper scripts
+├── infra/                        # Infrastructure config (Terraform, v.v.)
+├── scripts/                      # Utility scripts
+├── pom.xml                       # Maven build descriptor
+├── Dockerfile                    # Backend Docker image
+├── Caddyfile                     # Reverse proxy config (Caddy)
+├── docker-compose.yml            # Dev stack
+├── docker-compose.prod.yml       # Production stack
+├── fly.toml                      # Fly.io deployment config
+├── .env.example                  # Mẫu biến môi trường
+├── .gitignore
+├── README.md
+└── CLAUDE.md                     # This file
 ```
-
-No build files, source code, tests, or CI/CD configuration exist yet.
 
 ## Technology Stack
 
-- **Language**: Java (inferred from `.gitignore` patterns)
-- **Build Tool**: TBD — Maven (`pom.xml`) or Gradle (`build.gradle`) expected
-- **Testing**: TBD — JUnit 5 recommended for new Java projects
-
-### Expected Future Structure (Maven Standard Layout)
-
-```
-ai-wisdom-battle/
-├── src/
-│   ├── main/
-│   │   └── java/          # Application source code
-│   └── test/
-│       └── java/          # Test source code
-├── pom.xml                # Maven build descriptor (or build.gradle for Gradle)
-├── .gitignore
-├── README.md
-└── CLAUDE.md
-```
+| Layer | Công nghệ |
+|---|---|
+| Backend Runtime | Java 21 |
+| Backend Framework | Spring Boot 3.2.3 |
+| Security | Spring Security + JWT (JJWT 0.12.5) |
+| Relational DB | PostgreSQL 16 |
+| Graph DB | Neo4j 5.18 (APOC) |
+| Cache / Session | Redis 7 |
+| ORM | JPA / Hibernate |
+| Build | Maven 3.x |
+| Frontend | React 18 + TypeScript + Vite + Tailwind CSS |
+| State Management | Zustand + TanStack Query |
+| Adaptive Engine | Python 3.12 + FastAPI + Pydantic |
+| Reverse Proxy | Caddy |
+| Container | Docker + Docker Compose |
+| Testing (BE) | JUnit 5 + MockMvc + H2 |
+| Testing (FE) | Vitest |
+| Testing (Engine) | pytest + pytest-asyncio |
 
 ## Git Workflow
 
@@ -51,7 +93,7 @@ AI-generated branches follow this convention:
 ```
 claude/<description>-<sessionId>
 ```
-Example: `claude/add-claude-documentation-OLqcO`
+Example: `claude/update-docs-0NlNK`
 
 ### Workflow for AI Assistants
 
@@ -67,64 +109,124 @@ Use imperative mood, present tense:
 Add CLAUDE.md with project conventions
 Fix null pointer in BattleEngine
 Add unit tests for WisdomScorer
+Update adaptive engine difficulty algorithm
 ```
 
 ## Build & Run
 
-> **Note**: No build system is configured yet. Add these instructions once `pom.xml` or `build.gradle` is created.
+### Backend (Maven)
 
-### Maven (expected)
 ```bash
 # Build
-mvn clean package
+mvn clean package -DskipTests
 
 # Run tests
 mvn test
 
 # Run the application
-mvn exec:java -Dexec.mainClass="com.aiwisdombattle.Main"
+mvn spring-boot:run
 ```
 
-### Gradle (alternative)
+### Frontend (Node/Vite)
+
 ```bash
-# Build
-./gradlew build
+cd frontend
+npm install
+npm run dev       # Dev server tại http://localhost:5173
+npm run build     # Production build
+npm test          # Vitest
+```
 
-# Run tests
-./gradlew test
+### Adaptive Engine (Python/FastAPI)
 
-# Run the application
-./gradlew run
+```bash
+cd adaptive-engine
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8001
+pytest            # Run tests
+```
+
+### Toàn bộ stack (Docker Compose)
+
+```bash
+# Dev
+docker compose up -d
+
+# Production
+docker compose -f docker-compose.prod.yml up -d
+
+# Kiểm tra sức khoẻ
+curl http://localhost:8080/actuator/health
 ```
 
 ## Testing
 
-> **Note**: No tests exist yet. Follow these conventions when adding tests.
+### Backend (JUnit 5)
 
-- Use **JUnit 5** (`@Test`, `@BeforeEach`, etc.)
-- Place tests under `src/test/java/` mirroring the main source package structure
-- Name test classes with the suffix `Test` (e.g., `BattleEngineTest`)
-- Aim for unit tests on all business logic; integration tests for external dependencies
+- Đặt test trong `src/test/java/` theo cấu trúc package tương ứng
+- Tên class test có hậu tố `Test` (e.g., `AuthServiceTest`)
+- H2 in-memory cho unit/integration test — không cần Docker
+- MockMvc cho controller tests
+
+### Frontend (Vitest)
+
+- Test đặt cạnh file source hoặc trong thư mục `__tests__`
+- `npm test` chạy toàn bộ test suite
+
+### Adaptive Engine (pytest)
+
+- Test đặt trong `adaptive-engine/tests/`
+- `pytest` chạy toàn bộ; `pytest-asyncio` cho async endpoints
 
 ## Code Conventions
 
-- Follow standard **Java naming conventions**:
-  - Classes: `PascalCase`
-  - Methods and variables: `camelCase`
-  - Constants: `UPPER_SNAKE_CASE`
-  - Packages: `lowercase.dotted` (e.g., `com.aiwisdombattle`)
-- Keep classes focused on a single responsibility
+### Java (Backend)
+
+- Classes: `PascalCase`
+- Methods và variables: `camelCase`
+- Constants: `UPPER_SNAKE_CASE`
+- Packages: `lowercase.dotted` (e.g., `com.aiwisdombattle`)
 - Prefer immutability where practical
-- Document public APIs with Javadoc
+- Document public APIs với Javadoc (tiếng Anh)
+
+### TypeScript (Frontend)
+
+- Components: `PascalCase`
+- Functions và variables: `camelCase`
+- Types/Interfaces: `PascalCase` với prefix `I` nếu cần phân biệt
+
+### Python (Adaptive Engine)
+
+- Tuân theo PEP 8
+- Type hints bắt buộc cho tất cả function signatures
+- Docstrings theo Google style
 
 ## Environment Variables
 
-No environment variables are required at this time. Add a `.env.example` file when environment-specific configuration is introduced.
+Sao chép `.env.example` thành `.env`:
+
+```bash
+cp .env.example .env
+```
+
+Các biến bắt buộc:
+
+| Biến | Mô tả |
+|---|---|
+| `POSTGRES_DB` | Tên database PostgreSQL |
+| `POSTGRES_USER` | Username PostgreSQL |
+| `POSTGRES_PASSWORD` | Mật khẩu PostgreSQL |
+| `NEO4J_USER` | Username Neo4j |
+| `NEO4J_PASSWORD` | Mật khẩu Neo4j |
+| `REDIS_PASSWORD` | Mật khẩu Redis |
+| `JWT_SECRET` | Khoá bí mật JWT (≥ 32 ký tự) |
+
+> **Quan trọng:** Không commit file `.env` lên Git (đã có trong `.gitignore`).
 
 ## Ngôn ngữ / Language
 
 - Mọi phản hồi của AI assistant phải bằng **tiếng Việt**
-- Mã nguồn, tên biến, comment trong code vẫn dùng tiếng Anh theo chuẩn Java
+- Mã nguồn, tên biến, comment trong code vẫn dùng tiếng Anh theo chuẩn Java/TS/Python
 - Tài liệu kỹ thuật (Javadoc) dùng tiếng Anh; giải thích nội bộ dùng tiếng Việt
 
 ## Key Instructions for AI Assistants
@@ -134,5 +236,6 @@ No environment variables are required at this time. Add a `.env.example` file wh
 3. **Minimal changes** — only change what is necessary; avoid refactoring unrelated code
 4. **No security vulnerabilities** — avoid SQL injection, command injection, XSS, and other OWASP Top 10 issues
 5. **Commit and push** — always commit your work and push to the remote branch when done
-6. **Verify** — after making changes, confirm the build still passes (once a build system exists)
+6. **Verify** — after making changes, confirm the build/tests still pass
 7. **Ngôn ngữ phản hồi** — luôn trả lời bằng tiếng Việt trong tất cả các tương tác với người dùng
+8. **Multi-service awareness** — khi thay đổi API contract, kiểm tra tác động lên cả frontend và adaptive-engine
