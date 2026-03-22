@@ -101,6 +101,18 @@ export interface CompleteSessionResponse {
   nextSuggestions: KnowledgeNode[]
 }
 
+// ── User Profile ──────────────────────────────────────────────────────────────
+
+export interface UserProfile {
+  userId: string
+  email: string
+  displayName: string
+  explorerType: ExplorerType
+  ageGroup: AgeGroup
+  premium: boolean
+  totalSessions: number
+}
+
 // ── API Error ─────────────────────────────────────────────────────────────────
 
 export interface ApiError {

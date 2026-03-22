@@ -20,10 +20,7 @@ const DOMAIN_TABS: { value: DomainFilter; label: string; emoji: string }[] = [
 
 export function DashboardPage() {
   const navigate = useNavigate()
-  const { displayName, logout } = useAuthStore((s) => ({
-    displayName: s.displayName,
-    logout: s.logout,
-  }))
+  const displayName = useAuthStore((s) => s.displayName)
 
   const [activeTab, setActiveTab] = useState<DomainFilter>('all')
 
@@ -33,10 +30,6 @@ export function DashboardPage() {
     queryFn: () => getNodes(),
   })
 
-  const handleLogout = () => {
-    logout()
-    navigate('/login')
-  }
 
   const filtered =
     !nodes ? [] :
@@ -52,8 +45,8 @@ export function DashboardPage() {
             <h1 className="text-lg font-bold text-gray-900">AI Wisdom Battle</h1>
             <p className="text-sm text-gray-500">Xin chào, {displayName} 👋</p>
           </div>
-          <Button variant="ghost" onClick={handleLogout} className="text-sm">
-            Đăng xuất
+          <Button variant="ghost" onClick={() => navigate('/profile')} className="text-sm">
+            Hồ sơ
           </Button>
         </div>
       </header>
