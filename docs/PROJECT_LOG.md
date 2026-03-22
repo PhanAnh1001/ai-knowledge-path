@@ -1,7 +1,7 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-22 11:47:32
-> Session: `38b20392-d5d`
+> Cập nhật lần cuối: 2026-03-22 12:16:25
+> Session: `a3dcca1d-026`
 > Branch: `claude/plan-next-steps-EKBop`
 
 ---
@@ -11,6 +11,8 @@
 ### Các commit gần nhất
 
 ```
+3555ae8 Add refresh token flow, SM-2 integration, and UserNodeProgress entity
+387bca5 Update PROJECT_LOG: 2026-03-22 38b20392
 d9e8cfd Update PROJECT_LOG: 2026-03-22 38b20392
 1847ab4 Update PROJECT_LOG: 2026-03-22 38b20392
 f12e043 Add GET /me endpoint, Neo4j graph initializer, and Profile page
@@ -24,8 +26,6 @@ fcb1c6b Update PROJECT_LOG: 2026-03-22 b250881f
 fcfc38f Update PROJECT_LOG: 2026-03-22 b250881f
 e6ba5ea Update PROJECT_LOG: 2026-03-22 b250881f
 c9c4bbb Remove Fly.io setup and deployment guide
-8574340 Update PROJECT_LOG: 2026-03-22 bebb1ea4
-6253880 Update CLAUDE.md and README.md to reflect actual project state
 ```
 
 ---
