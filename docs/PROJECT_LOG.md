@@ -1,7 +1,7 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-22 03:53:42
-> Session: `8d3c3c85-743`
+> Cập nhật lần cuối: 2026-03-22 04:14:03
+> Session: `346041f1-1ee`
 > Branch: `claude/add-claude-documentation-OLqcO`
 
 ---
@@ -11,6 +11,8 @@
 ### Các commit gần nhất
 
 ```
+ef39bb5 feat: Oracle VM + Cloudflare Pages hybrid + PostgreSQL backup
+e848975 Update PROJECT_LOG: 2026-03-22 8d3c3c85
 0905986 feat: Oracle Cloud Always Free production deployment
 4ec7ac2 Update PROJECT_LOG: 2026-03-22 b50265c2
 da8855e docs: add web UI guide for Fly.io secrets and Cloudflare Pages step-by-step
@@ -24,8 +26,6 @@ a97a7ac Update PROJECT_LOG: 2026-03-21 7f075d87
 f23218f docs: add free production deployment guide (DEPLOY-FREE.md)
 80aa843 Update PROJECT_LOG: 2026-03-21 d6d66afb
 388ce43 docs: add deployment guide (DEPLOY.md)
-f7fc74c Update PROJECT_LOG: 2026-03-21 2d16b9f6
-7b8e936 feat: add production docker-compose and prod Spring profile
 ```
 
 ---
