@@ -7,28 +7,30 @@ on:
     types: [completed]
     branches: [master]
 
-# ── Secrets cần cấu hình (GitHub → Settings → Secrets and variables → Actions) ──
+# ── Secrets (GitHub → Settings → Secrets and variables → Actions → Secrets) ───
 #   ORACLE_VM_IP          — Public IP của Oracle Cloud VM
 #   ORACLE_SSH_KEY        — Nội dung private key SSH của user deploy
-#                           (tạo bằng: ssh-keygen -t ed25519 -C "github-actions")
-#                           Public key tương ứng thêm vào /home/deploy/.ssh/authorized_keys trên VM
+#                           Tạo: ssh-keygen -t ed25519 -C "github-actions"
+#                           Public key → thêm vào /home/deploy/.ssh/authorized_keys trên VM
+#   CLOUDFLARE_API_TOKEN  — CF token với quyền "Edit Cloudflare Pages"
+#   CLOUDFLARE_ACCOUNT_ID — Cloudflare dashboard → bên phải trang chủ
 #
-# ── Variables (Settings → Variables) ──────────────────────────────────────────
-#   (không cần thêm variable, SITE_ADDRESS nằm trong .env trên VM)
+# ── Variables (Settings → Secrets and variables → Variables) ──────────────────
+#   VITE_API_BASE_URL     — https://<ORACLE_SITE_ADDRESS>/api/v1
 
 jobs:
-  deploy:
-    name: Deploy to Oracle Cloud VM
+
+  # ── Deploy backend + services lên Oracle VM ──────────────────────────────────
+  deploy-backend:
+    name: Deploy to Oracle VM (SSH)
     runs-on: ubuntu-latest
     if: github.event.workflow_run.conclusion == 'success'
 
     steps:
-      # QUAN TRỌNG: checkout đúng commit đã pass CI
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
 
-      # ── Cấu hình SSH ──────────────────────────────────────────────────────
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
@@ -36,8 +38,7 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H "${{ secrets.ORACLE_VM_IP }}" >> ~/.ssh/known_hosts
 
-      # ── SSH vào VM: pull code + build frontend + rebuild containers ────────
-      - name: Deploy
+      - name: Deploy (git pull + rebuild + up)
         env:
           VM_IP: ${{ secrets.ORACLE_VM_IP }}
         run: |
@@ -46,35 +47,79 @@ jobs:
             set -euo pipefail
             cd /opt/ai-wisdom-battle
 
-            echo "=== [1/5] Pull code ==="
+            echo "=== [1/4] Pull code ==="
             git fetch origin master
             git reset --hard origin/master
 
-            echo "=== [2/5] Build frontend ==="
-            cd frontend
-            npm ci --prefer-offline
-            npm run build
-            cd ..
-
-            echo "=== [3/5] Build app containers ==="
+            echo "=== [2/4] Build app containers ==="
             docker compose -f docker-compose.prod.yml build app adaptive-engine
 
-            echo "=== [4/5] Reload services ==="
+            echo "=== [3/4] Reload services ==="
             docker compose -f docker-compose.prod.yml up -d \
               --remove-orphans \
               --no-deps app adaptive-engine caddy
 
-            echo "=== [5/5] Health check ==="
+            echo "=== [4/4] Health check ==="
             sleep 15
             curl -fsS http://localhost:8080/actuator/health | grep -q '"status":"UP"'
-            echo "Deploy OK"
+            echo "Backend deploy OK"
           ENDSSH
 
-      # ── Báo kết quả ───────────────────────────────────────────────────────
-      - name: Notify success
-        if: success()
-        run: echo "Deploy thanh cong len Oracle Cloud VM ${{ secrets.ORACLE_VM_IP }}"
+  # ── Deploy React frontend lên Cloudflare Pages ───────────────────────────────
+  deploy-frontend:
+    name: Deploy Frontend (Cloudflare Pages)
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
 
-      - name: Notify failure
-        if: failure()
-        run: echo "Deploy that bai — kiem tra logs tren VM"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Build
+        run: npm run build
+        working-directory: frontend
+        env:
+          # Trỏ về Oracle VM backend
+          # Đặt trong: Settings → Variables → VITE_API_BASE_URL
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: ai-wisdom-battle
+          directory: frontend/dist
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+  # ── Tóm tắt kết quả ──────────────────────────────────────────────────────────
+  deploy-summary:
+    name: Deploy Summary
+    runs-on: ubuntu-latest
+    needs: [deploy-backend, deploy-frontend]
+    if: always() && github.event.workflow_run.conclusion == 'success'
+
+    steps:
+      - name: Report status
+        run: |
+          echo "Backend  : ${{ needs.deploy-backend.result }}"
+          echo "Frontend : ${{ needs.deploy-frontend.result }}"
+
+          if [[ "${{ needs.deploy-backend.result }}"  == "failure" ||
+                "${{ needs.deploy-frontend.result }}" == "failure" ]]; then
+            echo "Mot hoac nhieu deploy that bai"
+            exit 1
+          fi
+          echo "Tat ca deploy thanh cong"

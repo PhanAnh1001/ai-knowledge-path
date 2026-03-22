@@ -187,21 +187,14 @@ SITE_ADDRESS=<PUBLIC_IP>.sslip.io
 
 > Tạo mật khẩu nhanh: `openssl rand -base64 24`
 
-### A8. Build frontend và khởi động services
+### A8. Khởi động services
 
 ```bash
 # Chuyển sang user deploy
 sudo -u deploy bash
-
 cd /opt/ai-wisdom-battle
 
-# Build React frontend (chỉ cần làm 1 lần, sau đó GitHub Actions tự làm)
-cd frontend
-npm ci
-npm run build
-cd ..
-
-# Khởi động toàn bộ stack
+# Khởi động toàn bộ stack (frontend trên Cloudflare Pages, không cần build ở đây)
 docker compose -f docker-compose.prod.yml up -d
 
 # Xem tiến trình khởi động (Neo4j cần ~30 giây)
@@ -313,10 +306,20 @@ cat /home/deploy/.ssh/authorized_keys
 |---|---|
 | `ORACLE_VM_IP` | Public IP của Oracle VM |
 | `ORACLE_SSH_KEY` | Nội dung file `~/.ssh/github_deploy` (private key) |
+| `CLOUDFLARE_API_TOKEN` | CF → My Profile → API Tokens → Edit Cloudflare Pages |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare dashboard → bên phải màn hình chính |
+
+**Tab Variables → New repository variable:**
+
+| Variable | Giá trị |
+|---|---|
+| `VITE_API_BASE_URL` | `https://<PUBLIC_IP>.sslip.io/api/v1` |
 
 ### C4. Kích hoạt CI/CD
 
-Push lên nhánh `master` → CI chạy tests → nếu pass → deploy.yml tự động SSH vào VM và deploy.
+Push lên nhánh `master` → CI chạy tests → nếu pass → 2 jobs song song:
+- `deploy-backend`: SSH vào Oracle VM, git pull + build + restart
+- `deploy-frontend`: build React + deploy Cloudflare Pages
 
 Kiểm tra: **GitHub repo → Actions → Deploy**
 
@@ -342,14 +345,145 @@ docker compose -f docker-compose.prod.yml restart app
 
 # Deploy thủ công (không qua GitHub Actions)
 git pull origin master
-cd frontend && npm ci && npm run build && cd ..
 docker compose -f docker-compose.prod.yml build app adaptive-engine
 docker compose -f docker-compose.prod.yml up -d --no-deps app adaptive-engine caddy
+# Frontend: tự deploy qua Cloudflare Pages khi push lên master
 
 # Xem tài nguyên đang dùng
 docker stats --no-stream
 free -h
 df -h
+```
+
+---
+
+## Phần D — Tách Frontend lên Cloudflare Pages (CDN toàn cầu)
+
+> Frontend chạy trên Cloudflare Pages (200+ PoP toàn cầu), Oracle VM chỉ phục vụ API.
+> Kết quả: latency frontend giảm từ ~150ms xuống ~5ms, frontend không bị ảnh hưởng khi VM restart.
+
+### D1. Tạo project Cloudflare Pages
+
+1. Đăng nhập [dash.cloudflare.com](https://dash.cloudflare.com)
+2. Sidebar trái → **Workers & Pages** → tab **Pages** → **Create a project**
+3. **Connect to Git** → chọn repo `ai-wisdom-battle` → **Begin setup**
+4. Điền build settings:
+
+   | Trường | Giá trị |
+   |---|---|
+   | **Project name** | `ai-wisdom-battle` |
+   | **Production branch** | `master` |
+   | **Framework preset** | `Vite` |
+   | **Build command** | `npm run build` |
+   | **Build output directory** | `dist` |
+   | **Root directory (/)** | `frontend` |
+
+5. Mở **Environment variables** → **Add variable**:
+
+   | Name | Value | Environment |
+   |---|---|---|
+   | `VITE_API_BASE_URL` | `https://<PUBLIC_IP>.sslip.io/api/v1` | Production |
+
+6. **Save and Deploy** → chờ ~2 phút → lấy URL: `ai-wisdom-battle.pages.dev`
+
+### D2. Cập nhật CORS trên Oracle VM
+
+Backend Spring Boot cần biết domain của frontend để cho phép CORS:
+
+```bash
+ssh -i ~/.ssh/oracle_awb ubuntu@<PUBLIC_IP>
+sudo -u deploy nano /opt/ai-wisdom-battle/.env
+```
+
+Sửa:
+```bash
+CORS_ALLOWED_ORIGINS=https://ai-wisdom-battle.pages.dev
+```
+
+Restart backend:
+```bash
+sudo -u deploy bash -c "cd /opt/ai-wisdom-battle && docker compose -f docker-compose.prod.yml restart app"
+```
+
+### D3. Kiểm tra
+
+```bash
+# Mở trình duyệt → https://ai-wisdom-battle.pages.dev
+# Mở DevTools → Network → kiểm tra /api/v1 requests về Oracle VM
+# Không có CORS error → setup thành công
+```
+
+---
+
+## Phần E — Backup PostgreSQL tự động (Oracle Object Storage)
+
+> Oracle Object Storage Always Free: **20GB**, không hết hạn.
+
+### E1. Tạo bucket trên Oracle Console
+
+1. Menu ☰ → **Storage** → **Object Storage & Archive Storage**
+2. Nhấn **Create Bucket**:
+   - **Bucket Name**: `awb-backups`
+   - Storage Tier: **Standard**
+3. Nhấn **Create**
+
+### E2. Cài OCI CLI trên VM
+
+```bash
+ssh -i ~/.ssh/oracle_awb ubuntu@<PUBLIC_IP>
+
+# Cài OCI CLI
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh)"
+
+# Cấu hình (điền tenancy OCID, user OCID, region, tạo API key)
+oci setup config
+# Key pair được tạo tại ~/.oci/oci_api_key.pem và ~/.oci/oci_api_key_public.pem
+
+# Upload public key lên OCI Console:
+# Profile → User settings → API Keys → Add API Key → Paste public key PEM
+cat ~/.oci/oci_api_key_public.pem
+```
+
+### E3. Test upload
+
+```bash
+echo "test" > /tmp/test.txt
+oci os object put --bucket-name awb-backups --file /tmp/test.txt --name test/test.txt
+# Kiểm tra trên OCI Console → Object Storage → awb-backups
+```
+
+### E4. Setup cron backup hàng ngày
+
+```bash
+# Với user deploy (chạy docker commands)
+sudo -u deploy crontab -e
+```
+
+Thêm dòng sau:
+```
+# Backup PostgreSQL 2h sáng mỗi ngày
+0 2 * * * /opt/ai-wisdom-battle/scripts/backup.sh >> /var/log/awb-backup.log 2>&1
+```
+
+Kiểm tra ngay:
+```bash
+sudo -u deploy /opt/ai-wisdom-battle/scripts/backup.sh
+# Xem kết quả trên OCI Console → Object Storage → awb-backups → postgres/
+```
+
+### E5. Restore từ backup
+
+```bash
+# Tải backup về
+oci os object get \
+  --bucket-name awb-backups \
+  --name "postgres/pg_20240101_020000.sql.gz" \
+  --file /tmp/restore.sql.gz
+
+# Restore
+gunzip -c /tmp/restore.sql.gz \
+  | docker exec -i awb-postgres \
+    psql -U "$POSTGRES_USER" "$POSTGRES_DB"
 ```
 
 ---

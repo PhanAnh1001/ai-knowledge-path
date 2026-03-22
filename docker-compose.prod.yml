@@ -175,9 +175,9 @@ services:
       SITE_ADDRESS: ${SITE_ADDRESS}    # ví dụ: 1.2.3.4.sslip.io
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./frontend/dist:/srv/frontend:ro    # frontend built on VM, mount vào đây
       - caddy_data:/data                    # Let's Encrypt certificates
       - caddy_config:/config
+      # Frontend: Cloudflare Pages (không cần mount dist ở đây)
     depends_on:
       app:
         condition: service_healthy
@@ -213,7 +213,7 @@ volumes:
   neo4j_data:
   neo4j_logs:
   redis_data:
-  caddy_data:
+  caddy_data:    # Let's Encrypt certs
   caddy_config:
 
 networks:

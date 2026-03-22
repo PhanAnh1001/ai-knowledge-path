@@ -1,46 +1,33 @@
 # =============================================================================
-# Caddyfile — AI Wisdom Battle Production
-# Caddy tự động cấp SSL Let's Encrypt cho {$SITE_ADDRESS}
+# Caddyfile — AI Wisdom Battle Production (Oracle Cloud)
+# Frontend: Cloudflare Pages (CDN toàn cầu)
+# Backend:  Oracle VM — Caddy chỉ proxy /api/* đến Spring Boot
 #
 # SITE_ADDRESS đặt trong .env:
-#   Chưa có domain: SITE_ADDRESS=1.2.3.4.sslip.io   (thay bằng IP thật)
+#   Chưa có domain: SITE_ADDRESS=1.2.3.4.sslip.io
 #   Có domain:      SITE_ADDRESS=awb.example.com
 #
-# Reload config không restart: docker exec awb-caddy caddy reload --config /etc/caddy/Caddyfile
+# Reload config: docker exec awb-caddy caddy reload --config /etc/caddy/Caddyfile
 # =============================================================================
 
 {$SITE_ADDRESS} {
 
-    # ── Security headers ──────────────────────────────────────────────────────
-    header {
-        X-Content-Type-Options  nosniff
-        X-Frame-Options         DENY
-        X-XSS-Protection        "1; mode=block"
-        Referrer-Policy         strict-origin-when-cross-origin
-        -Server                 # ẩn thông tin server
-    }
-
-    # ── Nén response ─────────────────────────────────────────────────────────
+    # ── Nén response ──────────────────────────────────────────────────────────
     encode gzip
 
     # ── API → Spring Boot :8080 ───────────────────────────────────────────────
-    handle /api/* {
-        reverse_proxy app:8080 {
-            health_uri    /actuator/health
-            health_interval 15s
-            header_up X-Forwarded-Proto {scheme}
-            header_up X-Real-IP {remote_host}
-        }
+    # Frontend (Cloudflare Pages) gọi /api/* về đây
+    reverse_proxy /api/* app:8080 {
+        health_uri      /actuator/health
+        health_interval 15s
+        header_up X-Forwarded-Proto {scheme}
+        header_up X-Real-IP {remote_host}
     }
 
-    # ── React SPA — serve static files từ frontend/dist ──────────────────────
-    handle {
-        root * /srv/frontend
-        try_files {path} /index.html    # SPA fallback
-        file_server {
-            # Cache: 1 năm cho assets có hash trong tên (vite output)
-            precompressed gzip br
-        }
+    # ── Security headers ──────────────────────────────────────────────────────
+    header {
+        X-Content-Type-Options nosniff
+        -Server                           # ẩn thông tin server
     }
 
     # ── Logging ───────────────────────────────────────────────────────────────
