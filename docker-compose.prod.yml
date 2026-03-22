@@ -1,0 +1,221 @@
+# =============================================================================
+# AI Wisdom Battle — Docker Compose PRODUCTION (Oracle Cloud Always Free)
+# Khác với docker-compose.yml (dev):
+#   - Không expose DB ports ra ngoài (chỉ internal awb-net)
+#   - Memory limits phù hợp ARM 24GB
+#   - Caddy thay frontend Nginx: tự động SSL + serve static files
+#   - Biến môi trường đọc từ .env (không có defaults yếu)
+#
+# Khởi động lần đầu:  docker compose -f docker-compose.prod.yml up -d
+# Deploy code mới:    ./deploy.sh   (hoặc GitHub Actions tự làm)
+# Xem logs:          docker compose -f docker-compose.prod.yml logs -f app
+# =============================================================================
+
+services:
+
+  # ── PostgreSQL ───────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: awb-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       ${POSTGRES_DB}
+      POSTGRES_USER:     ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    # KHÔNG expose port — chỉ app container mới kết nối được
+    expose:
+      - "5432"
+    shm_size: "256m"
+    mem_limit: 2g
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - awb-net
+
+  # ── Neo4j ────────────────────────────────────────────────────────────────────
+  neo4j:
+    image: neo4j:5.18-community
+    container_name: awb-neo4j
+    restart: unless-stopped
+    environment:
+      NEO4J_AUTH:                               ${NEO4J_USER}/${NEO4J_PASSWORD}
+      NEO4J_PLUGINS:                            '["apoc"]'
+      NEO4J_dbms_security_procedures_unrestricted: "apoc.*"
+      # Bộ nhớ tối ưu cho 4GB container
+      NEO4J_dbms_memory_heap_initial__size:     1G
+      NEO4J_dbms_memory_heap_max__size:         1500m
+      NEO4J_dbms_memory_pagecache_size:         1G
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+      - ./docker/neo4j/seed.cypher:/var/lib/neo4j/import/seed.cypher:ro
+    expose:
+      - "7474"
+      - "7687"
+    mem_limit: 4g
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7474 || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 8
+      start_period: 30s
+    networks:
+      - awb-net
+
+  # ── Redis ─────────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: awb-redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD}
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --save 60 1
+    volumes:
+      - redis_data:/data
+    expose:
+      - "6379"
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - awb-net
+
+  # ── Spring Boot App ──────────────────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    image: awb-app:latest
+    container_name: awb-app
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL:                 jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      DB_USER:                ${POSTGRES_USER}
+      DB_PASSWORD:            ${POSTGRES_PASSWORD}
+      NEO4J_URI:              bolt://neo4j:7687
+      NEO4J_USER:             ${NEO4J_USER}
+      NEO4J_PASSWORD:         ${NEO4J_PASSWORD}
+      REDIS_HOST:             redis
+      REDIS_PORT:             6379
+      REDIS_PASSWORD:         ${REDIS_PASSWORD}
+      REDIS_SSL:              "false"    # local Redis trong Docker, không cần TLS
+      JWT_SECRET:             ${JWT_SECRET}
+      JWT_EXPIRATION_MS:      ${JWT_EXPIRATION_MS:-86400000}
+      ADAPTIVE_ENGINE_URL:    http://adaptive-engine:8001
+      INTERNAL_API_KEY:       ${INTERNAL_API_KEY}
+      CORS_ALLOWED_ORIGINS:   ${CORS_ALLOWED_ORIGINS}
+      RATE_LIMIT_AUTH_MAX:    ${RATE_LIMIT_AUTH_MAX:-20}
+      RATE_LIMIT_AUTH_WINDOW: ${RATE_LIMIT_AUTH_WINDOW:-60}
+    expose:
+      - "8080"
+    mem_limit: 4g
+    depends_on:
+      postgres:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - awb-net
+
+  # ── Python Adaptive Engine ───────────────────────────────────────────────────
+  adaptive-engine:
+    build:
+      context: ./adaptive-engine
+      dockerfile: Dockerfile
+    image: awb-engine:latest
+    container_name: awb-adaptive-engine
+    restart: unless-stopped
+    environment:
+      JAVA_SERVICE_URL: http://app:8080
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+    expose:
+      - "8001"
+    mem_limit: 1g
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8001/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - awb-net
+
+  # ── Caddy — Reverse Proxy + Auto-SSL + Serve Frontend ───────────────────────
+  caddy:
+    image: caddy:2-alpine
+    container_name: awb-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"    # HTTP/3
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS}    # ví dụ: 1.2.3.4.sslip.io
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data                    # Let's Encrypt certificates
+      - caddy_config:/config
+      # Frontend: Cloudflare Pages (không cần mount dist ở đây)
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - awb-net
+
+  # ── Neo4j Seeder (chạy 1 lần khi khởi tạo) ──────────────────────────────────
+  neo4j-seeder:
+    image: neo4j:5.18-community
+    container_name: awb-neo4j-seeder
+    entrypoint: >
+      /bin/bash -c "
+        echo 'Waiting for Neo4j to be ready...' &&
+        sleep 20 &&
+        cypher-shell -a bolt://neo4j:7687
+                     -u ${NEO4J_USER}
+                     -p ${NEO4J_PASSWORD}
+                     -f /import/seed.cypher &&
+        echo 'Neo4j seed complete.'
+      "
+    volumes:
+      - ./docs/neo4j-schema.cypher:/import/seed.cypher:ro
+    depends_on:
+      neo4j:
+        condition: service_healthy
+    networks:
+      - awb-net
+    restart: "no"
+
+# =============================================================================
+volumes:
+  postgres_data:
+  neo4j_data:
+  neo4j_logs:
+  redis_data:
+  caddy_data:    # Let's Encrypt certs
+  caddy_config:
+
+networks:
+  awb-net:
+    driver: bridge

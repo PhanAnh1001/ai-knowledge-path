@@ -1,7 +1,7 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-21 12:23:38
-> Session: `7944462a-3c9`
+> Cập nhật lần cuối: 2026-03-22 04:19:50
+> Session: `346041f1-1ee`
 > Branch: `claude/add-claude-documentation-OLqcO`
 
 ---
@@ -11,21 +11,21 @@
 ### Các commit gần nhất
 
 ```
-599ee1e feat: integrate Python Adaptive Engine + fix JPQL/controller bugs
-10241cc Update PROJECT_LOG: 2026-03-21 7944462a
-30e3f1f Add seed data, CI pipeline, and dev config
-97f3fc6 Update PROJECT_LOG: 2026-03-21 d918d96e
-5c1f108 Add infrastructure: complete Docker Compose stack (7 services)
-f3de7d9 Update PROJECT_LOG: 2026-03-21 04701916
-9dbc0ff Add React + TypeScript Frontend (Vite + TanStack Query + Tailwind)
-df71711 Update PROJECT_LOG: 2026-03-21 1bbc183f
-40e2642 Add Python FastAPI Adaptive Engine (Phase 1 — rule-based)
-8f427bc Update PROJECT_LOG: 2026-03-21 98e994b5
-48b9f67 Fix build: add Lombok version, fix Neo4j Direction.BOTH, fix filter mock in controller tests
-b97bd4c Update PROJECT_LOG: 2026-03-21 cab0392c
-df52930 Update README with full project documentation
-2671e4d Update PROJECT_LOG: 2026-03-21 c63df2c7
-5474e4c Add Auth Controller with register/login, JWT, exception handling, tests
+af7eab0 Update PROJECT_LOG: 2026-03-22 346041f1
+ef39bb5 feat: Oracle VM + Cloudflare Pages hybrid + PostgreSQL backup
+e848975 Update PROJECT_LOG: 2026-03-22 8d3c3c85
+0905986 feat: Oracle Cloud Always Free production deployment
+4ec7ac2 Update PROJECT_LOG: 2026-03-22 b50265c2
+da8855e docs: add web UI guide for Fly.io secrets and Cloudflare Pages step-by-step
+a38664b Update PROJECT_LOG: 2026-03-21 5b55e094
+f3f8a3f fix: correct 3 bugs in deploy.yml
+41156f6 Update PROJECT_LOG: 2026-03-21 2fb0391a
+3d908f3 Update PROJECT_LOG: 2026-03-21 2fb0391a
+a97a7ac Update PROJECT_LOG: 2026-03-21 7f075d87
+2ca3edd feat: production deployment via Fly.io + Cloudflare Pages (no docker-compose)
+928856b Update PROJECT_LOG: 2026-03-21 7f075d87
+f23218f docs: add free production deployment guide (DEPLOY-FREE.md)
+80aa843 Update PROJECT_LOG: 2026-03-21 d6d66afb
 ```
 
 ---

@@ -10,6 +10,8 @@ import java.util.UUID;
 
 public interface KnowledgeNodeRepository extends JpaRepository<KnowledgeNode, UUID> {
 
+    List<KnowledgeNode> findByPublishedTrue();
+
     List<KnowledgeNode> findByDomainAndPublishedTrue(String domain);
 
     /**

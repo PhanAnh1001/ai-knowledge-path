@@ -1,0 +1,39 @@
+# =============================================================================
+# Terraform Variables — Oracle Cloud
+# Sao chép file này thành terraform.tfvars rồi điền giá trị thật:
+#   cp terraform.tfvars.example terraform.tfvars
+#
+# KHÔNG commit terraform.tfvars lên git (đã có trong .gitignore)
+# =============================================================================
+
+# ── Lấy từ OCI Console ── Profile (icon góc trên phải) → Tenancy
+tenancy_ocid = "ocid1.tenancy.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# ── Lấy từ: Profile → User settings → OCID
+user_ocid = "ocid1.user.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# ── Lấy từ: User settings → API Keys → fingerprint của key vừa tạo
+fingerprint = "aa:bb:cc:dd:ee:ff:00:11:22:33:44:55:66:77:88:99"
+
+# ── Đường dẫn file private key PEM đã tải về khi tạo API Key
+private_key_path = "~/.oci/oci_api_key.pem"
+
+# ── Region: chọn gần nhất
+# ap-singapore-1 | ap-tokyo-1 | ap-sydney-1 | us-ashburn-1 | eu-frankfurt-1
+region = "ap-singapore-1"
+
+# ── Compartment: thường dùng root compartment (= tenancy_ocid)
+compartment_ocid = "ocid1.tenancy.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# ── SSH public key để SSH vào VM (nội dung file ~/.ssh/id_ed25519.pub)
+ssh_public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA... your-email@example.com"
+
+# ── Instance resources (Always Free: tối đa 4 OCPU + 24GB tổng cộng)
+instance_ocpus     = 4
+instance_memory_gb = 24
+boot_volume_gb     = 100
+
+# ── Site address cho SSL (để trống, điền sau khi biết IP)
+# Chưa có domain: để "" → sau khi VM tạo xong, dùng dạng "1.2.3.4.sslip.io"
+# Có domain: "awb.example.com"
+site_address = ""

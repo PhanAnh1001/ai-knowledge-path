@@ -3,8 +3,11 @@ package com.aiwisdombattle.controller;
 import com.aiwisdombattle.domain.entity.KnowledgeNode;
 import com.aiwisdombattle.domain.model.KnowledgeNodeGraph;
 import com.aiwisdombattle.repository.KnowledgeNodeGraphRepository;
-import com.aiwisdombattle.repository.KnowledgeNodeRepository;
 import com.aiwisdombattle.repository.SessionRepository;
+import com.aiwisdombattle.service.KnowledgeNodeService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,16 +20,15 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/nodes")
 @RequiredArgsConstructor
+@Tag(name = "Knowledge Nodes", description = "Danh sách node kiến thức và knowledge map")
+@SecurityRequirement(name = "bearerAuth")
 public class KnowledgeNodeController {
 
-    private final KnowledgeNodeRepository nodeRepository;
+    private final KnowledgeNodeService nodeService;
     private final KnowledgeNodeGraphRepository graphRepository;
     private final SessionRepository sessionRepository;
 
-    /**
-     * GET /api/v1/nodes?domain=nature   (domain là optional)
-     * Danh sách node chưa học, lọc theo domain nếu có.
-     */
+    @Operation(summary = "Danh sách node chưa học (optional: lọc theo domain)")
     @GetMapping
     public ResponseEntity<List<KnowledgeNode>> listNodes(
         @RequestParam(required = false) String domain,
@@ -34,16 +36,15 @@ public class KnowledgeNodeController {
     ) {
         UUID userId = UUID.fromString(principal.getUsername());
         List<UUID> seenIds = sessionRepository.findCompletedNodeIdsByUserId(userId);
-        List<KnowledgeNode> nodes = (domain != null && !domain.isBlank())
-            ? nodeRepository.findUnseenByDomain(domain, seenIds)
-            : nodeRepository.findAllUnseen(seenIds);
-        return ResponseEntity.ok(nodes);
+
+        List<KnowledgeNode> published = (domain != null && !domain.isBlank())
+            ? nodeService.getPublishedByDomain(domain)
+            : nodeService.getAllPublished();
+
+        return ResponseEntity.ok(nodeService.filterUnseen(published, seenIds));
     }
 
-    /**
-     * GET /api/v1/nodes/{nodeId}/map
-     * Subgraph xung quanh node để render knowledge map.
-     */
+    @Operation(summary = "Subgraph xung quanh node để render knowledge map")
     @GetMapping("/{nodeId}/map")
     public ResponseEntity<List<KnowledgeNodeGraph>> knowledgeMap(
         @PathVariable String nodeId,
@@ -56,19 +57,13 @@ public class KnowledgeNodeController {
         return ResponseEntity.ok(graphRepository.findKnowledgeMapSubgraph(seenIds));
     }
 
-    /**
-     * GET /api/v1/nodes/{nodeId}/deep-dive
-     * Chuỗi deep-dive (Rabbit Hole Mode — Premium).
-     */
+    @Operation(summary = "Chuỗi deep-dive (Rabbit Hole Mode — Premium)")
     @GetMapping("/{nodeId}/deep-dive")
     public ResponseEntity<List<KnowledgeNodeGraph>> deepDive(@PathVariable String nodeId) {
         return ResponseEntity.ok(graphRepository.findDeepDiveChain(nodeId));
     }
 
-    /**
-     * GET /api/v1/nodes/{nodeId}/cross-domain
-     * Kết nối bất ngờ xuyên domain (Premium).
-     */
+    @Operation(summary = "Kết nối bất ngờ xuyên domain (Premium)")
     @GetMapping("/{nodeId}/cross-domain")
     public ResponseEntity<List<KnowledgeNodeGraph>> crossDomain(@PathVariable String nodeId) {
         return ResponseEntity.ok(graphRepository.findCrossDomainSurprises(nodeId));

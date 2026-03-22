@@ -1,0 +1,39 @@
+# =============================================================================
+# Caddyfile — AI Wisdom Battle Production (Oracle Cloud)
+# Frontend: Cloudflare Pages (CDN toàn cầu)
+# Backend:  Oracle VM — Caddy chỉ proxy /api/* đến Spring Boot
+#
+# SITE_ADDRESS đặt trong .env:
+#   Chưa có domain: SITE_ADDRESS=1.2.3.4.sslip.io
+#   Có domain:      SITE_ADDRESS=awb.example.com
+#
+# Reload config: docker exec awb-caddy caddy reload --config /etc/caddy/Caddyfile
+# =============================================================================
+
+{$SITE_ADDRESS} {
+
+    # ── Nén response ──────────────────────────────────────────────────────────
+    encode gzip
+
+    # ── API → Spring Boot :8080 ───────────────────────────────────────────────
+    # Frontend (Cloudflare Pages) gọi /api/* về đây
+    reverse_proxy /api/* app:8080 {
+        health_uri      /actuator/health
+        health_interval 15s
+        header_up X-Forwarded-Proto {scheme}
+        header_up X-Real-IP {remote_host}
+    }
+
+    # ── Security headers ──────────────────────────────────────────────────────
+    header {
+        X-Content-Type-Options nosniff
+        -Server                           # ẩn thông tin server
+    }
+
+    # ── Logging ───────────────────────────────────────────────────────────────
+    log {
+        output stdout
+        format json
+        level  INFO
+    }
+}

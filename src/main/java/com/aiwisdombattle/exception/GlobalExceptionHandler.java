@@ -1,43 +1,74 @@
 package com.aiwisdombattle.exception;
 
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.net.URI;
+import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ProblemDetail handleNotFound(ResourceNotFoundException ex, HttpServletRequest req) {
+        return problem(HttpStatus.NOT_FOUND, ex.getMessage(), req);
+    }
+
+    /** Fallback cho NoSuchElementException còn sót lại */
     @ExceptionHandler(NoSuchElementException.class)
-    public ProblemDetail handleNotFound(NoSuchElementException ex) {
-        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+    public ProblemDetail handleNoSuchElement(NoSuchElementException ex, HttpServletRequest req) {
+        return problem(HttpStatus.NOT_FOUND, ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ProblemDetail handleConflict(ConflictException ex, HttpServletRequest req) {
+        return problem(HttpStatus.CONFLICT, ex.getMessage(), req);
     }
 
     @ExceptionHandler(EmailAlreadyUsedException.class)
-    public ProblemDetail handleEmailConflict(EmailAlreadyUsedException ex) {
-        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+    public ProblemDetail handleEmailConflict(EmailAlreadyUsedException ex, HttpServletRequest req) {
+        return problem(HttpStatus.CONFLICT, ex.getMessage(), req);
     }
 
     @ExceptionHandler(InvalidCredentialsException.class)
-    public ProblemDetail handleInvalidCredentials(InvalidCredentialsException ex) {
-        // 401 với message chung — không tiết lộ email/password nào sai
-        return ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
+    public ProblemDetail handleInvalidCredentials(InvalidCredentialsException ex, HttpServletRequest req) {
+        return problem(HttpStatus.UNAUTHORIZED, ex.getMessage(), req);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ProblemDetail handleValidation(MethodArgumentNotValidException ex) {
-        String detail = ex.getBindingResult().getFieldErrors().stream()
-            .map(e -> e.getField() + ": " + e.getDefaultMessage())
-            .reduce((a, b) -> a + "; " + b)
-            .orElse("Validation failed");
-        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, detail);
+    public ProblemDetail handleValidation(MethodArgumentNotValidException ex, HttpServletRequest req) {
+        List<Map<String, String>> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
+            .map(fe -> Map.of("field", fe.getField(), "message",
+                fe.getDefaultMessage() != null ? fe.getDefaultMessage() : "invalid"))
+            .toList();
+
+        ProblemDetail pd = problem(HttpStatus.BAD_REQUEST, "Validation failed", req);
+        pd.setProperty("fieldErrors", fieldErrors);
+        return pd;
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ProblemDetail handleIllegalArgument(IllegalArgumentException ex, HttpServletRequest req) {
+        return problem(HttpStatus.BAD_REQUEST, ex.getMessage(), req);
     }
 
     @ExceptionHandler(Exception.class)
-    public ProblemDetail handleGeneric(Exception ex) {
-        return ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
+    public ProblemDetail handleGeneric(Exception ex, HttpServletRequest req) {
+        log.error("Unhandled exception [{}]: {}", req.getRequestURI(), ex.getMessage(), ex);
+        return problem(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred", req);
+    }
+
+    private ProblemDetail problem(HttpStatus status, String detail, HttpServletRequest req) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(status, detail);
+        pd.setInstance(URI.create(req.getRequestURI()));
+        return pd;
     }
 }

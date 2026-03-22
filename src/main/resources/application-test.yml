@@ -7,8 +7,11 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: create-drop         # H2 tự tạo schema từ entities khi test
     show-sql: true
+
+  flyway:
+    enabled: false                  # tắt Flyway khi chạy test với H2
 
   neo4j:
     uri: bolt://localhost:7687      # override trong CI với Neo4j testcontainer

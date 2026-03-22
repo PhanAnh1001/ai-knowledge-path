@@ -1,0 +1,120 @@
+#cloud-config
+# =============================================================================
+# cloud-init Bootstrap — AI Wisdom Battle
+# Chạy tự động lần đầu khi VM khởi động (mất ~3-5 phút)
+# Xem log: sudo cat /var/log/cloud-init-output.log
+# =============================================================================
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - git
+  - curl
+  - wget
+  - htop
+  - unzip
+  - jq
+  - fail2ban    # bảo vệ SSH brute force
+  - ufw         # firewall đơn giản hơn iptables
+
+write_files:
+  # SSH hardening config
+  - path: /etc/ssh/sshd_config.d/99-hardening.conf
+    content: |
+      PasswordAuthentication no
+      PermitRootLogin no
+      X11Forwarding no
+      MaxAuthTries 3
+      LoginGraceTime 20
+    permissions: "0600"
+
+  # UFW rules (port 22, 80, 443)
+  - path: /etc/ufw/before.rules.d/awb.sh
+    content: |
+      #!/bin/bash
+      ufw --force reset
+      ufw default deny incoming
+      ufw default allow outgoing
+      ufw allow 22/tcp
+      ufw allow 80/tcp
+      ufw allow 443/tcp
+      ufw --force enable
+    permissions: "0755"
+
+  # /opt/ai-wisdom-battle placeholder — git clone thay thế sau
+  - path: /opt/.awb-placeholder
+    content: "placeholder"
+
+runcmd:
+  # ── 1. Tắt swap mặc định, tạo swap 4GB ──────────────────────────────────────
+  - swapoff -a
+  - fallocate -l 4G /swapfile
+  - chmod 600 /swapfile
+  - mkswap /swapfile
+  - swapon /swapfile
+  - echo '/swapfile none swap sw 0 0' >> /etc/fstab
+
+  # ── 2. Cài Docker Engine (arm64) ────────────────────────────────────────────
+  - install -m 0755 -d /etc/apt/keyrings
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+  - chmod a+r /etc/apt/keyrings/docker.asc
+  - |
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] \
+    https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
+    > /etc/apt/sources.list.d/docker.list
+  - apt-get update -q
+  - apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
+  # ── 3. Bật Docker autostart ──────────────────────────────────────────────────
+  - systemctl enable docker
+  - systemctl start docker
+
+  # ── 4. Tạo user deploy (GitHub Actions SSH vào đây) ─────────────────────────
+  - useradd -m -s /bin/bash deploy
+  - usermod -aG docker deploy
+  - mkdir -p /home/deploy/.ssh
+  - chmod 700 /home/deploy/.ssh
+  # authorized_keys cho deploy sẽ được thêm thủ công sau khi tạo SSH key pair
+  - touch /home/deploy/.ssh/authorized_keys
+  - chmod 600 /home/deploy/.ssh/authorized_keys
+  - chown -R deploy:deploy /home/deploy/.ssh
+
+  # ── 5. Clone repo vào /opt/ai-wisdom-battle ─────────────────────────────────
+  # Thay YOUR_GITHUB_USERNAME/ai-wisdom-battle bằng repo thật
+  - git clone https://github.com/PhanAnh1001/ai-wisdom-battle.git /opt/ai-wisdom-battle
+  - chown -R deploy:deploy /opt/ai-wisdom-battle
+
+  # ── 6. Copy .env.example thành .env (user điền giá trị sau) ─────────────────
+  - cp /opt/ai-wisdom-battle/.env.example /opt/ai-wisdom-battle/.env
+  - chown deploy:deploy /opt/ai-wisdom-battle/.env
+  - chmod 600 /opt/ai-wisdom-battle/.env
+
+  # ── 7. Cấu hình firewall UFW ─────────────────────────────────────────────────
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw allow 22/tcp comment 'SSH'
+  - ufw allow 80/tcp comment 'HTTP (Caddy)'
+  - ufw allow 443/tcp comment 'HTTPS (Caddy)'
+  - ufw --force enable
+
+  # ── 8. Khởi động fail2ban ────────────────────────────────────────────────────
+  - systemctl enable fail2ban
+  - systemctl start fail2ban
+
+  # ── 9. Reload SSH với cấu hình mới ──────────────────────────────────────────
+  - systemctl reload sshd
+
+  # ── 10. Node.js 22 (để build frontend trên VM) ───────────────────────────────
+  - curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+  - apt-get install -y nodejs
+
+  # ── Hoàn tất ─────────────────────────────────────────────────────────────────
+  - echo "=== cloud-init DONE. SSH: ubuntu@<PUBLIC_IP> ===" >> /var/log/cloud-init-output.log
+
+final_message: |
+  ==============================================
+  AI Wisdom Battle VM ready in $UPTIME seconds
+  SSH: ssh ubuntu@<PUBLIC_IP>
+  Next: sudo cat /var/log/cloud-init-output.log
+  ==============================================

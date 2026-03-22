@@ -100,8 +100,8 @@ class SessionServiceTest {
         when(userRepository.findById(any())).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> sessionService.startSession(UUID.randomUUID(), node.getId()))
-            .isInstanceOf(java.util.NoSuchElementException.class)
-            .hasMessageContaining("User not found");
+            .isInstanceOf(com.aiwisdombattle.exception.ResourceNotFoundException.class)
+            .hasMessageContaining("User");
     }
 
     @Test

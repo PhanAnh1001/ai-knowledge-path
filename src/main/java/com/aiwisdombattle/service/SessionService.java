@@ -7,6 +7,7 @@ import com.aiwisdombattle.domain.entity.Session.SessionStatus;
 import com.aiwisdombattle.domain.entity.User;
 import com.aiwisdombattle.domain.model.KnowledgeNodeGraph;
 import com.aiwisdombattle.dto.response.SessionCompleteResponse;
+import com.aiwisdombattle.exception.ResourceNotFoundException;
 import com.aiwisdombattle.repository.KnowledgeNodeGraphRepository;
 import com.aiwisdombattle.repository.KnowledgeNodeRepository;
 import com.aiwisdombattle.repository.SessionRepository;
@@ -17,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Service
@@ -37,9 +37,9 @@ public class SessionService {
             .filter(s -> s.getStatus() == SessionStatus.IN_PROGRESS)
             .orElseGet(() -> {
                 User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new NoSuchElementException("User not found: " + userId));
+                    .orElseThrow(() -> ResourceNotFoundException.of("User", userId));
                 KnowledgeNode node = nodeRepository.findById(nodeId)
-                    .orElseThrow(() -> new NoSuchElementException("Node not found: " + nodeId));
+                    .orElseThrow(() -> ResourceNotFoundException.of("Node", nodeId));
 
                 return sessionRepository.save(
                     Session.builder().user(user).knowledgeNode(node).build()
@@ -54,7 +54,7 @@ public class SessionService {
     @Transactional
     public SessionCompleteResponse completeSession(UUID sessionId, int score, int durationSeconds) {
         Session session = sessionRepository.findById(sessionId)
-            .orElseThrow(() -> new NoSuchElementException("Session not found: " + sessionId));
+            .orElseThrow(() -> ResourceNotFoundException.of("Session", sessionId));
 
         session.setStatus(SessionStatus.COMPLETED);
         session.setScoreEarned(score);
