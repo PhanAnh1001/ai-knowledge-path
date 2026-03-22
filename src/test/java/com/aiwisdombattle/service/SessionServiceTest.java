@@ -4,6 +4,7 @@ import com.aiwisdombattle.client.AdaptiveEngineClient;
 import com.aiwisdombattle.domain.entity.KnowledgeNode;
 import com.aiwisdombattle.domain.entity.Session;
 import com.aiwisdombattle.domain.entity.Session.SessionStatus;
+import com.aiwisdombattle.dto.response.SessionStartResponse;
 import com.aiwisdombattle.domain.entity.User;
 import com.aiwisdombattle.domain.model.KnowledgeNodeGraph;
 import com.aiwisdombattle.dto.response.SessionCompleteResponse;
@@ -75,10 +76,10 @@ class SessionServiceTest {
         when(nodeRepository.findById(node.getId())).thenReturn(Optional.of(node));
         when(sessionRepository.save(any())).thenReturn(session);
 
-        Session result = sessionService.startSession(user.getId(), node.getId());
+        SessionStartResponse result = sessionService.startSession(user.getId(), node.getId());
 
         assertThat(result).isNotNull();
-        assertThat(result.getStatus()).isEqualTo(SessionStatus.IN_PROGRESS);
+        assertThat(result.getSessionId()).isNotNull();
         verify(sessionRepository).save(any(Session.class));
     }
 
@@ -87,9 +88,9 @@ class SessionServiceTest {
         when(sessionRepository.findByUserIdAndKnowledgeNodeId(user.getId(), node.getId()))
             .thenReturn(Optional.of(session));
 
-        Session result = sessionService.startSession(user.getId(), node.getId());
+        SessionStartResponse result = sessionService.startSession(user.getId(), node.getId());
 
-        assertThat(result.getId()).isEqualTo(session.getId());
+        assertThat(result.getSessionId()).isEqualTo(session.getId());
         verify(sessionRepository, never()).save(any());
     }
 
