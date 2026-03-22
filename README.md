@@ -298,7 +298,8 @@ ai-wisdom-battle/
 ├── Dockerfile                    # Backend Docker image
 ├── Caddyfile                     # Reverse proxy
 ├── docker-compose.yml            # Dev stack
-└── docker-compose.prod.yml       # Production stack
+├── docker-compose.prod.yml       # Production stack
+└── .env.example                  # Mẫu biến môi trường
 ```
 
 ---
@@ -311,5 +312,6 @@ ai-wisdom-battle/
 - [Neo4j Graph Schema](docs/neo4j-schema.cypher)
 - [Project Log](docs/PROJECT_LOG.md)
 - [Hướng dẫn Deploy](docs/DEPLOY.md)
-- [Deploy miễn phí](docs/DEPLOY-FREE.md)
+- [Deploy Oracle Cloud](docs/DEPLOY-ORACLE.md)
+- [Deploy Terraform](docs/DEPLOY-TERRAFORM.md)
 - [AI Assistant Guide](CLAUDE.md)

@@ -41,7 +41,6 @@ ai-wisdom-battle/
 │   ├── neo4j-schema.cypher
 │   ├── PROJECT_LOG.md
 │   ├── DEPLOY.md
-│   ├── DEPLOY-FREE.md
 │   ├── DEPLOY-ORACLE.md
 │   └── DEPLOY-TERRAFORM.md
 ├── docker/                       # Docker helper scripts
@@ -52,7 +51,6 @@ ai-wisdom-battle/
 ├── Caddyfile                     # Reverse proxy config (Caddy)
 ├── docker-compose.yml            # Dev stack
 ├── docker-compose.prod.yml       # Production stack
-├── fly.toml                      # Fly.io deployment config
 ├── .env.example                  # Mẫu biến môi trường
 ├── .gitignore
 ├── README.md

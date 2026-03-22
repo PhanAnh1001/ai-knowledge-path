@@ -2,8 +2,8 @@ version: "3.9"
 
 # =============================================================================
 # AI Wisdom Battle — Docker Compose (CHỈ LOCAL DEV + CI)
-# Production: xem docs/DEPLOY-FREE.md — deploy từng service riêng lên Fly.io,
-#             Neon, Neo4j Aura, Upstash, Cloudflare Pages.
+# Production: xem docs/DEPLOY.md (Docker Compose trên VPS)
+#             hoặc docs/DEPLOY-ORACLE.md / docs/DEPLOY-TERRAFORM.md
 #
 # Khởi động toàn bộ:        docker compose up -d
 # Chỉ infra (không build):  docker compose up -d postgres neo4j redis
