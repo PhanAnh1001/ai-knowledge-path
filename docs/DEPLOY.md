@@ -1,6 +1,20 @@
 # Hướng dẫn Deploy — AI Wisdom Battle
 
-## Mục lục
+## Chọn phương án deploy
+
+| Phương án | Mô tả | Phù hợp |
+|---|---|---|
+| **[DEPLOY-ORACLE.md](./DEPLOY-ORACLE.md)** | Oracle Cloud Always Free — **setup thủ công** qua web console | Người mới, muốn hiểu từng bước |
+| **[DEPLOY-TERRAFORM.md](./DEPLOY-TERRAFORM.md)** | Oracle Cloud Always Free — **Terraform (IaC)**, 1 lệnh tạo toàn bộ hạ tầng | DevOps, muốn tự động hóa |
+| **[DEPLOY-FREE.md](./DEPLOY-FREE.md)** | Fly.io + Neon + Neo4j Aura + Cloudflare Pages — dịch vụ managed | Không muốn quản lý server |
+| **Tài liệu này** | Docker Compose trên bất kỳ Linux server nào | Đã có VPS/server riêng |
+
+> **Khuyến nghị cho lần đầu**: đọc `DEPLOY-ORACLE.md` (thủ công) để hiểu kiến trúc,
+> sau đó dùng `DEPLOY-TERRAFORM.md` cho các môi trường tiếp theo.
+
+---
+
+## Mục lục (Docker Compose trên server có sẵn)
 
 1. [Yêu cầu môi trường](#1-yêu-cầu-môi-trường)
 2. [Chuẩn bị server](#2-chuẩn-bị-server)
