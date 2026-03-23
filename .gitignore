@@ -36,3 +36,17 @@ target/
 
 # Docker override (local tweaks)
 docker-compose.override.yml
+*.pyc
+__pycache__/
+
+# Terraform — không commit credentials hoặc state
+*.tfvars
+!*.tfvars.example
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+tfplan
+
+# Migration export CSV (chứa data production)
+migration-export/

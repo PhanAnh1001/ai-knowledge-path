@@ -1,0 +1,127 @@
+name: Terraform (AWS Lightsail)
+
+# Chạy thủ công từ GitHub UI (Actions tab → chọn workflow → Run workflow)
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Hành động Terraform cần chạy"
+        required: true
+        default: plan
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+
+# ── Secrets cần cấu hình trong GitHub repo ─────────────────────────────────
+# Settings → Secrets and variables → Actions → New repository secret
+#
+#   AWS_ACCESS_KEY_ID     — Access key ID (IAM Console → Security credentials)
+#   AWS_SECRET_ACCESS_KEY — Secret access key (chỉ hiển thị khi tạo lần đầu)
+#   SSH_PUBLIC_KEY        — Nội dung ~/.ssh/awb-lightsail.pub (để SSH vào VM)
+
+env:
+  TF_WORKING_DIR: infra/lightsail
+  TF_VERSION: "1.7.5"
+
+jobs:
+  terraform:
+    name: Terraform ${{ github.event.inputs.action }}
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read   # checkout code
+      actions: read    # listArtifactsForRepo API (bước restore state)
+
+    defaults:
+      run:
+        working-directory: infra/lightsail
+
+    steps:
+      # ── 1. Checkout code ──────────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── 2. Cài Terraform ──────────────────────────────────────────────────
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      # ── 3. Khôi phục terraform.tfstate từ artifact lần chạy trước ─────────
+      - name: Restore terraform state (nếu có)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ARTIFACT_ID=$(gh api "repos/${{ github.repository }}/actions/artifacts?name=terraform-lightsail-state" --jq '.artifacts[0].id // empty')
+          if [ -n "$ARTIFACT_ID" ]; then
+            echo "Found terraform-lightsail-state artifact (ID: $ARTIFACT_ID), downloading..."
+            gh api "repos/${{ github.repository }}/actions/artifacts/$ARTIFACT_ID/zip" > state.zip
+            unzip -o state.zip
+            rm state.zip
+            echo "Terraform state restored."
+          else
+            echo "No terraform-lightsail-state artifact found. Starting fresh."
+          fi
+
+      # ── 4. Cache provider plugins (tăng tốc init) ─────────────────────────
+      - name: Cache Terraform providers
+        uses: actions/cache@v4
+        with:
+          path: infra/lightsail/.terraform
+          key: terraform-lightsail-providers-${{ hashFiles('infra/lightsail/.terraform.lock.hcl') }}
+          restore-keys: terraform-lightsail-providers-
+
+      # ── 5. Terraform Init ─────────────────────────────────────────────────
+      - name: Terraform Init
+        run: terraform init
+        env:
+          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
+
+      # ── 6. Terraform Plan ─────────────────────────────────────────────────
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan -input=false
+        env:
+          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
+
+      # ── 7. Terraform Apply (chỉ khi chọn apply) ──────────────────────────
+      - name: Terraform Apply
+        if: github.event.inputs.action == 'apply'
+        run: terraform apply -auto-approve tfplan
+        env:
+          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
+
+      # ── 8. Terraform Destroy (chỉ khi chọn destroy) ──────────────────────
+      - name: Terraform Destroy
+        if: github.event.inputs.action == 'destroy'
+        run: terraform destroy -auto-approve -input=false
+        env:
+          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
+
+      # ── 9. Lưu terraform.tfstate vào artifact sau mỗi lần apply/destroy ──
+      - name: Upload terraform state
+        if: always() && (github.event.inputs.action == 'apply' || github.event.inputs.action == 'destroy')
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-lightsail-state
+          path: infra/lightsail/terraform.tfstate
+          retention-days: 90
+          overwrite: true
+
+      # ── 10. In outputs sau apply ──────────────────────────────────────────
+      - name: Terraform Output
+        if: github.event.inputs.action == 'apply'
+        run: terraform output
+        env:
+          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}

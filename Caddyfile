@@ -1,24 +1,27 @@
 # =============================================================================
-# Caddyfile — AI Wisdom Battle Production (Oracle Cloud)
-# Frontend: Cloudflare Pages (CDN toàn cầu)
-# Backend:  Oracle VM — Caddy chỉ proxy /api/* đến Spring Boot
+# Caddyfile — AI Wisdom Battle Production (AWS Lightsail Singapore, IPv6-only)
+# Frontend: Cloudflare Pages (free CDN)
+# Backend:  Lightsail IPv6 — Caddy proxy /api/* đến Go backend port 8080
 #
-# SITE_ADDRESS đặt trong .env:
-#   Chưa có domain: SITE_ADDRESS=1.2.3.4.sslip.io
-#   Có domain:      SITE_ADDRESS=awb.example.com
+# TLS: Cloudflare DNS-01 challenge (không cần port 80/443 IPv4 public)
+# User (IPv4/IPv6) → Cloudflare → IPv6 → Caddy → Go backend
 #
 # Reload config: docker exec awb-caddy caddy reload --config /etc/caddy/Caddyfile
 # =============================================================================
 
-{$SITE_ADDRESS} {
+api.aiwisdombattle.com {
+
+    # ── TLS via Cloudflare DNS-01 challenge ───────────────────────────────────
+    tls {
+        dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+    }
 
     # ── Nén response ──────────────────────────────────────────────────────────
     encode gzip
 
-    # ── API → Spring Boot :8080 ───────────────────────────────────────────────
-    # Frontend (Cloudflare Pages) gọi /api/* về đây
-    reverse_proxy /api/* app:8080 {
-        health_uri      /actuator/health
+    # ── API → Go backend :8080 ────────────────────────────────────────────────
+    reverse_proxy app:8080 {
+        health_uri      /health
         health_interval 15s
         header_up X-Forwarded-Proto {scheme}
         header_up X-Real-IP {remote_host}
@@ -26,8 +29,11 @@
 
     # ── Security headers ──────────────────────────────────────────────────────
     header {
-        X-Content-Type-Options nosniff
-        -Server                           # ẩn thông tin server
+        X-Content-Type-Options  nosniff
+        X-Frame-Options         DENY
+        X-XSS-Protection        "1; mode=block"
+        Referrer-Policy         strict-origin-when-cross-origin
+        -Server
     }
 
     # ── Logging ───────────────────────────────────────────────────────────────
