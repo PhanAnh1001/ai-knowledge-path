@@ -1,7 +1,7 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-23 08:29:27
-> Session: `ce82d33f-677`
+> Cập nhật lần cuối: 2026-03-23 12:28:08
+> Session: `667afca6-bec`
 > Branch: `claude/lightsail-migration-gBk3t`
 
 ---
@@ -11,6 +11,8 @@
 ### Các commit gần nhất
 
 ```
+dbb1d95 Add Terraform Lightsail module + workflow, update Day 5 guide
+dcb8d3a Update PROJECT_LOG: 2026-03-23 ce82d33f
 6a38d7f Add __pycache__ and *.pyc to .gitignore
 deef646 Update PROJECT_LOG: 2026-03-23 ce82d33f
 4cfd282 Add Day 5 deploy guide and Neo4j→PostgreSQL migration script
@@ -24,8 +26,6 @@ de194ea Add cloud alternatives evaluation for Oracle Cloud replacement
 1f17958 Update PROJECT_LOG: 2026-03-23 ab36d19d
 5eb725e Fix VPS pricing accuracy and add Asia datacenter options
 4f35934 Update PROJECT_LOG: 2026-03-23 ab36d19d
-d11ded5 Add business context analysis and Asia VPS recommendations
-09f7510 Update PROJECT_LOG: 2026-03-23 803d90a0
 ```
 
 ---
