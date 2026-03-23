@@ -1,6 +1,6 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-23 08:29:13
+> Cập nhật lần cuối: 2026-03-23 08:29:27
 > Session: `ce82d33f-677`
 > Branch: `claude/lightsail-migration-gBk3t`
 
@@ -11,6 +11,8 @@
 ### Các commit gần nhất
 
 ```
+6a38d7f Add __pycache__ and *.pyc to .gitignore
+deef646 Update PROJECT_LOG: 2026-03-23 ce82d33f
 4cfd282 Add Day 5 deploy guide and Neo4j→PostgreSQL migration script
 7cc1788 Update PROJECT_LOG: 2026-03-23 ce82d33f
 b585b83 Add Go backend for AWS Lightsail migration (Day 1-4 complete)
@@ -24,14 +26,6 @@ de194ea Add cloud alternatives evaluation for Oracle Cloud replacement
 4f35934 Update PROJECT_LOG: 2026-03-23 ab36d19d
 d11ded5 Add business context analysis and Asia VPS recommendations
 09f7510 Update PROJECT_LOG: 2026-03-23 803d90a0
-e05dffd Add Claude AI effort estimates for all backend alternatives
-0c77209 Update PROJECT_LOG: 2026-03-23 c0fd5fc6
-```
-
-### Thay đổi chưa commit
-
-```
-?? scripts/__pycache__/
 ```
 
 ---
