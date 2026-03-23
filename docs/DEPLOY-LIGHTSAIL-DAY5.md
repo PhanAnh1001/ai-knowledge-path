@@ -11,7 +11,7 @@
 ## Mục lục
 
 1. [Prerequisites](#0-prerequisites)
-2. [Provision AWS Lightsail Instance](#1-provision-aws-lightsail-instance)
+2. [Provision AWS Lightsail Instance (Terraform)](#1-provision-aws-lightsail-instance-terraform)
 3. [Bootstrap instance (lightsail-init.sh)](#2-bootstrap-instance)
 4. [Cấu hình Cloudflare](#3-cấu-hình-cloudflare)
 5. [Cấu hình GitHub Secrets](#4-cấu-hình-github-secrets)
@@ -31,7 +31,6 @@
 
 ```bash
 # Kiểm tra
-aws --version           # >= 2.x  (AWS CLI)
 gh --version            # GitHub CLI (optional, dùng tạo secrets)
 ssh -V                  # OpenSSH
 python3 --version       # >= 3.10  (cho migration script)
@@ -41,118 +40,99 @@ docker --version        # (optional, để build image thủ công)
 Cài nếu thiếu:
 ```bash
 # macOS
-brew install awscli gh
+brew install gh
 
 # Ubuntu / Debian
-sudo snap install aws-cli --classic
+sudo apt install gh
 ```
+
+> **Không cần AWS CLI.** Lightsail instance được tạo hoàn toàn qua Terraform chạy trên GitHub Actions — không cần cài `aws` trên máy local.
 
 ### Tài khoản cần có
 
 | Tài khoản | Mục đích |
 |---|---|
-| AWS (có thẻ tín dụng) | Tạo Lightsail instance |
+| AWS (có thẻ tín dụng) | Tạo Lightsail instance (qua Terraform) |
 | Cloudflare (free) | DNS + proxy |
-| GitHub | Secrets + Container Registry (GHCR) |
-
-### AWS CLI config
-
-```bash
-aws configure
-# AWS Access Key ID: <lấy từ IAM → Security credentials>
-# AWS Secret Access Key: <như trên>
-# Default region: ap-southeast-1
-# Default output: json
-```
+| GitHub | Secrets + Container Registry (GHCR) + chạy Terraform |
 
 ---
 
-## 1. Provision AWS Lightsail Instance
+## 1. Provision AWS Lightsail Instance (Terraform)
 
-### 1.1 Tạo SSH key pair
+> Thay vì dùng AWS CLI thủ công, instance được tạo qua **Terraform chạy trên GitHub Actions**.
+> Terraform code nằm tại `infra/lightsail/`, workflow tại `.github/workflows/terraform-lightsail.yml`.
+
+### 1.1 Tạo SSH key pair (máy local)
 
 ```bash
 # Tạo key pair (ed25519 — nhẹ và an toàn)
 ssh-keygen -t ed25519 -C "awb-lightsail-deploy" -f ~/.ssh/awb-lightsail
 
 # Kết quả:
-#   ~/.ssh/awb-lightsail      ← private key (KHÔNG share)
-#   ~/.ssh/awb-lightsail.pub  ← public key  (upload lên Lightsail)
-
-# Xem public key
-cat ~/.ssh/awb-lightsail.pub
+#   ~/.ssh/awb-lightsail      ← private key (KHÔNG share, lưu an toàn)
+#   ~/.ssh/awb-lightsail.pub  ← public key  (sẽ upload qua GitHub Secret)
 ```
 
-### 1.2 Upload key pair lên Lightsail
+### 1.2 Lấy AWS Access Key
 
+1. Đăng nhập [AWS IAM Console](https://console.aws.amazon.com/iam/)
+2. **Users** → chọn user của bạn → **Security credentials**
+3. **Access keys** → **Create access key** → chọn use case **CLI**
+4. Lưu lại `Access key ID` và `Secret access key` — chỉ hiển thị **một lần**!
+
+> Nếu chưa có IAM user: **IAM** → **Users** → **Create user** → gán policy `AmazonLightsailFullAccess`.
+
+### 1.3 Thêm Secrets vào GitHub
+
+**Repo Settings** → **Secrets and variables** → **Actions** → **New repository secret**
+
+| Secret name | Giá trị | Cách lấy |
+|---|---|---|
+| `AWS_ACCESS_KEY_ID` | Access key ID | IAM → Security credentials |
+| `AWS_SECRET_ACCESS_KEY` | Secret access key | Cùng lúc tạo Access key |
+| `SSH_PUBLIC_KEY` | Nội dung `~/.ssh/awb-lightsail.pub` | `cat ~/.ssh/awb-lightsail.pub` |
+
+Hoặc dùng GitHub CLI:
 ```bash
-# Import key pair vào Lightsail (Singapore region)
-aws lightsail import-key-pair \
-  --key-pair-name awb-deploy-key \
-  --public-key-base64 "$(base64 -w0 ~/.ssh/awb-lightsail.pub)" \
-  --region ap-southeast-1
+gh auth login
+
+gh secret set AWS_ACCESS_KEY_ID      --body "<access-key-id>"
+gh secret set AWS_SECRET_ACCESS_KEY  --body "<secret-access-key>"
+gh secret set SSH_PUBLIC_KEY         < ~/.ssh/awb-lightsail.pub
 ```
 
-### 1.3 Tạo instance
+> `SSH_PUBLIC_KEY` đã dùng cho Oracle Cloud — nếu dùng cùng SSH key thì không cần tạo lại.
 
-```bash
-aws lightsail create-instances \
-  --instance-names awb-prod \
-  --availability-zone ap-southeast-1a \
-  --blueprint-id ubuntu_22_04 \
-  --bundle-id nano_3_0 \
-  --ip-address-type ipv6 \
-  --key-pair-name awb-deploy-key \
-  --user-data file://scripts/lightsail-init.sh \
-  --region ap-southeast-1
+### 1.4 Chạy Terraform Apply trên GitHub Actions
+
+1. Truy cập **GitHub repo** → tab **Actions**
+2. Chọn workflow **"Terraform (AWS Lightsail)"**
+3. Nhấn **"Run workflow"** → chọn branch `claude/lightsail-migration-gBk3t` → **action: `apply`** → **Run workflow**
+4. Chờ workflow hoàn thành (~3 phút)
+
+**Xem kết quả:**
+
+Trong log của step **"Terraform Output"**, bạn sẽ thấy:
+```
+ipv6_address = "2406:da18:886:3400:abcd:1234:5678:ef90"
+instance_name = "awb-prod"
+ssh_command = "ssh -i ~/.ssh/awb-lightsail ubuntu@2406:da18:886:3400:abcd:1234:5678:ef90"
 ```
 
-> **Giải thích:**
-> - `nano_3_0`: 2 vCPU · 2 GB RAM · 60 GB SSD · 3 TB transfer — **$7/tháng**, **miễn phí 3 tháng đầu**
-> - `ip-address-type ipv6`: IPv6-only, không có IPv4 public (Cloudflare làm bridge)
-> - `user-data`: chạy `lightsail-init.sh` tự động khi boot
+> **Lưu lại IPv6 address** — dùng ở bước 3 (Cloudflare AAAA record) và bước 4 (GitHub Secret `LIGHTSAIL_HOST`).
 
-### 1.4 Lấy IPv6 address
+**Terraform đã tự động:**
+- Upload SSH public key → `awb-deploy-key`
+- Tạo instance Ubuntu 22.04 · `nano_3_0` · 2vCPU · 2GB · $7/tháng · IPv6-only
+- Chạy `lightsail-init.sh` khi boot (cài Docker, clone repo, cấu hình firewall)
+- Mở firewall ports: TCP 22/80/443 và UDP 443
 
-```bash
-# Chờ instance running (~2 phút)
-aws lightsail get-instance \
-  --instance-name awb-prod \
-  --region ap-southeast-1 \
-  --query 'instance.state.name' \
-  --output text
-
-# Khi trả về "running", lấy IPv6:
-aws lightsail get-instance \
-  --instance-name awb-prod \
-  --region ap-southeast-1 \
-  --query 'instance.ipv6Addresses[0]' \
-  --output text
-```
-
-Lưu lại IPv6 address — dùng ở bước 3 và 4.
-
-Ví dụ: `2406:da18:886:3400:abcd:1234:5678:ef90`
-
-### 1.5 Mở firewall ports
+### 1.5 SSH vào instance lần đầu
 
 ```bash
-# Lightsail có firewall riêng — cần mở thêm 443 TCP/UDP
-aws lightsail put-instance-public-ports \
-  --instance-name awb-prod \
-  --port-infos \
-    fromPort=22,toPort=22,protocol=tcp \
-    fromPort=80,toPort=80,protocol=tcp \
-    fromPort=443,toPort=443,protocol=tcp \
-    fromPort=443,toPort=443,protocol=udp \
-  --region ap-southeast-1
-```
-
-### 1.6 SSH vào instance lần đầu
-
-```bash
-# Kết nối qua IPv6 (cần máy local có IPv6, hoặc dùng Cloudflare Warp)
-ssh -i ~/.ssh/awb-lightsail ubuntu@2406:da18:886:3400:abcd:1234:5678:ef90
+# Thay <IPv6> bằng địa chỉ lấy từ Terraform output
+ssh -i ~/.ssh/awb-lightsail ubuntu@<IPv6>
 
 # Nếu máy local không có IPv6, dùng Lightsail browser SSH:
 #   AWS Console → Lightsail → awb-prod → Connect using SSH
@@ -305,12 +285,17 @@ Sau khi deploy xong, Cloudflare Pages sẽ cấp subdomain dạng `ai-wisdom-bat
 
 Truy cập: **GitHub repo** → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
 
-| Secret name | Giá trị | Cách lấy |
-|---|---|---|
-| `LIGHTSAIL_HOST` | `2406:da18:886:3400:abcd:1234:5678:ef90` | IPv6 từ bước 1.4 |
-| `LIGHTSAIL_SSH_KEY` | Nội dung `~/.ssh/awb-lightsail` | `cat ~/.ssh/awb-lightsail` |
-| `CLOUDFLARE_API_TOKEN` | Token từ bước 3.3 | Cloudflare dashboard |
-| `CLOUDFLARE_ACCOUNT_ID` | Account ID | Cloudflare → sidebar phải |
+| Secret name | Giá trị | Cách lấy | Dùng cho |
+|---|---|---|---|
+| `AWS_ACCESS_KEY_ID` | Access key ID | IAM → Security credentials | Terraform Lightsail |
+| `AWS_SECRET_ACCESS_KEY` | Secret access key | Cùng lúc tạo Access key | Terraform Lightsail |
+| `SSH_PUBLIC_KEY` | Nội dung `~/.ssh/awb-lightsail.pub` | `cat ~/.ssh/awb-lightsail.pub` | Terraform (upload key) |
+| `LIGHTSAIL_HOST` | IPv6 từ Terraform output | Bước 1.4 — workflow log | Deploy workflow |
+| `LIGHTSAIL_SSH_KEY` | Nội dung `~/.ssh/awb-lightsail` | `cat ~/.ssh/awb-lightsail` | Deploy workflow (SSH) |
+| `CLOUDFLARE_API_TOKEN` | Token từ bước 3.3 | Cloudflare dashboard | Deploy frontend + Caddy |
+| `CLOUDFLARE_ACCOUNT_ID` | Account ID | Cloudflare → sidebar phải | Deploy frontend |
+
+> **Thứ tự quan trọng:** Tạo `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `SSH_PUBLIC_KEY` **trước** khi chạy Terraform (bước 1.3). Tạo `LIGHTSAIL_HOST` **sau** khi có IPv6 từ Terraform output (bước 1.4).
 
 ### 4.2 Variables cần tạo
 
@@ -326,13 +311,18 @@ Truy cập: **GitHub repo** → **Settings** → **Secrets and variables** → *
 # Login GitHub CLI
 gh auth login
 
-# Tạo secrets
-gh secret set LIGHTSAIL_HOST      --body "2406:da18:886:3400:abcd:1234:5678:ef90"
-gh secret set LIGHTSAIL_SSH_KEY   < ~/.ssh/awb-lightsail
-gh secret set CLOUDFLARE_API_TOKEN --body "<token>"
-gh secret set CLOUDFLARE_ACCOUNT_ID --body "<account_id>"
+# Secrets cho Terraform Lightsail (tạo trước bước 1.3)
+gh secret set AWS_ACCESS_KEY_ID      --body "<access-key-id>"
+gh secret set AWS_SECRET_ACCESS_KEY  --body "<secret-access-key>"
+gh secret set SSH_PUBLIC_KEY         < ~/.ssh/awb-lightsail.pub
 
-# Tạo variable
+# Secrets cho Deploy workflow (tạo sau bước 1.4 khi có IPv6)
+gh secret set LIGHTSAIL_HOST         --body "<IPv6-từ-terraform-output>"
+gh secret set LIGHTSAIL_SSH_KEY      < ~/.ssh/awb-lightsail
+gh secret set CLOUDFLARE_API_TOKEN   --body "<token>"
+gh secret set CLOUDFLARE_ACCOUNT_ID  --body "<account_id>"
+
+# Variable
 gh variable set VITE_API_BASE_URL --body "https://api.aiwisdombattle.com/api/v1"
 ```
 
