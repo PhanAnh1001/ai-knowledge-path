@@ -393,11 +393,15 @@ Tương tự Go nhưng memory thậm chí thấp hơn (~30MB under load). **Tuy 
 
 ---
 
-## 5. Đề xuất: Top 4 phương án kết hợp Server + Stack
+## 5. Đề xuất ban đầu (trước khi có business context)
 
-### 🥇 Đề xuất 1 (Tốt nhất — giá/hiệu quả): Contabo 8GB + Phương án C
+> **⚠️ Lưu ý:** Section này là đánh giá ban đầu chỉ xét yếu tố kỹ thuật (chủ yếu server EU). Xem **Section 7.1** để xem đề xuất cuối cùng đã tính đến business context (target users trẻ em, pricing, latency châu Á).
+>
+> **Giá Contabo đã cập nhật:** Giá base EU là €3.60/tháng, nhưng datacenter Singapore có phụ phí ~€1.07/tháng → thực tế ~$6.50/tháng (annual).
+
+### Đề xuất 1 (chỉ EU): Contabo 8GB EU + Phương án C
 - **Server:** Contabo VPS S — 4 vCPU, 8GB RAM, 75GB NVMe, unlimited bandwidth
-- **Giá:** ~$3.90/tháng (hợp đồng 12 tháng) = **~$47/năm**
+- **Giá:** ~$3.90/tháng EU (hợp đồng 12 tháng) = **~$47/năm** | Singapore: ~$6.50/tháng = ~$78/năm
 - **Stack thay đổi:** Bỏ Neo4j + Merge adaptive engine + Bỏ Redis
 - **Containers:** 3 (Spring Boot + PostgreSQL + Caddy)
 - **RAM sử dụng:** ~2.5GB / 8GB = dư rất nhiều headroom
@@ -477,11 +481,12 @@ Tương tự Go nhưng memory thậm chí thấp hơn (~30MB under load). **Tuy 
 
 | Server cost/năm | Cost/tháng | Số users cần để hòa vốn server |
 |---|---|---|
-| $40/năm | ~$3.33/tháng | **2 users** |
-| $47/năm | ~$3.92/tháng | **2 users** |
-| $120/năm | ~$10/tháng | **4 users** |
+| $40/năm (Hetzner EU) | ~$3.33/tháng | **2 users** |
+| $63/năm (AWS Lightsail SG, 9 tháng) | ~$7/tháng | **3 users** |
+| $78/năm (Contabo SG) | ~$6.50/tháng | **3 users** |
+| $120/năm (Vultr/Linode SG) | ~$10/tháng | **4 users** |
 
-→ Với giá 79k VND/tháng, **chỉ cần 2 users trả phí là đủ cover server cost** cho các phương án rẻ nhất. Rất khả thi.
+→ Với giá 79k VND/tháng, **chỉ cần 3 users trả phí là đủ cover server cost** tại Singapore. Rất khả thi.
 
 **Unit economics (ước tính):**
 
@@ -527,27 +532,31 @@ Tương tự Go nhưng memory thậm chí thấp hơn (~30MB under load). **Tuy 
 
 ## 6.1 VPS có datacenter châu Á — So sánh giá (tháng 3/2026)
 
-### Tier 1: Budget — $3-5/tháng
+### Tier 1: Budget — $6-8/tháng
 
 | Provider | Plan | vCPU | RAM | Disk | Bandwidth | Location | Giá/tháng | Ghi chú |
 |---|---|---|---|---|---|---|---|---|
-| **Contabo VPS S** | AMD EPYC | 4 | 8 GB | 75 GB NVMe | Unlimited | **Singapore, Tokyo** | **~$3.90** (€3.60) | Hợp đồng 12 tháng. Giá tốt nhất châu Á. |
+| **Contabo VPS S** | AMD EPYC | 4 | 8 GB | 75 GB NVMe | Unlimited (200Mbps) | **Singapore, Tokyo** | **~$6.50** (€4.50 + ~€1.07 SG fee, annual) | Hợp đồng 12 tháng. Setup €4.99 một lần. |
+| **AWS Lightsail** | IPv6-only 2GB | 1 | 2 GB | 60 GB SSD | 3 TB | Singapore, Tokyo, Seoul, Mumbai | **~$7** (giảm 30% so IPv4) | Free 3 tháng. Dùng Cloudflare proxy trước → OK IPv6. |
 
-### Tier 2: Mid-range — $10-15/tháng
+### Tier 2: Mid-range — $8-15/tháng
 
 | Provider | Plan | vCPU | RAM | Disk | Bandwidth | Location | Giá/tháng | Ghi chú |
 |---|---|---|---|---|---|---|---|---|
-| **AWS Lightsail** | 2GB | 1 | 2 GB | 60 GB SSD | 3 TB | Singapore, Tokyo, Seoul, Mumbai | **$10** | 3 tháng miễn phí đầu. |
+| **Hetzner CPX11** | AMD EPYC | 2 | 2 GB | 40 GB SSD | 0.5 TB ⚠️ | **Singapore** | **~$8-9** (pre-Apr) / **~$12** (post-Apr 2026) | ⚠️ Bandwidth chỉ 0.5TB (vs 20TB ở EU). Tăng giá 30-37% từ 1/4/2026. |
+| **Vultr** | Regular 2GB | 1 | 2 GB | 55 GB SSD | 2 TB | Singapore, Tokyo, Seoul, Mumbai, Osaka | **$10** | Giá đồng nhất toàn cầu. Nhiều location nhất. |
+| **AWS Lightsail** | IPv4 2GB | 1 | 2 GB | 60 GB SSD | 3 TB | Singapore, Tokyo, Seoul, Mumbai | **$10** | Free 3 tháng. Tích hợp AWS ecosystem. |
 | **Linode/Akamai** | 2GB | 1 | 2 GB | 50 GB SSD | 2 TB | Singapore, Tokyo, Mumbai, Jakarta, Osaka | **$12** | Coverage châu Á tốt nhất. |
-| **DigitalOcean** | Basic 2GB | 1 | 2 GB | 50 GB SSD | 3 TB | Singapore, Bangalore | **$12** | Hourly billing. |
-| **Vultr** | Regular 2GB | 1 | 2 GB | 64 GB SSD | 3 TB | Singapore, Tokyo, Seoul, Mumbai, Bangalore, Delhi, Osaka | **$15** | Nhiều location nhất châu Á. |
+| **DigitalOcean** | Basic 2GB | 1 | 2 GB | 50 GB SSD | 2 TB | Singapore, Bangalore | **$12-14** | Hourly billing. |
+| **Hetzner CPX21** | AMD EPYC | 3 | 4 GB | 80 GB SSD | 0.5 TB ⚠️ | **Singapore** | **~$12-14** (pre-Apr) / **~$16-18** (post-Apr) | Bandwidth 0.5TB hạn chế. |
 
-### Nhận xét quan trọng
+### Nhận xét quan trọng (cập nhật chính xác)
 
-1. **Contabo Singapore là lựa chọn duy nhất < $5/tháng có datacenter châu Á** — cách biệt rất lớn so với tier 2 ($10-15/tháng)
-2. **Hetzner KHÔNG có datacenter châu Á** — chỉ EU (Germany, Finland). Latency đến SEA: 200-300ms ⚠️
-3. **Contabo trade-off:** Giá rẻ vượt trội nhưng IO có thể chậm hơn Hetzner/Vultr. Với app ~700MB RAM, <100 concurrent users ban đầu → **không phải vấn đề thực tế**
-4. **AWS Lightsail** là backup tốt: $10/tháng nhưng 3 tháng free → dùng để test trước khi commit Contabo 12 tháng
+1. **Contabo Singapore thực tế ~$6.50/tháng** (có phụ phí location ~€1.07/tháng), không phải $3.90 như giá base EU. Vẫn là **giá tốt nhất cho 8GB RAM tại châu Á**
+2. **Hetzner CÓ datacenter Singapore** (CPX/CCX series), nhưng: bandwidth chỉ 0.5TB (vs 20TB EU), và sẽ **tăng giá 30-37% từ 1/4/2026** → sau tăng giá sẽ kém hấp dẫn
+3. **AWS Lightsail IPv6-only là "hidden gem"**: ~$7/tháng, dùng Cloudflare proxy phía trước → users vẫn truy cập bình thường qua IPv4. Free 3 tháng để test
+4. **Contabo trade-off:** Giá rẻ vượt trội nhưng IO có thể chậm hơn Vultr/Hetzner. Với app ~700MB RAM, <100 concurrent users ban đầu → **không phải vấn đề thực tế**
+5. **Chiến lược tối ưu:** Bắt đầu AWS Lightsail free 3 tháng → đánh giá traffic → chuyển sang Contabo annual nếu cần tiết kiệm
 
 ---
 
@@ -560,7 +569,7 @@ Tương tự Go nhưng memory thậm chí thấp hơn (~30MB under load). **Tuy 
 | **Server** | Contabo 8GB SG | Contabo 8GB SG | Hetzner 2GB EU | Hetzner 2GB EU | **Contabo 8GB SG** | **Contabo 8GB SG** |
 | **Backend** | Java (JVM) | Java (JVM) | Go | Node.js | **Go** | **Node.js** |
 | **Phương án** | C | E | F | H | **F (Go)** | **H (Node.js)** |
-| **Chi phí/năm** | ~$47 | ~$47 | ~$40 | ~$40 | **~$47** | **~$47** |
+| **Chi phí/năm** | ~$78 | ~$78 | ~$40 | ~$40 | **~$78** | **~$78** |
 | **Datacenter** | ✅ Singapore | ✅ Singapore | ❌ EU only | ❌ EU only | **✅ Singapore** | **✅ Singapore** |
 | **Latency SEA** | 20-40ms | 20-40ms | 200-300ms ⚠️ | 200-300ms ⚠️ | **20-40ms** | **20-40ms** |
 | **Containers** | 3 | 7 | 3 | 3 | **3** | **3** |
@@ -585,26 +594,26 @@ Tương tự Go nhưng memory thậm chí thấp hơn (~30MB under load). **Tuy 
 
 | | Chi tiết |
 |---|---|
-| **Server** | Contabo VPS S — 4 vCPU, 8GB RAM, 75GB NVMe, unlimited bandwidth |
+| **Server** | Contabo VPS S — 4 vCPU, 8GB RAM, 75GB NVMe, unlimited bandwidth (200Mbps) |
 | **Location** | **Singapore** (latency 20-40ms đến SEA, 60-100ms đến East Asia) |
-| **Giá** | ~$3.90/tháng = **~$47/năm** |
+| **Giá** | ~$6.50/tháng (annual, bao gồm SG location fee) = **~$78/năm** + setup €4.99 một lần |
 | **Stack** | Go backend (Gin/Chi) + PostgreSQL + Caddy |
 | **RAM sử dụng** | ~700MB / 8GB = **headroom 7.3GB** |
 | **Containers** | 3 |
 | **Effort (Claude)** | **4-5 ngày** |
-| **Break-even** | **2 users trả phí** |
+| **Break-even** | **3 users trả phí** ($6.50 ÷ $3.15 ≈ 2.1 users/tháng) |
 
 **Tại sao đây là lựa chọn tốt nhất:**
 1. **Latency thấp cho SEA** — Singapore datacenter, phù hợp nếu test market ở VN/SEA
 2. **Headroom khổng lồ** — 7.3GB RAM dư → scale được hàng trăm concurrent users trên cùng server
 3. **Go = low memory + fast** — backend chỉ 50-100MB RAM, startup <100ms
-4. **Chi phí cực thấp** — $47/năm, chỉ cần 2 users/tháng để cover
+4. **Chi phí thấp** — $78/năm, chỉ cần 3 users/tháng để cover
 5. **Simple stack** — 3 containers, dễ maintain, dễ debug
 6. **Go phù hợp cho microservices tương lai** — nếu cần tách service, Go lightweight hơn Java/Node
 
 **Rủi ro và mitigation:**
 - Contabo IO chậm → **mitigation:** app nhẹ, dùng in-memory cache, PostgreSQL với proper indexing
-- 12-month lock-in → **mitigation:** $47/năm rất thấp, risk chấp nhận được
+- 12-month lock-in → **mitigation:** $78/năm rất thấp, risk chấp nhận được
 - Code Go cần review → **mitigation:** logic đơn giản (CRUD + JWT + SM-2 math), Claude generate clean code
 
 ---
@@ -614,7 +623,7 @@ Tương tự Go nhưng memory thậm chí thấp hơn (~30MB under load). **Tuy 
 | | Chi tiết |
 |---|---|
 | **Server** | Contabo VPS S — Singapore |
-| **Giá** | ~$47/năm |
+| **Giá** | ~$78/năm |
 | **Stack** | Node.js/Fastify + TypeScript + PostgreSQL + Caddy |
 | **RAM sử dụng** | ~800MB / 8GB |
 | **Effort (Claude)** | **3-4 ngày** (nhanh nhất) |
@@ -628,12 +637,29 @@ Tương tự Go nhưng memory thậm chí thấp hơn (~30MB under load). **Tuy 
 
 ---
 
-### 🥉 ĐX 3 (cập nhật) — FASTEST: Contabo Singapore 8GB + Giữ Java (Phương án E)
+### 🥉 ĐX 9 — FASTEST + FREE 3 THÁNG: AWS Lightsail Singapore + Go/Node.js
+
+| | Chi tiết |
+|---|---|
+| **Server** | AWS Lightsail 2GB IPv6-only — Singapore (dùng Cloudflare proxy phía trước) |
+| **Giá** | **Free 3 tháng**, sau đó ~$7/tháng = ~$63/năm (9 tháng trả phí) |
+| **Stack** | Go hoặc Node.js + PostgreSQL + Caddy |
+| **RAM sử dụng** | ~700-800MB / 2GB |
+| **Effort (Claude)** | **4-5 ngày** (Go) hoặc **3-4 ngày** (Node.js) |
+
+**Chọn ĐX 9 nếu:**
+- Muốn **test market 3 tháng miễn phí** trước khi cam kết
+- Không muốn lock-in 12 tháng với Contabo
+- Sau 3 tháng: nếu có traction → chuyển Contabo annual; nếu không → cancel, mất $0
+
+---
+
+### ĐX 3 (cập nhật) — DEPLOY NGAY: Contabo Singapore 8GB + Giữ Java (Phương án E)
 
 | | Chi tiết |
 |---|---|
 | **Server** | Contabo VPS S — Singapore |
-| **Giá** | ~$47/năm |
+| **Giá** | ~$78/năm |
 | **Stack** | Giữ nguyên stack hiện tại, chỉ tune memory limits |
 | **RAM sử dụng** | ~5.3GB / 8GB |
 | **Effort (Claude)** | **2-4 giờ** (chỉ config) |
@@ -648,25 +674,39 @@ Tương tự Go nhưng memory thậm chí thấp hơn (~30MB under load). **Tuy 
 ### Chiến lược đề xuất: Phased approach
 
 ```
-Phase 0 (Ngay bây giờ):
-  → Provision Contabo Singapore
-  → Deploy stack hiện tại (ĐX 3) với tuned memory limits
-  → Bắt đầu test với users thật
-  → Effort: 2-4 giờ
+Phương án A — Nhanh nhất (nếu muốn test market ngay):
 
-Phase 1 (Song song, tuần 1-2):
-  → Claude rewrite backend sang Go hoặc Node.js (ĐX 7/8)
-  → Chạy trên staging, không ảnh hưởng production
-  → Effort: 3-5 ngày Claude + review
+  Phase 0 (Ngay bây giờ):
+    → Provision Contabo Singapore HOẶC AWS Lightsail free trial
+    → Deploy stack hiện tại (ĐX 3) với tuned memory limits
+    → Bắt đầu test với users thật
+    → Effort: 2-4 giờ
 
-Phase 2 (Tuần 2-3):
-  → Switch production sang stack mới (Go/Node.js)
-  → Bỏ Neo4j, Redis, Adaptive Engine containers
-  → RAM giảm từ 5.3GB → 700-800MB
-  → Headroom mở ra cho features mới (AI, analytics, v.v.)
+  Phase 1 (Song song, tuần 1-2):
+    → Claude rewrite backend sang Go hoặc Node.js (ĐX 7/8)
+    → Chạy trên staging, không ảnh hưởng production
+    → Effort: 3-5 ngày Claude + review
+
+  Phase 2 (Tuần 2-3):
+    → Switch production sang stack mới (Go/Node.js)
+    → Bỏ Neo4j, Redis, Adaptive Engine containers
+    → RAM giảm từ 5.3GB → 700-800MB
+    → Headroom mở ra cho features mới (AI, analytics, v.v.)
+
+Phương án B — Tiết kiệm nhất (nếu chưa vội):
+
+  Phase 0:
+    → AWS Lightsail free 3 tháng (Singapore, IPv6-only + Cloudflare)
+    → Claude rewrite backend sang Go/Node.js
+    → Deploy stack mới ngay từ đầu
+    → Effort: 4-5 ngày
+
+  Phase 1 (Sau 3 tháng):
+    → Đánh giá traction: có users → chuyển Contabo annual; không → cancel
+    → $0 chi phí trong giai đoạn thử nghiệm
 ```
 
-> **Lợi ích phased approach:** Không cần chờ rewrite xong mới bắt đầu test sản phẩm. Deploy ngay với stack hiện tại, song song rewrite → zero downtime, zero risk.
+> **Lợi ích:** Cả hai phương án đều có **chi phí khởi đầu gần 0** và break-even chỉ cần 3 users trả phí.
 
 ---
 
