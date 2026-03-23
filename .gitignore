@@ -36,3 +36,5 @@ target/
 
 # Docker override (local tweaks)
 docker-compose.override.yml
+*.pyc
+__pycache__/
