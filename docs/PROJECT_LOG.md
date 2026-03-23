@@ -1,6 +1,6 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-23 07:20:45
+> Cập nhật lần cuối: 2026-03-23 07:23:41
 > Session: `ab36d19d-3ba`
 > Branch: `claude/evaluate-cloud-alternatives-iQrWn`
 
@@ -11,6 +11,8 @@
 ### Các commit gần nhất
 
 ```
+5eb725e Fix VPS pricing accuracy and add Asia datacenter options
+4f35934 Update PROJECT_LOG: 2026-03-23 ab36d19d
 d11ded5 Add business context analysis and Asia VPS recommendations
 09f7510 Update PROJECT_LOG: 2026-03-23 803d90a0
 e05dffd Add Claude AI effort estimates for all backend alternatives
@@ -24,8 +26,6 @@ db4e072 fix terraform apply artifact
 dbb31ff Fix cross-run artifact download using gh CLI
 0c30f62 Update PROJECT_LOG: 2026-03-22 407b28f4
 8522e27 Update PROJECT_LOG: 2026-03-22 407b28f4
-d8af924 add permission read git repo
-ab6ed71 Update PROJECT_LOG: 2026-03-22 407b28f4
 ```
 
 ---
