@@ -222,7 +222,99 @@ Không thay đổi architecture, chỉ giảm resource limits.
 
 ---
 
-## 3. So sánh Cloud Providers giá rẻ (tháng 3/2026)
+### Phương án F: Rewrite backend sang Go (tối ưu cực đoan)
+
+**Ý tưởng:** Thay thế Spring Boot (Java/JVM) bằng Go (Gin/Echo/Chi) — ngôn ngữ compiled, không cần JVM, memory footprint cực thấp.
+
+**Phân tích backend hiện tại:**
+- **12 REST endpoints** (Auth: 5, KnowledgeNode: 5, Session: 2)
+- **4 JPA entities** (User, KnowledgeNode, Session, UserNodeProgress)
+- **~2500 LOC Java** — logic chủ yếu CRUD, không có algorithm phức tạp
+- **Không dùng Spring-specific features nâng cao** (không Cloud Config, không Reactive, không Batch)
+
+**Benchmark thực tế Go vs Spring Boot (2025-2026):**
+
+| Metric | Spring Boot (JVM) | Spring Native (GraalVM) | **Go (Gin/Chi)** |
+|---|---|---|---|
+| Idle memory | 180-250 MB | 45-120 MB | **8-25 MB** |
+| Under load (500 RPS) | 350-450 MB | 98-120 MB | **25-68 MB** |
+| Startup time | 3-8 giây | <1 giây | **<100ms** |
+| Binary size | ~50 MB JAR + 200MB JRE | ~80 MB native | **~15 MB** |
+| Docker image | ~300 MB | ~100 MB | **~20 MB** |
+
+**Go backend cho project này sẽ dùng:**
+- **HTTP:** Gin hoặc Chi (router + middleware)
+- **ORM/SQL:** sqlx hoặc GORM (PostgreSQL)
+- **JWT:** golang-jwt/jwt
+- **Cache:** In-process (sync.Map hoặc go-cache)
+- **Config:** envconfig hoặc viper
+- **Validation:** go-playground/validator
+
+**RAM sau tối ưu (Phương án F = Go + bỏ Neo4j/Redis/Engine):**
+
+| Service | RAM |
+|---|---|
+| Go backend | 50-100 MB |
+| PostgreSQL | 512 MB |
+| Caddy | 50 MB |
+| **Tổng** | **~700 MB** |
+
+**Chỉ cần VPS 1-2GB RAM!**
+
+**Effort:** Cao (~4-6 tuần) — rewrite ~2500 LOC Java sang Go.
+Tuy nhiên logic đơn giản (CRUD + JWT + SM-2 math), Go syntax ngắn gọn hơn Java, nên thực tế có thể nhanh hơn GraalVM native image vì không cần xử lý reflection/compatibility issues.
+
+---
+
+### Phương án G: Rewrite backend sang Rust/Axum (tối ưu tối đa)
+
+Tương tự Go nhưng memory thậm chí thấp hơn (~30MB under load). **Tuy nhiên learning curve cao hơn nhiều**, chỉ phù hợp nếu đã có kinh nghiệm Rust.
+
+| Service | RAM |
+|---|---|
+| Rust backend (Axum) | 30-50 MB |
+| PostgreSQL | 512 MB |
+| Caddy | 50 MB |
+| **Tổng** | **~600 MB** |
+
+**Effort:** Rất cao (~6-10 tuần nếu chưa quen Rust).
+
+---
+
+### Phương án H: Rewrite backend sang Node.js/Fastify (cùng ngôn ngữ với frontend)
+
+**Ưu điểm:** Frontend đã dùng TypeScript → cùng ngôn ngữ, chia sẻ types/validation schemas.
+
+| Service | RAM |
+|---|---|
+| Node.js backend (Fastify) | 80-150 MB |
+| PostgreSQL | 512 MB |
+| Caddy | 50 MB |
+| **Tổng** | **~800 MB** |
+
+**Effort:** Trung bình (~3-4 tuần). Ecosystem quen thuộc hơn Go/Rust.
+
+---
+
+### So sánh tất cả phương án thay đổi backend language
+
+| Phương án | Backend | RAM backend | RAM tổng | Effort | VPS tối thiểu |
+|---|---|---|---|---|---|
+| **C** (giữ Java) | Spring Boot JVM | 1.5 GB | 2.5 GB | 2-3 tuần | 4 GB |
+| **D** (Java native) | Spring Native (GraalVM) | 400 MB | 1 GB | 4-6 tuần | 2 GB |
+| **F** (Go) | Go + Gin/Chi | 50-100 MB | **700 MB** | 4-6 tuần | **1-2 GB** |
+| **G** (Rust) | Rust + Axum | 30-50 MB | **600 MB** | 6-10 tuần | **1-2 GB** |
+| **H** (Node.js) | Fastify + TypeScript | 80-150 MB | **800 MB** | 3-4 tuần | **2 GB** |
+
+**Nhận xét quan trọng:**
+- Go cho **ROI tốt nhất**: memory gần bằng Rust nhưng effort thấp hơn nhiều
+- GraalVM native image cho memory tương đương Node.js nhưng effort cao hơn và nhiều compatibility issues
+- Node.js cho effort thấp nhất trong các lựa chọn rewrite (cùng TypeScript với frontend)
+- Rust chỉ nên chọn nếu team đã có kinh nghiệm
+
+---
+
+## 4. So sánh Cloud Providers giá rẻ (tháng 3/2026)
 
 ### Tier 1: Giá rẻ nhất — 4GB RAM ($3.5–5/tháng)
 
@@ -295,26 +387,37 @@ Không thay đổi architecture, chỉ giảm resource limits.
 - **Stack thay đổi:** Bỏ Neo4j + Merge engine + Bỏ Redis + GraalVM native image
 - **Containers:** 3 (Spring Boot native + PostgreSQL + Caddy)
 - **RAM sử dụng:** ~1GB / 2GB
-- **Effort:** Cao (~4-6 tuần, GraalVM complexity)
+- **Effort:** Cao (~4-6 tuần, GraalVM compatibility issues)
 - **Ưu điểm:** Chi phí thấp nhất có thể ($40/năm), startup <1s
 - **Rủi ro:** GraalVM native image phức tạp; 2GB tight; effort lớn
 
+### Đề xuất 5 (ROI cao nhất nếu sẵn sàng đổi ngôn ngữ): Hetzner CX22 2GB + Phương án F (Go)
+- **Server:** Hetzner CX22 — 2 vCPU, 2GB RAM, 20GB NVMe, 20TB bandwidth
+- **Giá:** ~$3.29/tháng = **~$40/năm**
+- **Stack thay đổi:** Rewrite Spring Boot → Go (Gin/Chi) + bỏ Neo4j/Redis/Engine
+- **Containers:** 3 (Go backend + PostgreSQL + Caddy)
+- **RAM sử dụng:** ~700MB / 2GB — **headroom thoải mái**
+- **Effort:** Cao (~4-6 tuần) nhưng đơn giản hơn GraalVM vì không có compatibility issues
+- **Ưu điểm:** RAM cực thấp (50-100MB backend), startup <100ms, binary 15MB, Docker image 20MB. Go đơn giản, dễ maintain, không cần JVM/runtime
+- **Rủi ro:** Cần biết Go; mất Spring ecosystem
+
 ---
 
-## 6. So sánh tổng hợp
+## 7. So sánh tổng hợp
 
-| Tiêu chí | Đề xuất 1 | Đề xuất 2 | Đề xuất 3 | Đề xuất 4 |
-|---|---|---|---|---|
-| **Server** | Contabo 8GB | Hetzner 4GB | Contabo 8GB | Hetzner 2GB |
-| **Phương án stack** | C (bỏ 3 service) | C (bỏ 3 service) | E (giữ nguyên) | D (native image) |
-| **Chi phí/năm** | ~$47 | ~$46 | ~$47 | ~$40 |
-| **Containers** | 3 | 3 | 7 | 3 |
-| **RAM headroom** | 5.5 GB free | 1.5 GB free | 2.7 GB free | 1 GB free |
-| **Effort** | 2-3 tuần | 2-3 tuần | 1-2 ngày | 4-6 tuần |
-| **Reliability** | Khá | Rất tốt | Khá | Rất tốt |
-| **Flexibility** | Thấp (12m) | Cao (hourly) | Thấp (12m) | Cao (hourly) |
-| **Latency (Asia)** | EU/US | EU only | EU/US | EU only |
-| **Rủi ro** | Thấp | Thấp | Trung bình | Cao |
+| Tiêu chí | ĐX 1 | ĐX 2 | ĐX 3 | ĐX 4 | ĐX 5 |
+|---|---|---|---|---|---|
+| **Server** | Contabo 8GB | Hetzner 4GB | Contabo 8GB | Hetzner 2GB | Hetzner 2GB |
+| **Backend** | Java (JVM) | Java (JVM) | Java (JVM) | Java (Native) | **Go** |
+| **Phương án** | C (bỏ 3 svc) | C (bỏ 3 svc) | E (giữ nguyên) | D (GraalVM) | F (Go rewrite) |
+| **Chi phí/năm** | ~$47 | ~$46 | ~$47 | ~$40 | **~$40** |
+| **Containers** | 3 | 3 | 7 | 3 | 3 |
+| **RAM tổng** | 2.5 GB | 2.5 GB | 5.3 GB | 1 GB | **700 MB** |
+| **RAM headroom** | 5.5 GB | 1.5 GB | 2.7 GB | 1 GB | **1.3 GB** |
+| **Effort** | 2-3 tuần | 2-3 tuần | 1-2 ngày | 4-6 tuần | 4-6 tuần |
+| **Reliability** | Khá | Rất tốt | Khá | Rất tốt | Rất tốt |
+| **Complexity risk** | Thấp | Thấp | Trung bình | **Cao** (GraalVM) | **Trung bình** |
+| **Maintainability** | Tốt | Tốt | Tốt | Khá | **Rất tốt** |
 
 ---
 
@@ -358,13 +461,23 @@ Không thay đổi architecture, chỉ giảm resource limits.
 
 ---
 
-## 7. Tham khảo
+## 9. Tham khảo
 
+### Cloud Providers
 - [Hetzner Cloud Pricing](https://www.hetzner.com/cloud)
 - [Contabo VPS Plans](https://contabo.com/en-us/vps/)
 - [Hetzner Price Adjustment April 2026](https://docs.hetzner.com/general/infrastructure-and-availability/price-adjustment/)
-- [Building Knowledge Graph with PostgreSQL (no Neo4j)](https://dev.to/micelclaw/4o-building-a-personal-knowledge-graph-with-just-postgresql-no-neo4j-needed-22b2)
-- [Neo4j Alternatives 2026](https://www.puppygraph.com/blog/neo4j-alternatives)
+- [Hetzner Cloud Review 2026](https://betterstack.com/community/guides/web-servers/hetzner-cloud-review/)
 - [Best Budget VPS 2026](https://hostadvice.com/vps/cheap-vps/)
 - [Contabo Pricing Review](https://affinco.com/contabo-pricing/)
-- [Hetzner Cloud Review 2026](https://betterstack.com/community/guides/web-servers/hetzner-cloud-review/)
+
+### Stack Alternatives
+- [Building Knowledge Graph with PostgreSQL (no Neo4j)](https://dev.to/micelclaw/4o-building-a-personal-knowledge-graph-with-just-postgresql-no-neo4j-needed-22b2)
+- [Neo4j Alternatives 2026](https://www.puppygraph.com/blog/neo4j-alternatives)
+
+### Backend Language Comparisons
+- [Spring Boot Native vs Go: Performance Comparison](https://ignaciosuay.com/spring-boot-native-vs-go-a-performance-comparison/)
+- [Go vs Spring Boot: After 2 years with both in production](https://runtimerants.dev/posts/golang-vs-springboot)
+- [Go vs Java 2026: Performance Comparison for Backend Services](https://backendbytes.com/articles/go-vs-java-2026-performance-showdown/)
+- [Java vs Go vs Rust for Backend Development 2026](https://www.index.dev/skill-vs-skill/backend-java-spring-vs-go-vs-rust)
+- [Rust Web Frameworks in 2026: Axum vs Actix Web vs Rocket](https://aarambhdevhub.medium.com/rust-web-frameworks-in-2026-axum-vs-actix-web-vs-rocket-vs-warp-vs-salvo-which-one-should-you-2db3792c79a2)
