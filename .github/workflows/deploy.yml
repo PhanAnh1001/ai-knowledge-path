@@ -7,22 +7,20 @@ on:
     types: [completed]
     branches: [master]
 
-# ── Secrets (GitHub → Settings → Secrets and variables → Actions → Secrets) ───
-#   ORACLE_VM_IP          — Public IP của Oracle Cloud VM
-#   ORACLE_SSH_KEY        — Nội dung private key SSH của user deploy
-#                           Tạo: ssh-keygen -t ed25519 -C "github-actions"
-#                           Public key → thêm vào /home/deploy/.ssh/authorized_keys trên VM
+# ── Secrets cần thiết ──────────────────────────────────────────────────────────
+#   LIGHTSAIL_HOST        — IPv6 address của AWS Lightsail instance
+#   LIGHTSAIL_SSH_KEY     — Nội dung private key SSH (ed25519)
 #   CLOUDFLARE_API_TOKEN  — CF token với quyền "Edit Cloudflare Pages"
-#   CLOUDFLARE_ACCOUNT_ID — Cloudflare dashboard → bên phải trang chủ
+#   CLOUDFLARE_ACCOUNT_ID — Cloudflare Account ID
 #
-# ── Variables (Settings → Secrets and variables → Variables) ──────────────────
-#   VITE_API_BASE_URL     — https://<ORACLE_SITE_ADDRESS>/api/v1
+# ── Variables (Settings → Secrets and variables → Variables) ───────────────────
+#   VITE_API_BASE_URL     — https://api.aiwisdombattle.com/api/v1
 
 jobs:
 
-  # ── Deploy backend + services lên Oracle VM ──────────────────────────────────
+  # ── Deploy Go backend lên AWS Lightsail ──────────────────────────────────────
   deploy-backend:
-    name: Deploy to Oracle VM (SSH)
+    name: Deploy to Lightsail (SSH)
     runs-on: ubuntu-latest
     if: github.event.workflow_run.conclusion == 'success'
 
@@ -31,19 +29,13 @@ jobs:
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
 
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.ORACLE_SSH_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H "${{ secrets.ORACLE_VM_IP }}" >> ~/.ssh/known_hosts
-
-      - name: Deploy (git pull + rebuild + up)
-        env:
-          VM_IP: ${{ secrets.ORACLE_VM_IP }}
-        run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes \
-            deploy@${VM_IP} << 'ENDSSH'
+      - name: Deploy to Lightsail via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ubuntu
+          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          script: |
             set -euo pipefail
             cd /opt/ai-wisdom-battle
 
@@ -51,19 +43,20 @@ jobs:
             git fetch origin master
             git reset --hard origin/master
 
-            echo "=== [2/4] Build app containers ==="
-            docker compose -f docker-compose.prod.yml build app adaptive-engine
+            echo "=== [2/4] Pull new image ==="
+            IMAGE_TAG=${{ github.event.workflow_run.head_sha }} \
+              docker compose -f docker-compose.prod.yml pull app
 
-            echo "=== [3/4] Reload services ==="
-            docker compose -f docker-compose.prod.yml up -d \
+            echo "=== [3/4] Restart app ==="
+            IMAGE_TAG=${{ github.event.workflow_run.head_sha }} \
+              docker compose -f docker-compose.prod.yml up -d \
               --remove-orphans \
-              --no-deps app adaptive-engine caddy
+              --no-deps app
 
             echo "=== [4/4] Health check ==="
-            sleep 15
-            curl -fsS http://localhost:8080/actuator/health | grep -q '"status":"UP"'
+            sleep 10
+            curl -fsS http://localhost:8080/health | grep -q '"status":"UP"'
             echo "Backend deploy OK"
-          ENDSSH
 
   # ── Deploy React frontend lên Cloudflare Pages ───────────────────────────────
   deploy-frontend:
@@ -76,10 +69,10 @@ jobs:
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
 
-      - name: Setup Node.js 22
+      - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "20"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -91,8 +84,6 @@ jobs:
         run: npm run build
         working-directory: frontend
         env:
-          # Trỏ về Oracle VM backend
-          # Đặt trong: Settings → Variables → VITE_API_BASE_URL
           VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
 
       - name: Deploy to Cloudflare Pages
