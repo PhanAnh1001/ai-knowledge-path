@@ -1,8 +1,8 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-23 07:42:14
-> Session: `d6b239d0-0c4`
-> Branch: `claude/evaluate-cloud-alternatives-iQrWn`
+> Cập nhật lần cuối: 2026-03-23 08:16:14
+> Session: `ce82d33f-677`
+> Branch: `claude/lightsail-migration-gBk3t`
 
 ---
 
@@ -11,7 +11,12 @@
 ### Các commit gần nhất
 
 ```
+b585b83 Add Go backend for AWS Lightsail migration (Day 1-4 complete)
+1be4d54 Migration Plan: AWS Lightsail (Singapore) + Go Backend
+1dd03cf Add migration plan: AWS Lightsail (Singapore) + Go backend
+102915d Update PROJECT_LOG: 2026-03-23 d6b239d0
 64e179c Update PROJECT_LOG: 2026-03-23 d6b239d0
+de194ea Add cloud alternatives evaluation for Oracle Cloud replacement
 1f17958 Update PROJECT_LOG: 2026-03-23 ab36d19d
 5eb725e Fix VPS pricing accuracy and add Asia datacenter options
 4f35934 Update PROJECT_LOG: 2026-03-23 ab36d19d
@@ -21,11 +26,6 @@ e05dffd Add Claude AI effort estimates for all backend alternatives
 0c77209 Update PROJECT_LOG: 2026-03-23 c0fd5fc6
 10b9925 Add backend language alternatives analysis (Go, Rust, Node.js)
 54fbf2f Update PROJECT_LOG: 2026-03-23 c0fd5fc6
-8438baf Add deep stack optimization analysis for all components
-faad374 Update PROJECT_LOG: 2026-03-23 e36414d6
-9658291 Add cloud alternatives evaluation for Oracle Cloud replacement
-db4e072 fix terraform apply artifact
-dbb31ff Fix cross-run artifact download using gh CLI
 ```
 
 ---
