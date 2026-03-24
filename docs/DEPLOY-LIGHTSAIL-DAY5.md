@@ -171,7 +171,7 @@ ssh_command = "ssh -i ~/.ssh/awb-lightsail ubuntu@2406:da18:886:3400:abcd:1234:5
 
 **Terraform đã tự động:**
 - Upload SSH public key → `awb-deploy-key`
-- Tạo instance Ubuntu 22.04 · `small_3_0` · 2vCPU · 2GB · $12/tháng · IPv6-only
+- Tạo instance Ubuntu 22.04 · `small_ipv6_3_0` · 2vCPU · 2GB · $10/tháng · IPv6-only
 - Chạy `lightsail-init.sh` khi boot (cài Docker, clone repo, cấu hình firewall)
 - Mở firewall ports: TCP 22/80/443 và UDP 443
 
