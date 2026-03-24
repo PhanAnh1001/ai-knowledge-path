@@ -260,7 +260,7 @@ aws lightsail create-instances \
   --instance-names awb-prod \
   --availability-zone ap-southeast-1a \
   --blueprint-id ubuntu_22_04 \
-  --bundle-id nano_3_0 \      # $7/tháng IPv6-only: 2vCPU, 2GB RAM, 60GB SSD, 3TB transfer
+  --bundle-id small_3_0 \     # $12/tháng IPv6-only: 2vCPU, 2GB RAM, 60GB SSD, 3TB transfer
   --ip-address-type ipv6 \
   --user-data file://scripts/lightsail-init.sh
 ```
