@@ -66,13 +66,15 @@ sudo apt install gh
 ### 1.1 Tạo SSH key pair (máy local)
 
 ```bash
-# Tạo key pair (ed25519 — nhẹ và an toàn)
-ssh-keygen -t ed25519 -C "awb-lightsail-deploy" -f ~/.ssh/awb-lightsail
+# Tạo key pair RSA 4096-bit (Lightsail ImportKeyPair chỉ hỗ trợ RSA, không hỗ trợ ed25519)
+ssh-keygen -t rsa -b 4096 -C "awb-lightsail-deploy" -f ~/.ssh/awb-lightsail
 
 # Kết quả:
 #   ~/.ssh/awb-lightsail      ← private key (KHÔNG share, lưu an toàn)
 #   ~/.ssh/awb-lightsail.pub  ← public key  (sẽ upload qua GitHub Secret)
 ```
+
+> **Lưu ý quan trọng:** AWS Lightsail API (`ImportKeyPair`) chỉ chấp nhận **RSA key**. Dùng ed25519 sẽ báo lỗi `InvalidInputException: The value for publicKeyBase64 isn't valid`.
 
 ### 1.2 Lấy AWS Access Key
 
@@ -128,7 +130,7 @@ gh secret set AWS_SECRET_ACCESS_KEY  --body "<secret-access-key>"
 gh secret set SSH_PUBLIC_KEY         < ~/.ssh/awb-lightsail.pub
 ```
 
-> `SSH_PUBLIC_KEY` đã dùng cho Oracle Cloud — nếu dùng cùng SSH key thì không cần tạo lại.
+> **Không dùng lại SSH key của Oracle Cloud.** Oracle Cloud dùng ed25519, còn Lightsail yêu cầu RSA — phải tạo key riêng theo bước 1.1.
 
 ### 1.4 Chạy Terraform Plan (review trước khi apply)
 
@@ -799,4 +801,4 @@ echo | openssl s_client -connect api.aiwisdombattle.com:443 2>&1 | grep -E "subj
 
 ---
 
-*Cập nhật lần cuối: 2026-03-24 — thêm bước 1.4 Terraform Plan trước Apply*
+*Cập nhật lần cuối: 2026-03-24 — fix SSH key type RSA, cảnh báo không dùng lại key Oracle Cloud*
