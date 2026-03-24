@@ -1,6 +1,6 @@
 # =============================================================================
 # AWS Lightsail — AI Wisdom Battle
-# Tạo instance Ubuntu 22.04 tại Singapore, IPv6-only, $7/tháng
+# Tạo instance Ubuntu 24.04 tại Singapore, IPv6-only, $7/tháng
 #
 # Yêu cầu:
 #   terraform >= 1.5
@@ -37,7 +37,7 @@ resource "aws_lightsail_key_pair" "awb_key" {
 resource "aws_lightsail_instance" "awb_prod" {
   name              = "awb-prod"
   availability_zone = "${var.aws_region}a"
-  blueprint_id      = "ubuntu_22_04"
+  blueprint_id      = "ubuntu_24_04"
   bundle_id         = var.bundle_id
   key_pair_name     = aws_lightsail_key_pair.awb_key.name
   ip_address_type   = "ipv6"
