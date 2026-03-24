@@ -38,7 +38,7 @@ services:
 
   # ── Go Backend ───────────────────────────────────────────────────────────────
   app:
-    image: ghcr.io/aiwisdombattle/backend-go:${IMAGE_TAG:-latest}
+    image: ghcr.io/phanAnh1001/backend-go:${IMAGE_TAG:-latest}
     container_name: awb-app
     restart: unless-stopped
     depends_on:
@@ -65,7 +65,7 @@ services:
 
   # ── Caddy (reverse proxy + auto TLS via Cloudflare DNS-01) ───────────────────
   caddy:
-    image: ghcr.io/aiwisdombattle/caddy-cf:latest  # Caddy + Cloudflare DNS plugin
+    image: ghcr.io/phanAnh1001/caddy-cf:latest  # Caddy + Cloudflare DNS plugin
     container_name: awb-caddy
     restart: unless-stopped
     depends_on:
