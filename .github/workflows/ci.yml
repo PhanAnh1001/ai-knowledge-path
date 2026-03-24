@@ -86,8 +86,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set lowercase registry owner
-        run: echo "GHCR_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+      - name: Set lowercase registry repo
+        run: echo "GHCR_REPO=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -102,8 +102,8 @@ jobs:
           context: ./backend-go
           push: true
           tags: |
-            ghcr.io/${{ env.GHCR_OWNER }}/backend-go:latest
-            ghcr.io/${{ env.GHCR_OWNER }}/backend-go:${{ github.sha }}
+            ghcr.io/${{ env.GHCR_REPO }}/backend-go:latest
+            ghcr.io/${{ env.GHCR_REPO }}/backend-go:${{ github.sha }}
 
   # ── Summary: tất cả job phải pass ──────────────────────────────────────────
   ci-pass:
