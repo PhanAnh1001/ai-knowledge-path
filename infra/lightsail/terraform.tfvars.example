@@ -6,8 +6,8 @@
 # AWS Region — Singapore
 aws_region = "ap-southeast-1"
 
-# Lightsail bundle: nano_3_0 = 2 vCPU · 2 GB RAM · 60 GB SSD · $7/tháng
-bundle_id = "nano_3_0"
+# Lightsail bundle: small_3_0 = 2 vCPU · 2 GB RAM · 60 GB SSD · $12/tháng
+bundle_id = "small_3_0"
 
 # SSH public key — nội dung file ~/.ssh/awb-lightsail.pub
 # Tạo: ssh-keygen -t rsa -b 4096 -C "awb-lightsail-deploy" -f ~/.ssh/awb-lightsail
