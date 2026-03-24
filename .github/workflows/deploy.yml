@@ -44,12 +44,12 @@ jobs:
             git reset --hard origin/master
 
             echo "=== [2/4] Pull new image ==="
-            GHCR_OWNER=${{ github.repository_owner }} \
+            GHCR_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]') \
             IMAGE_TAG=${{ github.event.workflow_run.head_sha }} \
               docker compose -f docker-compose.prod.yml pull app
 
             echo "=== [3/4] Restart app ==="
-            GHCR_OWNER=${{ github.repository_owner }} \
+            GHCR_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]') \
             IMAGE_TAG=${{ github.event.workflow_run.head_sha }} \
               docker compose -f docker-compose.prod.yml up -d \
               --remove-orphans \
