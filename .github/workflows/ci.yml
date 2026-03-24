@@ -108,7 +108,7 @@ jobs:
   # ── Summary: tất cả job phải pass ──────────────────────────────────────────
   ci-pass:
     name: CI Pass
-    needs: [go-tests, frontend-tests, docker-validate]
+    needs: [go-tests, frontend-tests, docker-validate, build-docker]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -117,6 +117,11 @@ jobs:
           if [[ "${{ needs.go-tests.result }}" != "success" ||
                 "${{ needs.frontend-tests.result }}" != "success" ]]; then
             echo "One or more required jobs failed"
+            exit 1
+          fi
+          if [[ "${{ needs.build-docker.result }}" == "failure" ||
+                "${{ needs.build-docker.result }}" == "cancelled" ]]; then
+            echo "Docker build failed"
             exit 1
           fi
           echo "All CI jobs passed"
