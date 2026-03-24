@@ -66,13 +66,15 @@ sudo apt install gh
 ### 1.1 Tạo SSH key pair (máy local)
 
 ```bash
-# Tạo key pair (ed25519 — nhẹ và an toàn)
-ssh-keygen -t ed25519 -C "awb-lightsail-deploy" -f ~/.ssh/awb-lightsail
+# Tạo key pair RSA 4096-bit (Lightsail ImportKeyPair chỉ hỗ trợ RSA, không hỗ trợ ed25519)
+ssh-keygen -t rsa -b 4096 -C "awb-lightsail-deploy" -f ~/.ssh/awb-lightsail
 
 # Kết quả:
 #   ~/.ssh/awb-lightsail      ← private key (KHÔNG share, lưu an toàn)
 #   ~/.ssh/awb-lightsail.pub  ← public key  (sẽ upload qua GitHub Secret)
 ```
+
+> **Lưu ý quan trọng:** AWS Lightsail API (`ImportKeyPair`) chỉ chấp nhận **RSA key**. Dùng ed25519 sẽ báo lỗi `InvalidInputException: The value for publicKeyBase64 isn't valid`.
 
 ### 1.2 Lấy AWS Access Key
 

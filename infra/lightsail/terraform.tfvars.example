@@ -10,5 +10,6 @@ aws_region = "ap-southeast-1"
 bundle_id = "nano_3_0"
 
 # SSH public key — nội dung file ~/.ssh/awb-lightsail.pub
-# Tạo: ssh-keygen -t ed25519 -C "awb-lightsail-deploy" -f ~/.ssh/awb-lightsail
-ssh_public_key = "ssh-ed25519 AAAA... awb-lightsail-deploy"
+# Tạo: ssh-keygen -t rsa -b 4096 -C "awb-lightsail-deploy" -f ~/.ssh/awb-lightsail
+# Lưu ý: Lightsail chỉ hỗ trợ RSA key, KHÔNG dùng ed25519
+ssh_public_key = "ssh-rsa AAAA... awb-lightsail-deploy"
