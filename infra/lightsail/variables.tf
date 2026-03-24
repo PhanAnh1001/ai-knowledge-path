@@ -5,9 +5,9 @@ variable "aws_region" {
 }
 
 variable "bundle_id" {
-  description = "Lightsail bundle ID — xác định CPU/RAM/giá. nano_3_0 = 2vCPU·2GB·$7/tháng"
+  description = "Lightsail bundle ID — xác định CPU/RAM/giá. small_3_0 = 2vCPU·2GB·$12/tháng"
   type        = string
-  default     = "nano_3_0"
+  default     = "small_3_0"
 
   validation {
     condition     = contains(["nano_3_0", "micro_3_0", "small_3_0", "medium_3_0"], var.bundle_id)

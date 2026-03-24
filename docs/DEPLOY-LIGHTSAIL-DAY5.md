@@ -66,13 +66,15 @@ sudo apt install gh
 ### 1.1 Tạo SSH key pair (máy local)
 
 ```bash
-# Tạo key pair (ed25519 — nhẹ và an toàn)
-ssh-keygen -t ed25519 -C "awb-lightsail-deploy" -f ~/.ssh/awb-lightsail
+# Tạo key pair RSA 4096-bit (Lightsail ImportKeyPair chỉ hỗ trợ RSA, không hỗ trợ ed25519)
+ssh-keygen -t rsa -b 4096 -C "awb-lightsail-deploy" -f ~/.ssh/awb-lightsail
 
 # Kết quả:
 #   ~/.ssh/awb-lightsail      ← private key (KHÔNG share, lưu an toàn)
 #   ~/.ssh/awb-lightsail.pub  ← public key  (sẽ upload qua GitHub Secret)
 ```
+
+> **Lưu ý quan trọng:** AWS Lightsail API (`ImportKeyPair`) chỉ chấp nhận **RSA key**. Dùng ed25519 sẽ báo lỗi `InvalidInputException: The value for publicKeyBase64 isn't valid`.
 
 ### 1.2 Lấy AWS Access Key
 
@@ -128,9 +130,28 @@ gh secret set AWS_SECRET_ACCESS_KEY  --body "<secret-access-key>"
 gh secret set SSH_PUBLIC_KEY         < ~/.ssh/awb-lightsail.pub
 ```
 
-> `SSH_PUBLIC_KEY` đã dùng cho Oracle Cloud — nếu dùng cùng SSH key thì không cần tạo lại.
+> **Không dùng lại SSH key của Oracle Cloud.** Oracle Cloud dùng ed25519, còn Lightsail yêu cầu RSA — phải tạo key riêng theo bước 1.1.
 
-### 1.4 Chạy Terraform Apply trên GitHub Actions
+### 1.4 Chạy Terraform Plan (review trước khi apply)
+
+1. Truy cập **GitHub repo** → tab **Actions**
+2. Chọn workflow **"Terraform (AWS Lightsail)"**
+3. Nhấn **"Run workflow"** → chọn branch `claude/lightsail-migration-gBk3t` → **action: `plan`** (mặc định) → **Run workflow**
+4. Chờ workflow hoàn thành (~1 phút)
+
+**Xem kết quả Plan:**
+
+Trong log của step **"Terraform Plan"**, kiểm tra dòng tóm tắt:
+
+```
+Plan: 3 to add, 0 to change, 0 to destroy.
+```
+
+> **Quan trọng:** Review kỹ danh sách resources trước khi tiếp tục. Nếu thấy `to destroy` hoặc `to change` không mong đợi — dừng lại, kiểm tra `infra/lightsail/` trước khi apply. Plan không tạo resource nào, hoàn toàn an toàn để chạy nhiều lần.
+
+### 1.5 Chạy Terraform Apply trên GitHub Actions
+
+Sau khi đã xác nhận Plan ở bước 1.4 đúng như kỳ vọng:
 
 1. Truy cập **GitHub repo** → tab **Actions**
 2. Chọn workflow **"Terraform (AWS Lightsail)"**
@@ -150,11 +171,11 @@ ssh_command = "ssh -i ~/.ssh/awb-lightsail ubuntu@2406:da18:886:3400:abcd:1234:5
 
 **Terraform đã tự động:**
 - Upload SSH public key → `awb-deploy-key`
-- Tạo instance Ubuntu 22.04 · `nano_3_0` · 2vCPU · 2GB · $7/tháng · IPv6-only
+- Tạo instance Ubuntu 22.04 · `small_3_0` · 2vCPU · 2GB · $12/tháng · IPv6-only
 - Chạy `lightsail-init.sh` khi boot (cài Docker, clone repo, cấu hình firewall)
 - Mở firewall ports: TCP 22/80/443 và UDP 443
 
-### 1.5 SSH vào instance lần đầu
+### 1.6 SSH vào instance lần đầu
 
 ```bash
 # Thay <IPv6> bằng địa chỉ lấy từ Terraform output
@@ -780,4 +801,4 @@ echo | openssl s_client -connect api.aiwisdombattle.com:443 2>&1 | grep -E "subj
 
 ---
 
-*Cập nhật lần cuối: 2026-03-24*
+*Cập nhật lần cuối: 2026-03-24 — fix SSH key type RSA, cảnh báo không dùng lại key Oracle Cloud*
