@@ -130,7 +130,26 @@ gh secret set SSH_PUBLIC_KEY         < ~/.ssh/awb-lightsail.pub
 
 > `SSH_PUBLIC_KEY` đã dùng cho Oracle Cloud — nếu dùng cùng SSH key thì không cần tạo lại.
 
-### 1.4 Chạy Terraform Apply trên GitHub Actions
+### 1.4 Chạy Terraform Plan (review trước khi apply)
+
+1. Truy cập **GitHub repo** → tab **Actions**
+2. Chọn workflow **"Terraform (AWS Lightsail)"**
+3. Nhấn **"Run workflow"** → chọn branch `claude/lightsail-migration-gBk3t` → **action: `plan`** (mặc định) → **Run workflow**
+4. Chờ workflow hoàn thành (~1 phút)
+
+**Xem kết quả Plan:**
+
+Trong log của step **"Terraform Plan"**, kiểm tra dòng tóm tắt:
+
+```
+Plan: 3 to add, 0 to change, 0 to destroy.
+```
+
+> **Quan trọng:** Review kỹ danh sách resources trước khi tiếp tục. Nếu thấy `to destroy` hoặc `to change` không mong đợi — dừng lại, kiểm tra `infra/lightsail/` trước khi apply. Plan không tạo resource nào, hoàn toàn an toàn để chạy nhiều lần.
+
+### 1.5 Chạy Terraform Apply trên GitHub Actions
+
+Sau khi đã xác nhận Plan ở bước 1.4 đúng như kỳ vọng:
 
 1. Truy cập **GitHub repo** → tab **Actions**
 2. Chọn workflow **"Terraform (AWS Lightsail)"**
@@ -154,7 +173,7 @@ ssh_command = "ssh -i ~/.ssh/awb-lightsail ubuntu@2406:da18:886:3400:abcd:1234:5
 - Chạy `lightsail-init.sh` khi boot (cài Docker, clone repo, cấu hình firewall)
 - Mở firewall ports: TCP 22/80/443 và UDP 443
 
-### 1.5 SSH vào instance lần đầu
+### 1.6 SSH vào instance lần đầu
 
 ```bash
 # Thay <IPv6> bằng địa chỉ lấy từ Terraform output
@@ -780,4 +799,4 @@ echo | openssl s_client -connect api.aiwisdombattle.com:443 2>&1 | grep -E "subj
 
 ---
 
-*Cập nhật lần cuối: 2026-03-24*
+*Cập nhật lần cuối: 2026-03-24 — thêm bước 1.4 Terraform Plan trước Apply*
