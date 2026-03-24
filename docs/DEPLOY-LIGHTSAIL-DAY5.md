@@ -130,7 +130,7 @@ gh secret set AWS_SECRET_ACCESS_KEY  --body "<secret-access-key>"
 gh secret set SSH_PUBLIC_KEY         < ~/.ssh/awb-lightsail.pub
 ```
 
-> `SSH_PUBLIC_KEY` đã dùng cho Oracle Cloud — nếu dùng cùng SSH key thì không cần tạo lại.
+> **Không dùng lại SSH key của Oracle Cloud.** Oracle Cloud dùng ed25519, còn Lightsail yêu cầu RSA — phải tạo key riêng theo bước 1.1.
 
 ### 1.4 Chạy Terraform Apply trên GitHub Actions
 
@@ -782,4 +782,4 @@ echo | openssl s_client -connect api.aiwisdombattle.com:443 2>&1 | grep -E "subj
 
 ---
 
-*Cập nhật lần cuối: 2026-03-24*
+*Cập nhật lần cuối: 2026-03-24 — fix SSH key type RSA, cảnh báo không dùng lại key Oracle Cloud*
