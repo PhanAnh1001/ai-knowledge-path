@@ -81,7 +81,33 @@ ssh-keygen -t ed25519 -C "awb-lightsail-deploy" -f ~/.ssh/awb-lightsail
 3. **Access keys** → **Create access key** → chọn use case **CLI**
 4. Lưu lại `Access key ID` và `Secret access key` — chỉ hiển thị **một lần**!
 
-> Nếu chưa có IAM user: **IAM** → **Users** → **Create user** → gán policy `AmazonLightsailFullAccess`.
+> Nếu chưa có IAM user: **IAM** → **Users** → **Create user** → gán policy `LightsailFullAccess` (tạo theo bước 1.2.1 bên dưới nếu chưa có).
+
+### 1.2.1 Tạo IAM policy LightsailFullAccess (nếu chưa có)
+
+AWS **không có** managed policy tên `AmazonLightsailFullAccess` sẵn — cần tạo **customer managed policy** thủ công:
+
+1. Truy cập [AWS IAM Console](https://console.aws.amazon.com/iam/) → **Policies** → **Create policy**
+2. Chọn tab **JSON**, dán nội dung sau:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "LightsailFullAccess",
+      "Effect": "Allow",
+      "Action": "lightsail:*",
+      "Resource": "*"
+    }
+  ]
+}
+```
+
+3. Nhấn **Next** → đặt tên policy: `LightsailFullAccess` → **Create policy**
+4. Quay lại **Users** → chọn user → **Add permissions** → **Attach policies directly** → tìm `LightsailFullAccess` → tick chọn → **Add permissions**
+
+> **Tại sao chỉ `lightsail:*`?** Terraform provider Lightsail chỉ cần quyền Lightsail API — không cần EC2, S3, hay bất kỳ service nào khác. Giới hạn scope giảm rủi ro nếu key bị lộ.
 
 ### 1.3 Thêm Secrets vào GitHub
 
@@ -754,4 +780,4 @@ echo | openssl s_client -connect api.aiwisdombattle.com:443 2>&1 | grep -E "subj
 
 ---
 
-*Cập nhật lần cuối: 2026-03-23*
+*Cập nhật lần cuối: 2026-03-24*
