@@ -179,6 +179,11 @@ jobs:
           } > /opt/ai-wisdom-battle/.env
           chmod 600 /opt/ai-wisdom-battle/.env
           echo ".env generated from secrets (\$(wc -l < /opt/ai-wisdom-battle/.env) lines)"
+          # Validate critical env vars were written
+          for key in CORS_ALLOWED_ORIGINS API_DOMAIN JWT_SECRET DATABASE_URL; do
+            grep -q "^\${key}=.\+" /opt/ai-wisdom-battle/.env \
+              || echo "::warning::\${key} is empty or missing in .env"
+          done
           # --- Sync postgres password if container already running ---
           # Handles secret rotation: ALTER USER syncs the password without wiping data
           if sudo docker ps --format '{{.Names}}' 2>/dev/null | grep -q awb-postgres; then
@@ -250,15 +255,15 @@ jobs:
 
           echo "=== [3/5] Pull new images ==="
           sudo GHCR_REPO="${GHCR_REPO_LC}" IMAGE_TAG="${DEPLOY_SHA}" \
-            docker compose -f docker-compose.prod.yml pull app
+            docker compose --env-file .env -f docker-compose.prod.yml pull app
           sudo GHCR_REPO="${GHCR_REPO_LC}" \
-            docker compose -f docker-compose.prod.yml pull caddy
+            docker compose --env-file .env -f docker-compose.prod.yml pull caddy
           # Logout after pulling — credentials no longer needed and shouldn't stay in daemon config
           sudo docker logout ghcr.io
 
           echo "=== [4/5] Restart app ==="
           sudo GHCR_REPO="${GHCR_REPO_LC}" IMAGE_TAG="${DEPLOY_SHA}" \
-            docker compose -f docker-compose.prod.yml up -d \
+            docker compose --env-file .env -f docker-compose.prod.yml up -d \
             --remove-orphans postgres app caddy
 
           echo "=== [5/5] Health check ==="
