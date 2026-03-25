@@ -101,17 +101,33 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
 
       # Dry-run: chỉ validate SSH connectivity + kiểm tra môi trường server
+      - name: Dry-run — Check IPv6 connectivity
+        if: inputs.dry_run == true
+        env:
+          REMOTE_HOST: ${{ secrets.LIGHTSAIL_HOST }}
+        run: |
+          echo "=== Runner IPv6 info ==="
+          ip -6 addr show || echo "(ip command unavailable)"
+          echo "REMOTE_HOST length: ${#REMOTE_HOST}"
+          echo "REMOTE_HOST first 8 chars: ${REMOTE_HOST:0:8}"
+          echo "=== Test IPv6 outbound ==="
+          curl -6 --connect-timeout 5 https://ipv6.icanhazip.com/ 2>&1 || echo "IPv6 outbound: FAILED"
+          echo "=== Test TCP reach to server ==="
+          nc -6 -z -w 5 "${REMOTE_HOST}" 22 2>&1 && echo "Port 22: OPEN" || echo "Port 22: UNREACHABLE"
+
       - name: Dry-run — Validate SSH + server environment
         if: inputs.dry_run == true
         env:
           REMOTE_HOST: ${{ secrets.LIGHTSAIL_HOST }}
         run: |
           echo "=== Dry-run: Validate SSH connectivity ==="
+          # Try without brackets first (OpenSSH auto-detects IPv6)
           ssh -i ~/.ssh/deploy_key \
             -o StrictHostKeyChecking=no \
             -o BatchMode=yes \
             -o ConnectTimeout=15 \
-            "ubuntu@[${REMOTE_HOST}]" \
+            -6 \
+            "ubuntu@${REMOTE_HOST}" \
             "set -e
             echo '--- SSH: OK'
             echo '--- Docker version:' && docker --version
@@ -135,7 +151,8 @@ jobs:
           ssh -i ~/.ssh/deploy_key \
             -o StrictHostKeyChecking=no \
             -o BatchMode=yes \
-            "ubuntu@[${REMOTE_HOST}]" << EOF
+            -6 \
+            "ubuntu@${REMOTE_HOST}" << EOF
           set -euo pipefail
           cd /opt/ai-wisdom-battle
 
@@ -171,7 +188,8 @@ jobs:
           ssh -i ~/.ssh/deploy_key \
             -o StrictHostKeyChecking=no \
             -o BatchMode=yes \
-            "ubuntu@[${REMOTE_HOST}]" \
+            -6 \
+            "ubuntu@${REMOTE_HOST}" \
             "docker compose -f /opt/ai-wisdom-battle/docker-compose.prod.yml logs --tail=50 app 2>&1 || true" \
             || echo "(Không thể SSH vào server để lấy logs)"
           echo "Run URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
