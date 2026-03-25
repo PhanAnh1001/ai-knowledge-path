@@ -1,6 +1,6 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-25 14:51:22
+> Cập nhật lần cuối: 2026-03-25 14:54:11
 > Session: `d90ad423-754`
 > Branch: `claude/change_code`
 
@@ -11,6 +11,8 @@
 ### Các commit gần nhất
 
 ```
+0c3349e chore(claude): add docs update step to Stop hook checklist
+70a56f6 docs: update PROJECT_LOG [2026-03-25]
 7f07466 docs: update secrets/token guides for sslip.io + no-custom-domain setup
 7ff18d0 docs: update PROJECT_LOG [2026-03-25]
 6abd8ec fix(security): validate API_DOMAIN, fix Caddyfile comment, safe .env write
@@ -24,8 +26,6 @@ ae00c5b Merge pull request #32 from PhanAnh1001/claude/fix-lightsail-bundle-ipv6
 cf4f07d Improve claude hooks: self-check reminder + better PR/commit content
 05d9df1 docs: update PROJECT_LOG [2026-03-25]
 5e80c89 docs: update PROJECT_LOG [2026-03-25]
-cad6395 docs: update PROJECT_LOG [2026-03-25]
-f125520 docs: update PROJECT_LOG [2026-03-25]
 ```
 
 ---
