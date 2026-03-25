@@ -100,13 +100,38 @@ jobs:
           echo "$SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
+      # Đảm bảo Docker được cài trên server (idempotent — skip nếu đã có)
+      - name: Ensure Docker installed on server
+        env:
+          REMOTE_HOST: ${{ secrets.LIGHTSAIL_HOST }}
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=no \
+            -o BatchMode=yes \
+            -o ConnectTimeout=15 \
+            "ubuntu@${REMOTE_HOST}" \
+            "bash -l -c '
+              if command -v docker &>/dev/null; then
+                echo Docker already installed: \$(docker --version)
+                exit 0
+              fi
+              echo Docker not found, installing...
+              sudo apt-get update -y
+              sudo apt-get install -y docker.io docker-compose-plugin
+              sudo systemctl enable docker
+              sudo systemctl start docker
+              sudo usermod -aG docker ubuntu
+              echo Docker installed: \$(docker --version)
+              echo Compose installed: \$(docker compose version)
+            '"
+
       # Dry-run: chỉ validate SSH connectivity + kiểm tra môi trường server
       - name: Dry-run — Validate SSH + server environment
         if: inputs.dry_run == true
         env:
           REMOTE_HOST: ${{ secrets.LIGHTSAIL_HOST }}
         run: |
-          echo "=== Dry-run: Validate SSH connectivity ==="
+          echo "=== Dry-run: Validate SSH + server environment ==="
           # SSH vào instance bằng public IPv4, dùng login shell để load đầy đủ PATH
           ssh -i ~/.ssh/deploy_key \
             -o StrictHostKeyChecking=no \
@@ -114,14 +139,13 @@ jobs:
             -o ConnectTimeout=15 \
             "ubuntu@${REMOTE_HOST}" \
             "bash -l -c '
+              set -e
               echo --- SSH: OK
-              echo --- Docker binary: \$(which docker 2>/dev/null || echo NOT FOUND)
-              echo --- Docker version: \$(docker --version 2>&1 || echo FAILED)
-              echo --- Compose version: \$(docker compose version 2>&1 || echo FAILED)
-              echo --- cloud-init: \$(cloud-init status 2>/dev/null || echo unknown)
-              echo --- Disk: \$(df -h / | tail -1)
-              echo --- App dir: \$(ls /opt/ai-wisdom-battle/ 2>/dev/null | head -5 || echo NOT FOUND)
-              echo --- Containers: \$(docker ps --format \"{{.Names}}: {{.Status}}\" 2>/dev/null || echo FAILED)
+              docker --version
+              docker compose version
+              df -h /
+              ls /opt/ai-wisdom-battle/ || echo /opt/ai-wisdom-battle not found
+              docker ps --format \"{{.Names}}: {{.Status}}\" || true
             '"
 
       # Real deploy: chạy khi dry_run == false HOẶC khi trigger bằng workflow_run (production)
