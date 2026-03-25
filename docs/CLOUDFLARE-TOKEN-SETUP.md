@@ -4,14 +4,19 @@
 
 ## Tổng quan — Token dùng để làm gì?
 
-`CLOUDFLARE_API_TOKEN` được dùng cho **hai mục đích khác nhau** trong dự án:
+`CLOUDFLARE_API_TOKEN` hiện được dùng cho **một mục đích chính**:
 
 | Mục đích | File liên quan | Quyền cần thiết |
 |---|---|---|
-| **Caddy DNS-01 TLS challenge** — Caddy tự động xin TLS cert cho `api.aiwisdombattle.com` qua Let's Encrypt, cần tạo/xoá TXT record `_acme-challenge` trên DNS Cloudflare | `Caddyfile`, `docker-compose.prod.yml` | `Zone → DNS → Edit` |
-| **Deploy frontend lên Cloudflare Pages** — GitHub Actions dùng `cloudflare/pages-action@v1` để publish React app | `.github/workflows/deploy.yml` | `Cloudflare Pages → Edit` (account level) |
+| **Deploy frontend lên Cloudflare Pages** — GitHub Actions dùng `cloudflare/pages-action@v1` để publish React app | `.github/workflows/deploy.yml` | `Account → Cloudflare Pages → Edit` |
 
-Vì một token duy nhất phục vụ cả hai, token phải có **đủ cả hai quyền** trên.
+**Nếu bạn có custom domain và dùng Cloudflare proxy**, token cần thêm quyền thứ hai:
+
+| Mục đích | File liên quan | Quyền cần thiết |
+|---|---|---|
+| **Caddy DNS-01 TLS challenge** — Caddy tự động xin TLS cert qua Let's Encrypt, cần tạo/xoá TXT record `_acme-challenge` trên DNS Cloudflare | `Caddyfile` | `Zone → DNS → Edit` trên zone của bạn |
+
+> **Không có custom domain (dùng `sslip.io`)?** Chỉ cần `Account → Cloudflare Pages → Edit`. Caddy sẽ lấy cert qua HTTP-01 tự động — không cần DNS access.
 
 ---
 
@@ -42,26 +47,32 @@ Token name: ai-wisdom-battle-prod
 
 ### 3.2 Thêm quyền (Permissions)
 
-Nhấn **Add permissions** và thêm lần lượt **2 dòng** sau:
+**Trường hợp A — Không có custom domain (sslip.io):** chỉ cần **1 dòng**:
 
 | # | Resource | Quyền |
 |---|---|---|
-| 1 | `Zone` → `DNS` | `Edit` |
-| 2 | `Account` → `Cloudflare Pages` | `Edit` |
+| 1 | `Account` → `Cloudflare Pages` | `Edit` |
+
+**Trường hợp B — Có custom domain + Cloudflare proxy:** thêm **2 dòng**:
+
+| # | Resource | Quyền |
+|---|---|---|
+| 1 | `Account` → `Cloudflare Pages` | `Edit` |
+| 2 | `Zone` → `DNS` | `Edit` |
 
 > **Cách thao tác từng dòng:**
 > - Dropdown đầu tiên: chọn `Zone` hoặc `Account`
 > - Dropdown thứ hai: chọn resource cụ thể (`DNS` hoặc `Cloudflare Pages`)
 > - Dropdown thứ ba: chọn `Edit`
 
-### 3.3 Thu hẹp phạm vi Zone (Zone Resources)
+### 3.3 Thu hẹp phạm vi Zone (Zone Resources) — chỉ khi có Trường hợp B
 
 Sau khi thêm quyền `Zone → DNS → Edit`, mục **Zone Resources** xuất hiện bên dưới:
 
 - Chọn **Specific zone**
-- Chọn zone: `aiwisdombattle.com`
+- Chọn zone của bạn (ví dụ: `example.com`)
 
-> Không chọn "All zones" để tuân thủ nguyên tắc least privilege — token chỉ có quyền sửa DNS của domain này.
+> Không chọn "All zones" — token chỉ cần quyền sửa DNS của domain này (least privilege).
 
 ### 3.4 Giới hạn Client IP (tuỳ chọn nhưng khuyến nghị)
 
@@ -75,9 +86,15 @@ Có thể để trống (no expiration) hoặc đặt 1 năm.
 
 1. Nhấn **Continue to summary**
 2. Kiểm tra lại danh sách quyền:
+
+   Trường hợp A (không có custom domain):
    ```
-   Zone - DNS - Edit - aiwisdombattle.com
    Account - Cloudflare Pages - Edit - <tên account của bạn>
+   ```
+   Trường hợp B (có custom domain + Cloudflare proxy):
+   ```
+   Account - Cloudflare Pages - Edit - <tên account của bạn>
+   Zone - DNS - Edit - example.com
    ```
 3. Nhấn **Create Token**
 4. **Copy token ngay lập tức** — Cloudflare chỉ hiển thị một lần duy nhất.
@@ -89,64 +106,55 @@ yJFxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 ---
 
-## Bước 4 — Lưu token vào các nơi cần thiết
+## Bước 4 — Lưu token vào GitHub Secret
 
-### 4.1 File `.env` trên Lightsail VM (cho Caddy)
+Deploy workflow tự động inject token vào `.env` trên server — **không cần SSH thủ công**.
 
-SSH vào VM và sửa file `.env`:
-
-```bash
-ssh -i ~/.ssh/lightsail_awb ubuntu@<LIGHTSAIL_IP>
-cd /opt/ai-wisdom-battle
-nano .env
-```
-
-Tìm dòng và thay `change_me_cloudflare_token` bằng token vừa tạo:
-
-```env
-CLOUDFLARE_API_TOKEN=yJFxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-```
-
-Restart Caddy để nạp token mới:
+### 4.1 Tạo GitHub Secret
 
 ```bash
-docker compose -f docker-compose.prod.yml restart caddy
+gh secret set CLOUDFLARE_API_TOKEN --body "yJFxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ```
 
-### 4.2 GitHub Secret (cho deploy workflow)
-
+Hoặc qua GitHub UI:
 1. Vào GitHub repo → **Settings** → **Secrets and variables** → **Actions**
 2. Nhấn **New repository secret**
-3. Điền:
-   ```
-   Name:   CLOUDFLARE_API_TOKEN
-   Secret: yJFxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-   ```
-4. Nhấn **Add secret**
+3. Điền `Name: CLOUDFLARE_API_TOKEN`, paste token → **Add secret**
+
+### 4.2 Token được dùng ở đâu
+
+| Nơi dùng | Khi nào |
+|---|---|
+| `deploy.yml` → `cloudflare/pages-action@v1` | Mỗi lần deploy frontend lên Cloudflare Pages |
+| `.env` trên Lightsail → Caddy | Chỉ khi dùng DNS-01 challenge (Trường hợp B) |
+
+> **Trường hợp A (sslip.io):** Token được write vào `.env` nhưng Caddy không đọc nó (không có `tls { dns cloudflare }` trong Caddyfile). Không gây hại.
 
 ---
 
 ## Bước 5 — Kiểm tra hoạt động
 
-### Kiểm tra Caddy DNS-01
+### Kiểm tra Caddy TLS cert
 
 ```bash
-# Xem log Caddy trên VM
+# SSH vào server, xem log Caddy
+ssh -i ~/.ssh/awb-lightsail ubuntu@<LIGHTSAIL_IP>
 docker logs awb-caddy --tail 50
 
-# Nếu thành công, log sẽ có dòng:
-# "certificate obtained successfully"
-# hoặc "serving certificate" cho domain api.aiwisdombattle.com
+# Nếu thành công:
+# HTTP-01 → log có "certificate obtained successfully"
+# DNS-01  → log có "served certificate" kèm tên domain
 
-# Kiểm tra cert hiện tại
-curl -v https://api.aiwisdombattle.com/health 2>&1 | grep -E "subject:|issuer:|expire"
+# Kiểm tra cert từ ngoài (thay <API_DOMAIN> bằng giá trị thực)
+curl -v https://<API_DOMAIN>/health 2>&1 | grep -E "subject:|issuer:|expire"
 ```
 
 ### Kiểm tra Cloudflare Pages deploy
 
 1. Vào GitHub repo → tab **Actions** → chọn workflow **Deploy**
-2. Trigger thủ công hoặc chờ CI pass
+2. Trigger thủ công hoặc chờ CI pass trên master
 3. Bước `Deploy to Cloudflare Pages` phải hiển thị `Deployment complete`
+4. Truy cập `https://ai-wisdom-battle.pages.dev` → app load bình thường
 
 ---
 
@@ -154,12 +162,11 @@ curl -v https://api.aiwisdombattle.com/health 2>&1 | grep -E "subject:|issuer:|e
 
 | Lỗi | Nguyên nhân | Cách sửa |
 |---|---|---|
-| `dns: cloudflare: failed to find zone` | Token không có quyền `Zone:DNS:Edit` hoặc sai zone | Kiểm tra zone trong token đúng là `aiwisdombattle.com` |
-| `Error 10000: Authentication error` | Token không hợp lệ hoặc đã hết hạn | Tạo token mới, cập nhật vào `.env` và GitHub Secret |
-| `Error 1000: DNS points to prohibited IP` | Cloudflare chặn do IP trong cert không khớp | Kiểm tra DNS record `api.aiwisdombattle.com` trỏ đúng IP Lightsail |
-| Caddy log: `permission denied` | Token thiếu quyền `DNS:Edit` | Thêm quyền `Zone → DNS → Edit` vào token |
-| Pages deploy: `10000 Authentication error` | Token thiếu quyền `Cloudflare Pages:Edit` | Thêm quyền `Account → Cloudflare Pages → Edit` vào token |
+| Pages deploy: `10000 Authentication error` | Token thiếu quyền `Cloudflare Pages:Edit` hoặc token hết hạn | Thêm quyền `Account → Cloudflare Pages → Edit` vào token; hoặc tạo token mới |
 | Pages deploy: `9109 Account not found` | `CLOUDFLARE_ACCOUNT_ID` sai | Kiểm tra Account ID trong **Cloudflare Dashboard → Workers & Pages → Overview** (sidebar phải) |
+| Caddy log: `certificate obtain error` (HTTP-01) | Port 80 bị chặn, firewall Lightsail chưa mở | Kiểm tra Lightsail firewall: TCP 80 phải open |
+| `dns: cloudflare: failed to find zone` | Đang dùng DNS-01 nhưng token thiếu `Zone:DNS:Edit` hoặc sai zone | Chỉ gặp ở Trường hợp B — thêm quyền và chọn đúng zone |
+| `Error 10000: Authentication error` (Caddy) | Token không hợp lệ hoặc hết hạn | Tạo token mới, cập nhật GitHub Secret rồi deploy lại |
 
 ---
 

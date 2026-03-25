@@ -1,20 +1,23 @@
 # =============================================================================
-# Caddyfile — AI Wisdom Battle Production (AWS Lightsail Singapore, IPv6-only)
+# Caddyfile — AI Wisdom Battle Production (AWS Lightsail Singapore)
 # Frontend: Cloudflare Pages (free CDN)
-# Backend:  Lightsail IPv6 — Caddy proxy /api/* đến Go backend port 8080
+# Backend:  Lightsail — Caddy reverse proxy → Go backend port 8080
 #
-# TLS: Cloudflare DNS-01 challenge (không cần port 80/443 IPv4 public)
-# User (IPv4/IPv6) → Cloudflare → IPv6 → Caddy → Go backend
+# TLS: ACME HTTP-01 (Let's Encrypt auto-HTTPS)
+#   IMPORTANT: port 80 MUST be publicly reachable for HTTP-01 challenge.
+#   Cert is renewed automatically every ~60 days — do NOT block port 80.
+#   Domain is set via API_DOMAIN env var (e.g. <IP>.sslip.io or custom domain).
 #
 # Reload config: docker exec awb-caddy caddy reload --config /etc/caddy/Caddyfile
 # =============================================================================
 
-api.aiwisdombattle.com {
+{env.API_DOMAIN} {
 
-    # ── TLS via Cloudflare DNS-01 challenge ───────────────────────────────────
-    tls {
-        dns cloudflare {env.CLOUDFLARE_API_TOKEN}
-    }
+    # ── TLS: Caddy auto-HTTPS via ACME HTTP-01 (Let's Encrypt) ───────────────
+    # No tls block needed — Caddy obtains and renews cert automatically.
+    # Requires port 80 to be publicly reachable for the HTTP-01 challenge.
+    # If using Cloudflare proxy (orange-cloud), switch to DNS-01 instead:
+    #   tls { dns cloudflare {env.CLOUDFLARE_API_TOKEN} }
 
     # ── Nén response ──────────────────────────────────────────────────────────
     encode gzip
