@@ -4,6 +4,8 @@
   "permissions": {
     "allow": [
       "Bash(mvn:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
       "Bash(gradle:*)",
       "Bash(git:*)",
       "Bash(curl:*)",
@@ -11,6 +13,19 @@
     ]
   },
   "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat | ./.claude/check-posttool.sh",
+            "asyncRewake": true,
+            "statusMessage": "Checking build..."
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [
@@ -18,6 +33,12 @@
             "type": "command",
             "command": "echo '{\"systemMessage\": \"[Self-check] (1) General — review answer from multiple angles. (2) Security — injection, XSS, auth, hardcoded secrets. (3) Coding Rule/logic — confirm code builds without errors, no coding standard violations such as hardcoding, logic matches requirements. (4) Tests — run go test ./... or npm test, confirm pass. Fix issues before reporting done. (5) Docs — after all issues are resolved, if any project documentation files are related to the task, update them too.\"}'",
             "statusMessage": "Injecting post-task review checklist..."
+          },
+          {
+            "type": "command",
+            "command": "./.claude/check-code.sh",
+            "timeout": 60,
+            "statusMessage": "Running code checks..."
           },
           {
             "type": "command",
