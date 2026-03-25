@@ -107,6 +107,10 @@ jobs:
           REMOTE_HOST: ${{ secrets.LIGHTSAIL_HOST }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GHCR_REPO: ${{ github.repository }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          CORS_ALLOWED_ORIGINS: ${{ vars.CORS_ALLOWED_ORIGINS }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           GHCR_REPO_LC=$(echo "$GHCR_REPO" | tr '[:upper:]' '[:lower:]')
 
@@ -139,11 +143,25 @@ jobs:
           else
             echo "Repo already exists."
           fi
-          # --- .env placeholder ---
-          if [ ! -f /opt/ai-wisdom-battle/.env ]; then
-            cp /opt/ai-wisdom-battle/.env.example /opt/ai-wisdom-battle/.env
-            echo ".env created from .env.example - MUST update with real values!"
-          fi
+          # --- .env from secrets (always overwrite to pick up secret rotations) ---
+          cat > /opt/ai-wisdom-battle/.env << 'ENVEOF'
+POSTGRES_DB=ai_wisdom_battle
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+PORT=8080
+DATABASE_URL=postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/ai_wisdom_battle
+JWT_SECRET=${JWT_SECRET}
+JWT_EXPIRATION_MS=86400000
+JWT_REFRESH_EXPIRATION_MS=2592000000
+CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+RATE_LIMIT_MAX=20
+RATE_LIMIT_WINDOW=60
+CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
+GHCR_REPO=${GHCR_REPO_LC}
+IMAGE_TAG=latest
+ENVEOF
+          chmod 600 /opt/ai-wisdom-battle/.env
+          echo ".env generated from secrets ($(wc -l < /opt/ai-wisdom-battle/.env) lines)"
           ENDSSH
 
       # Dry-run: chỉ validate SSH connectivity + kiểm tra môi trường server
@@ -196,14 +214,16 @@ jobs:
           git fetch origin master
           git reset --hard origin/master
 
-          echo "=== [3/5] Pull new image ==="
+          echo "=== [3/5] Pull new images ==="
           sudo GHCR_REPO="${GHCR_REPO_LC}" IMAGE_TAG="${DEPLOY_SHA}" \
             docker compose -f docker-compose.prod.yml pull app
+          sudo GHCR_REPO="${GHCR_REPO_LC}" \
+            docker compose -f docker-compose.prod.yml pull caddy
 
           echo "=== [4/5] Restart app ==="
           sudo GHCR_REPO="${GHCR_REPO_LC}" IMAGE_TAG="${DEPLOY_SHA}" \
             docker compose -f docker-compose.prod.yml up -d \
-            --remove-orphans postgres app
+            --remove-orphans postgres app caddy
 
           echo "=== [5/5] Health check ==="
           sleep 20

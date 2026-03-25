@@ -105,10 +105,41 @@ jobs:
             ghcr.io/${{ env.GHCR_REPO }}/backend-go:latest
             ghcr.io/${{ env.GHCR_REPO }}/backend-go:${{ github.sha }}
 
+  # ── Build & push Caddy image (with Cloudflare DNS plugin) ───────────────────
+  build-caddy:
+    name: Build Caddy Image
+    runs-on: ubuntu-latest
+    needs: [go-tests, frontend-tests]
+    if: github.ref == 'refs/heads/master'
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set lowercase registry repo
+        run: echo "GHCR_REPO=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Caddy image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./caddy
+          push: true
+          tags: ghcr.io/${{ env.GHCR_REPO }}/caddy-cf:latest
+
   # ── Summary: tất cả job phải pass ──────────────────────────────────────────
   ci-pass:
     name: CI Pass
-    needs: [go-tests, frontend-tests, docker-validate, build-docker]
+    needs: [go-tests, frontend-tests, docker-validate, build-docker, build-caddy]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -122,6 +153,11 @@ jobs:
           if [[ "${{ needs.build-docker.result }}" == "failure" ||
                 "${{ needs.build-docker.result }}" == "cancelled" ]]; then
             echo "Docker build failed"
+            exit 1
+          fi
+          if [[ "${{ needs.build-caddy.result }}" == "failure" ||
+                "${{ needs.build-caddy.result }}" == "cancelled" ]]; then
+            echo "Caddy build failed"
             exit 1
           fi
           echo "All CI jobs passed"

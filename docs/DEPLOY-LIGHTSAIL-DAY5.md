@@ -207,49 +207,28 @@ ls /opt/ai-wisdom-battle/
 cat /opt/ai-wisdom-battle/.env
 ```
 
-### 2.1 Điền .env production
+### 2.1 File .env — tự động từ GitHub Secrets
 
+> **Không cần SSH vào server để sửa `.env` thủ công.** Deploy workflow tự động tạo `.env` từ GitHub Secrets mỗi khi chạy (xem bước 4).
+
+File `.env` được inject tự động với nội dung sau:
+
+| Biến | Nguồn |
+|---|---|
+| `POSTGRES_DB`, `POSTGRES_USER` | Hardcoded trong workflow |
+| `POSTGRES_PASSWORD` | GitHub Secret `POSTGRES_PASSWORD` |
+| `DATABASE_URL` | Tự động ghép từ `POSTGRES_PASSWORD` |
+| `JWT_SECRET` | GitHub Secret `JWT_SECRET` |
+| `CORS_ALLOWED_ORIGINS` | GitHub Variable `CORS_ALLOWED_ORIGINS` |
+| `CLOUDFLARE_API_TOKEN` | GitHub Secret `CLOUDFLARE_API_TOKEN` |
+
+Để thay đổi secret: cập nhật GitHub Secret rồi trigger deploy lại — file `.env` trên server sẽ được ghi đè tự động.
+
+Nếu cần kiểm tra `.env` đã được tạo đúng (không xem nội dung):
 ```bash
-# Trên instance
-cd /opt/ai-wisdom-battle
-
-# Tạo JWT secret
-JWT_SECRET=$(openssl rand -base64 32)
-echo "JWT_SECRET: $JWT_SECRET"  # Lưu lại!
-
-# Sửa .env
-nano .env
-```
-
-Nội dung `.env` trên Lightsail:
-
-```env
-# PostgreSQL
-POSTGRES_DB=ai_wisdom_battle
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=<strong-password>
-
-# Go Backend
-PORT=8080
-DATABASE_URL=postgres://postgres:<strong-password>@postgres:5432/ai_wisdom_battle
-
-# JWT
-JWT_SECRET=<giá trị từ openssl rand>
-JWT_EXPIRATION_MS=86400000
-JWT_REFRESH_EXPIRATION_MS=2592000000
-
-# CORS
-CORS_ALLOWED_ORIGINS=https://aiwisdombattle.com,https://www.aiwisdombattle.com
-
-# Rate Limiting
-RATE_LIMIT_MAX=20
-RATE_LIMIT_WINDOW=60
-
-# Cloudflare (cho Caddy DNS-01)
-CLOUDFLARE_API_TOKEN=<lấy ở bước 3>
-
-# Docker image
-IMAGE_TAG=latest
+ssh -i ~/.ssh/awb-lightsail ubuntu@<IP>
+wc -l /opt/ai-wisdom-battle/.env   # phải là 14 dòng
+ls -la /opt/ai-wisdom-battle/.env  # phải là -rw------- (600)
 ```
 
 ---
@@ -279,23 +258,15 @@ IMAGE_TAG=latest
 > - `Full (strict)`: Cloudflare ↔ Origin phải có cert hợp lệ
 > - Caddy tự lấy cert qua Cloudflare DNS-01 challenge → thỏa mãn yêu cầu này
 
-### 3.3 Tạo Cloudflare API Token cho Caddy
+### 3.3 Tạo Cloudflare API Token
 
-1. **My Profile** (avatar góc trên phải) → **API Tokens**
-2. **Create Token** → **Edit zone DNS** template
-3. Cấu hình:
+Token cần **hai quyền** cho hai mục đích:
+- **Caddy DNS-01 TLS challenge** → `Zone → DNS → Edit` trên zone `aiwisdombattle.com`
+- **Deploy frontend lên Cloudflare Pages** → `Account → Cloudflare Pages → Edit`
 
-| Field | Value |
-|---|---|
-| Token name | `awb-caddy-dns-challenge` |
-| Permissions | Zone · DNS · Edit |
-| Zone Resources | Include · Specific zone · `aiwisdombattle.com` |
-| TTL | No expiry (hoặc 1 năm) |
+Xem hướng dẫn chi tiết từng bước tại: **[docs/CLOUDFLARE-TOKEN-SETUP.md](CLOUDFLARE-TOKEN-SETUP.md)**
 
-4. **Continue to summary** → **Create Token**
-5. Lưu token — chỉ hiển thị **một lần**!
-
-Điền token vào `.env` trên Lightsail (`CLOUDFLARE_API_TOKEN=...`).
+Sau khi tạo token: lưu vào GitHub Secret `CLOUDFLARE_API_TOKEN` (bước 4) — deploy workflow sẽ tự inject vào `.env` trên server.
 
 ### 3.4 Cấu hình trang Cloudflare Pages (frontend)
 
@@ -336,10 +307,12 @@ Truy cập: **GitHub repo** → **Settings** → **Secrets and variables** → *
 | `SSH_PUBLIC_KEY` | Nội dung `~/.ssh/awb-lightsail.pub` | `cat ~/.ssh/awb-lightsail.pub` | Terraform (upload key) |
 | `LIGHTSAIL_HOST` | Public IPv4 từ Terraform output | Bước 1.4 — workflow log | Deploy workflow |
 | `LIGHTSAIL_SSH_KEY` | Nội dung `~/.ssh/awb-lightsail` | `cat ~/.ssh/awb-lightsail` | Deploy workflow (SSH) |
-| `CLOUDFLARE_API_TOKEN` | Token từ bước 3.3 | Cloudflare dashboard | Deploy frontend + Caddy |
+| `CLOUDFLARE_API_TOKEN` | Token từ bước 3.3 | Cloudflare dashboard | Caddy TLS + Deploy frontend |
 | `CLOUDFLARE_ACCOUNT_ID` | Account ID | Cloudflare → sidebar phải | Deploy frontend |
+| `POSTGRES_PASSWORD` | Mật khẩu PostgreSQL mạnh | `openssl rand -base64 24` | Deploy → .env injection |
+| `JWT_SECRET` | Khoá JWT (≥ 32 ký tự) | `openssl rand -base64 32` | Deploy → .env injection |
 
-> **Thứ tự quan trọng:** Tạo `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `SSH_PUBLIC_KEY` **trước** khi chạy Terraform (bước 1.3). Tạo `LIGHTSAIL_HOST` **sau** khi có public IP từ Terraform output (bước 1.4).
+> **Thứ tự quan trọng:** Tạo `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `SSH_PUBLIC_KEY` **trước** khi chạy Terraform (bước 1.3). Tạo `LIGHTSAIL_HOST` **sau** khi có public IP từ Terraform output (bước 1.4). Tạo `POSTGRES_PASSWORD`, `JWT_SECRET` **trước** lần deploy đầu tiên.
 
 ### 4.2 Variables cần tạo
 
@@ -348,6 +321,7 @@ Truy cập: **GitHub repo** → **Settings** → **Secrets and variables** → *
 | Variable name | Giá trị |
 |---|---|
 | `VITE_API_BASE_URL` | `https://api.aiwisdombattle.com/api/v1` |
+| `CORS_ALLOWED_ORIGINS` | `https://aiwisdombattle.com,https://ai-wisdom-battle.pages.dev` |
 
 ### 4.3 Dùng GitHub CLI (nhanh hơn)
 
@@ -365,9 +339,12 @@ gh secret set LIGHTSAIL_HOST         --body "<IP-từ-terraform-output>"
 gh secret set LIGHTSAIL_SSH_KEY      < ~/.ssh/awb-lightsail
 gh secret set CLOUDFLARE_API_TOKEN   --body "<token>"
 gh secret set CLOUDFLARE_ACCOUNT_ID  --body "<account_id>"
+gh secret set POSTGRES_PASSWORD      --body "$(openssl rand -base64 24)"
+gh secret set JWT_SECRET             --body "$(openssl rand -base64 32)"
 
-# Variable
-gh variable set VITE_API_BASE_URL --body "https://api.aiwisdombattle.com/api/v1"
+# Variables
+gh variable set VITE_API_BASE_URL    --body "https://api.aiwisdombattle.com/api/v1"
+gh variable set CORS_ALLOWED_ORIGINS --body "https://aiwisdombattle.com,https://ai-wisdom-battle.pages.dev"
 ```
 
 ### 4.4 Cấp quyền GHCR cho Actions
@@ -506,56 +483,46 @@ LIMIT 10;
 
 ## 7. Deploy lần đầu lên Lightsail
 
-### 7.1 SSH vào instance
+> **Deploy được tự động hoá qua CI/CD.** Không cần SSH thủ công để pull image hay khởi động containers.
+
+### 7.1 Trigger deploy lần đầu
+
+Sau khi đã cấu hình đủ GitHub Secrets (bước 4):
+
+**Cách 1 — Merge PR vào master** (khuyến nghị):
+```bash
+# Merge PR chứa code mới nhất vào master
+# CI build image → Deploy workflow chạy tự động
+```
+
+**Cách 2 — Trigger thủ công** (nếu cần deploy ngay mà không cần CI):
+1. **GitHub Actions** → **Deploy** → **Run workflow**
+2. `deploy_target`: `both` · `dry_run`: `false`
+3. Nhấn **Run workflow**
+
+### 7.2 Workflow tự động thực hiện
+
+```
+[1/5] Login to GHCR
+[2/5] Pull code (git reset --hard origin/master)
+[3/5] Pull images: backend-go + caddy-cf
+[4/5] Restart: postgres → app → caddy (3 containers)
+[5/5] Health check: curl http://localhost:8080/health
+```
+
+### 7.3 Kiểm tra sau deploy
 
 ```bash
+# SSH vào xem trạng thái containers
 ssh -i ~/.ssh/awb-lightsail ubuntu@<IP>
-cd /opt/ai-wisdom-battle
-```
+docker compose -f /opt/ai-wisdom-battle/docker-compose.prod.yml ps
 
-### 7.2 Pull code mới nhất
+# Output mong đợi:
+# awb-postgres   running (healthy)
+# awb-app        running (healthy)
+# awb-caddy      running
 
-```bash
-git fetch origin master
-git reset --hard origin/master
-```
-
-### 7.3 Pull Docker image
-
-```bash
-# Login GHCR từ instance
-echo $GITHUB_TOKEN | docker login ghcr.io -u <username> --password-stdin
-
-# Hoặc dùng token không cần password (read-only public image)
-docker pull ghcr.io/aiwisdombattle/backend-go:latest
-```
-
-### 7.4 Khởi động stack
-
-```bash
-# Lần đầu: start tất cả containers
-docker compose -f docker-compose.prod.yml up -d
-
-# Xem logs
-docker compose -f docker-compose.prod.yml logs -f
-```
-
-**Output mong đợi:**
-```
-awb-postgres  | LOG:  database system is ready to accept connections
-awb-app       | database migrations applied
-awb-app       | server listening on :8080
-awb-caddy     | {"level":"info","ts":...,"msg":"serving initial configuration"}
-```
-
-### 7.5 Kiểm tra health check local
-
-```bash
-# Trên instance
-curl -s http://localhost:8080/health
-# → {"status":"UP"}
-
-# Qua Caddy (HTTPS)
+# Kiểm tra HTTPS (sau khi Caddy lấy cert xong — có thể mất ~30s)
 curl -s https://api.aiwisdombattle.com/health
 # → {"status":"UP"}
 ```
@@ -744,8 +711,8 @@ aws lightsail delete-instance \
 
 ### GitHub
 
-- [ ] Secrets: `LIGHTSAIL_HOST`, `LIGHTSAIL_SSH_KEY`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
-- [ ] Variable: `VITE_API_BASE_URL`
+- [ ] Secrets: `LIGHTSAIL_HOST`, `LIGHTSAIL_SSH_KEY`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `POSTGRES_PASSWORD`, `JWT_SECRET`
+- [ ] Variables: `VITE_API_BASE_URL`, `CORS_ALLOWED_ORIGINS`
 - [ ] GHCR write permission bật
 
 ### Data Migration
@@ -756,8 +723,9 @@ aws lightsail delete-instance \
 
 ### Production
 
-- [ ] `docker compose -f docker-compose.prod.yml ps` → tất cả `healthy`
-- [ ] `/health` trả `{"status":"UP"}`
+- [ ] `docker compose -f docker-compose.prod.yml ps` → `awb-postgres`, `awb-app`, `awb-caddy` đang chạy
+- [ ] `http://localhost:8080/health` trả `{"status":"UP"}`
+- [ ] `https://api.aiwisdombattle.com/health` trả `{"status":"UP"}` (HTTPS cert valid)
 - [ ] Toàn bộ 13 endpoints smoke test pass
 - [ ] Frontend kết nối backend end-to-end
 
