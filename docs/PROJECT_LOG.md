@@ -1,6 +1,6 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-25 14:46:43
+> Cập nhật lần cuối: 2026-03-25 14:51:22
 > Session: `d90ad423-754`
 > Branch: `claude/change_code`
 
@@ -11,6 +11,8 @@
 ### Các commit gần nhất
 
 ```
+7f07466 docs: update secrets/token guides for sslip.io + no-custom-domain setup
+7ff18d0 docs: update PROJECT_LOG [2026-03-25]
 6abd8ec fix(security): validate API_DOMAIN, fix Caddyfile comment, safe .env write
 42a63c5 docs: update PROJECT_LOG [2026-03-25]
 0766095 fix(caddy): use HTTP-01 auto-HTTPS instead of Cloudflare DNS-01
@@ -24,8 +26,6 @@ cf4f07d Improve claude hooks: self-check reminder + better PR/commit content
 5e80c89 docs: update PROJECT_LOG [2026-03-25]
 cad6395 docs: update PROJECT_LOG [2026-03-25]
 f125520 docs: update PROJECT_LOG [2026-03-25]
-423e153 Update PROJECT_LOG: 2026-03-25 unknown
-c4c2017 Update PROJECT_LOG: 2026-03-25 d90ad423
 ```
 
 ---
