@@ -111,19 +111,34 @@ jobs:
             -o ConnectTimeout=15 \
             "ubuntu@${REMOTE_HOST}" \
             "bash -l -c '
+              # --- Docker ---
               if command -v docker &>/dev/null; then
-                echo Docker already installed: \$(docker --version)
-                exit 0
+                echo Docker already installed: \$(sudo docker --version)
+              else
+                echo Docker not found, installing via official script...
+                sudo apt-get update -y
+                sudo apt-get install -y ca-certificates curl git
+                curl -fsSL https://get.docker.com | sudo sh
+                sudo systemctl enable docker
+                sudo systemctl start docker
+                sudo usermod -aG docker ubuntu
+                echo Docker installed: \$(sudo docker --version)
               fi
-              echo Docker not found, installing via official script...
-              sudo apt-get update -y
-              sudo apt-get install -y ca-certificates curl
-              curl -fsSL https://get.docker.com | sudo sh
-              sudo systemctl enable docker
-              sudo systemctl start docker
-              sudo usermod -aG docker ubuntu
-              echo Docker installed: \$(sudo docker --version)
-              echo Compose installed: \$(sudo docker compose version)
+              # --- App directory ---
+              if [ ! -d /opt/ai-wisdom-battle/.git ]; then
+                echo Cloning repository...
+                sudo mkdir -p /opt/ai-wisdom-battle
+                sudo chown ubuntu:ubuntu /opt/ai-wisdom-battle
+                git clone https://github.com/PhanAnh1001/ai-wisdom-battle.git /opt/ai-wisdom-battle
+                echo Repo cloned.
+              else
+                echo Repo already exists.
+              fi
+              # --- .env placeholder ---
+              if [ ! -f /opt/ai-wisdom-battle/.env ]; then
+                cp /opt/ai-wisdom-battle/.env.example /opt/ai-wisdom-battle/.env
+                echo .env created from .env.example
+              fi
             '"
 
       # Dry-run: chỉ validate SSH connectivity + kiểm tra môi trường server
