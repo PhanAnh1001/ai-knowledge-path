@@ -133,7 +133,7 @@ jobs:
             echo "Cloning repository..."
             sudo mkdir -p /opt/ai-wisdom-battle
             sudo chown ubuntu:ubuntu /opt/ai-wisdom-battle
-            git clone --depth 1 https://x-access-token:${GHCR_TOKEN}@github.com/${GHCR_REPO_LC}.git /opt/ai-wisdom-battle
+            git clone --depth 1 https://x-access-token:${GHCR_TOKEN}@github.com/${GHCR_REPO}.git /opt/ai-wisdom-battle
             echo "Repo cloned OK."
           else
             echo "Repo already exists."
