@@ -90,6 +90,7 @@ jobs:
 
     permissions:
       packages: read
+      contents: read
 
     steps:
       - name: Setup SSH key
@@ -100,26 +101,73 @@ jobs:
           echo "$SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
+      # Đảm bảo Docker được cài trên server (idempotent — skip nếu đã có)
+      - name: Ensure Docker installed on server
+        env:
+          REMOTE_HOST: ${{ secrets.LIGHTSAIL_HOST }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_REPO: ${{ github.repository }}
+        run: |
+          GHCR_REPO_LC=$(echo "$GHCR_REPO" | tr '[:upper:]' '[:lower:]')
+
+          ssh -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=no \
+            -o BatchMode=yes \
+            -o ConnectTimeout=15 \
+            "ubuntu@${REMOTE_HOST}" << ENDSSH
+          set -e
+          # --- Docker ---
+          if sudo docker version &>/dev/null; then
+            echo "Docker already installed: \$(sudo docker --version)"
+          else
+            echo "Docker not found, installing via official script..."
+            sudo apt-get update -y
+            sudo apt-get install -y ca-certificates curl git
+            curl -fsSL https://get.docker.com | sudo sh
+            sudo systemctl enable docker
+            sudo systemctl start docker
+            sudo usermod -aG docker ubuntu
+            echo "Docker installed: \$(sudo docker --version)"
+          fi
+          # --- App directory ---
+          if [ ! -d /opt/ai-wisdom-battle/.git ]; then
+            echo "Cloning repository..."
+            sudo mkdir -p /opt/ai-wisdom-battle
+            sudo chown ubuntu:ubuntu /opt/ai-wisdom-battle
+            git clone --depth 1 https://x-access-token:${GHCR_TOKEN}@github.com/${GHCR_REPO}.git /opt/ai-wisdom-battle
+            echo "Repo cloned OK."
+          else
+            echo "Repo already exists."
+          fi
+          # --- .env placeholder ---
+          if [ ! -f /opt/ai-wisdom-battle/.env ]; then
+            cp /opt/ai-wisdom-battle/.env.example /opt/ai-wisdom-battle/.env
+            echo ".env created from .env.example - MUST update with real values!"
+          fi
+          ENDSSH
+
       # Dry-run: chỉ validate SSH connectivity + kiểm tra môi trường server
       - name: Dry-run — Validate SSH + server environment
         if: inputs.dry_run == true
         env:
           REMOTE_HOST: ${{ secrets.LIGHTSAIL_HOST }}
         run: |
-          echo "=== Dry-run: Validate SSH connectivity ==="
-          # SSH vào instance bằng public IPv4
+          echo "=== Dry-run: Validate SSH + server environment ==="
+          # SSH vào instance bằng public IPv4, dùng login shell để load đầy đủ PATH
           ssh -i ~/.ssh/deploy_key \
             -o StrictHostKeyChecking=no \
             -o BatchMode=yes \
             -o ConnectTimeout=15 \
             "ubuntu@${REMOTE_HOST}" \
-            "set -e
-            echo '--- SSH: OK'
-            echo '--- Docker version:' && docker --version
-            echo '--- Docker Compose version:' && docker compose version
-            echo '--- Disk usage:' && df -h /
-            echo '--- /opt/ai-wisdom-battle:' && ls -la /opt/ai-wisdom-battle/
-            echo '--- Running containers:' && docker ps --format 'table {{.Names}}\t{{.Status}}'"
+            "bash -l -c '
+              set -e
+              echo --- SSH: OK
+              sudo docker --version
+              sudo docker compose version
+              df -h /
+              ls /opt/ai-wisdom-battle/ || echo /opt/ai-wisdom-battle not found
+              sudo docker ps --format \"{{.Names}}: {{.Status}}\" || true
+            '"
 
       # Real deploy: chạy khi dry_run == false HOẶC khi trigger bằng workflow_run (production)
       - name: Deploy via SSH
@@ -141,7 +189,7 @@ jobs:
           cd /opt/ai-wisdom-battle
 
           echo "=== [1/5] Login to GHCR ==="
-          echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_ACTOR}" --password-stdin
+          echo "${GHCR_TOKEN}" | sudo docker login ghcr.io -u "${GHCR_ACTOR}" --password-stdin
 
           echo "=== [2/5] Pull code ==="
           git fetch origin master
@@ -149,11 +197,11 @@ jobs:
 
           echo "=== [3/5] Pull new image ==="
           GHCR_REPO="${GHCR_REPO_LC}" IMAGE_TAG="${DEPLOY_SHA}" \
-            docker compose -f docker-compose.prod.yml pull app
+            sudo docker compose -f docker-compose.prod.yml pull app
 
           echo "=== [4/5] Restart app ==="
           GHCR_REPO="${GHCR_REPO_LC}" IMAGE_TAG="${DEPLOY_SHA}" \
-            docker compose -f docker-compose.prod.yml up -d \
+            sudo docker compose -f docker-compose.prod.yml up -d \
             --remove-orphans --no-deps app
 
           echo "=== [5/5] Health check ==="
@@ -173,7 +221,7 @@ jobs:
             -o StrictHostKeyChecking=no \
             -o BatchMode=yes \
             "ubuntu@${REMOTE_HOST}" \
-            "docker compose -f /opt/ai-wisdom-battle/docker-compose.prod.yml logs --tail=50 app 2>&1 || true" \
+            "sudo docker compose -f /opt/ai-wisdom-battle/docker-compose.prod.yml logs --tail=50 app 2>&1 || true" \
             || echo "(Không thể SSH vào server để lấy logs)"
           echo "Run URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
