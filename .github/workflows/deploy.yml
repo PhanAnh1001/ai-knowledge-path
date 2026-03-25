@@ -215,6 +215,13 @@ jobs:
           GHCR_REPO: ${{ github.repository }}
           DEPLOY_SHA: ${{ inputs.ref_sha || github.event.workflow_run.head_sha || github.sha }}
         run: |
+          # Validate DEPLOY_SHA to prevent command injection via user-supplied ref_sha input.
+          # Only allow 40-char lowercase hex (git SHA format).
+          if ! [[ "${DEPLOY_SHA}" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::Invalid DEPLOY_SHA '${DEPLOY_SHA}'. Must be a 40-character lowercase hex git SHA."
+            exit 1
+          fi
+
           GHCR_REPO_LC=$(echo "$GHCR_REPO" | tr '[:upper:]' '[:lower:]')
 
           ssh -i ~/.ssh/deploy_key \
@@ -231,12 +238,16 @@ jobs:
           git remote set-url origin https://x-access-token:${GHCR_TOKEN}@github.com/${GHCR_REPO}.git
           git fetch origin master
           git reset --hard origin/master
+          # Remove token from .git/config so it doesn't persist on disk after this run
+          git remote set-url origin https://github.com/${GHCR_REPO}.git
 
           echo "=== [3/5] Pull new images ==="
           sudo GHCR_REPO="${GHCR_REPO_LC}" IMAGE_TAG="${DEPLOY_SHA}" \
             docker compose -f docker-compose.prod.yml pull app
           sudo GHCR_REPO="${GHCR_REPO_LC}" \
             docker compose -f docker-compose.prod.yml pull caddy
+          # Logout after pulling — credentials no longer needed and shouldn't stay in daemon config
+          sudo docker logout ghcr.io
 
           echo "=== [4/5] Restart app ==="
           sudo GHCR_REPO="${GHCR_REPO_LC}" IMAGE_TAG="${DEPLOY_SHA}" \
