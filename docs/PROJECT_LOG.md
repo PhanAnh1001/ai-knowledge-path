@@ -1,6 +1,6 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-25 14:25:17
+> Cập nhật lần cuối: 2026-03-25 14:37:10
 > Session: `d90ad423-754`
 > Branch: `claude/change_code`
 
@@ -11,6 +11,8 @@
 ### Các commit gần nhất
 
 ```
+b69d577 feat: make API domain configurable via API_DOMAIN env var
+bb5e106 docs: update PROJECT_LOG [2026-03-25]
 6523732 docs: expand section 3 Cloudflare with step-by-step instructions
 ae00c5b Merge pull request #32 from PhanAnh1001/claude/fix-lightsail-bundle-ipv6
 cf4f07d Improve claude hooks: self-check reminder + better PR/commit content
@@ -24,8 +26,6 @@ c4c2017 Update PROJECT_LOG: 2026-03-25 d90ad423
 6cb3e60 Fix frontend 404: deploy to production branch + add SPA _redirects
 b7ed96c Merge pull request #31 from PhanAnh1001/claude/fix-lightsail-bundle-ipv6
 13dc68c Fix deploy security: validate ref_sha, clear git token, docker logout
-798b41e Fix deploy: validate secrets before SSH + sync postgres password on rotation
-81d7685 Merge pull request #30 from PhanAnh1001/claude/fix-lightsail-bundle-ipv6
 ```
 
 ---
