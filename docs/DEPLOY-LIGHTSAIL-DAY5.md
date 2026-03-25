@@ -13,7 +13,7 @@
 1. [Prerequisites](#0-prerequisites)
 2. [Provision AWS Lightsail Instance (Terraform)](#1-provision-aws-lightsail-instance-terraform)
 3. [Bootstrap instance (lightsail-init.sh)](#2-bootstrap-instance)
-4. [Cấu hình Cloudflare](#3-cấu-hình-cloudflare)
+4. [Cấu hình Cloudflare](#3-cấu-hình-cloudflare) — DNS, SSL, API Token, Pages
 5. [Cấu hình GitHub Secrets](#4-cấu-hình-github-secrets)
 6. [Build & Push Docker image lần đầu](#5-build--push-docker-image-lần-đầu)
 7. [Migrate data Neo4j → PostgreSQL](#6-migrate-data-neo4j--postgresql)
@@ -235,62 +235,154 @@ ls -la /opt/ai-wisdom-battle/.env  # phải là -rw------- (600)
 
 ## 3. Cấu hình Cloudflare
 
-### 3.1 Thêm A record
+> **Tổng quan:** Cloudflare đảm nhận 3 vai trò trong hệ thống:
+> 1. **DNS + proxy** cho API backend (`api.aiwisdombattle.com` → Lightsail)
+> 2. **TLS certificate** tự động cho Caddy qua DNS-01 challenge
+> 3. **Hosting frontend** React app qua Cloudflare Pages (miễn phí)
 
-1. Đăng nhập [dash.cloudflare.com](https://dash.cloudflare.com)
-2. Chọn domain `aiwisdombattle.com`
-3. **DNS** → **Add record**:
+### 3.1 Đăng nhập và chọn domain
 
-| Field | Value |
-|---|---|
-| Type | `A` |
-| Name | `api` |
-| IPv4 address | `54.251.xxx.xxx` (public IP từ bước 1.4) |
-| Proxy status | **Proxied** (cloud cam) |
-| TTL | Auto |
+1. Truy cập [dash.cloudflare.com](https://dash.cloudflare.com) và đăng nhập
+2. Trên trang chủ dashboard, click vào domain `aiwisdombattle.com` trong danh sách
 
-> **Tại sao Proxied?** Cloudflare làm CDN/DDoS protection. SSL terminate tại Cloudflare edge, forward về Lightsail qua HTTPS (Full strict mode).
+> **Domain chưa có trong Cloudflare?** Vào **Add a Site** → nhập domain → chọn Free plan → Cloudflare sẽ scan DNS hiện tại → cập nhật nameservers tại nhà đăng ký domain (GoDaddy/Namecheap/...) theo hướng dẫn.
 
-### 3.2 Cấu hình SSL
+### 3.2 Thêm DNS record cho backend API
 
-**SSL/TLS** → **Overview** → chọn **Full (strict)**
+Từ trang domain, vào **DNS** → **Records** → nhấn **Add record**:
 
-> - `Full (strict)`: Cloudflare ↔ Origin phải có cert hợp lệ
-> - Caddy tự lấy cert qua Cloudflare DNS-01 challenge → thỏa mãn yêu cầu này
+| Field | Giá trị | Lưu ý |
+|---|---|---|
+| Type | `A` | |
+| Name | `api` | → tạo subdomain `api.aiwisdombattle.com` |
+| IPv4 address | `54.251.xxx.xxx` | Public IP từ Terraform output (bước 1.4) |
+| Proxy status | **Proxied** | Click icon cloud để bật — phải là **cam** (không phải xám) |
+| TTL | Auto | Chỉ có hiệu lực khi tắt proxy |
 
-### 3.3 Tạo Cloudflare API Token
+Nhấn **Save**.
 
-Token cần **hai quyền** cho hai mục đích:
-- **Caddy DNS-01 TLS challenge** → `Zone → DNS → Edit` trên zone `aiwisdombattle.com`
-- **Deploy frontend lên Cloudflare Pages** → `Account → Cloudflare Pages → Edit`
+> **Tại sao bật Proxy (cloud cam)?**
+> - Ẩn IP thật của Lightsail → giảm rủi ro DDoS trực tiếp
+> - SSL terminate tại Cloudflare edge; Cloudflare forward về Lightsail qua HTTPS
+> - **Không bật proxy** (DNS only / cloud xám): IP Lightsail bị lộ, TLS do Caddy tự xử lý với Let's Encrypt trực tiếp — vẫn hoạt động nhưng mất lớp bảo vệ của Cloudflare
 
-Xem hướng dẫn chi tiết từng bước tại: **[docs/CLOUDFLARE-TOKEN-SETUP.md](CLOUDFLARE-TOKEN-SETUP.md)**
+**Xác nhận:** Sau khi save, bảng DNS hiển thị dòng:
+```
+api   A   54.251.xxx.xxx   Proxied   Auto
+```
 
-Sau khi tạo token: lưu vào GitHub Secret `CLOUDFLARE_API_TOKEN` (bước 4) — deploy workflow sẽ tự inject vào `.env` trên server.
+### 3.3 Cấu hình SSL/TLS
 
-### 3.4 Cấu hình trang Cloudflare Pages (frontend)
+Từ trang domain, vào **SSL/TLS** → **Overview** → chọn **Full (strict)**
 
-1. **Workers & Pages** → **Create application** → **Pages**
-2. **Connect to Git** → chọn repo `ai-wisdom-battle`
-3. Cấu hình build:
+| Chế độ | Ý nghĩa | Phù hợp không? |
+|---|---|---|
+| Off | Không có HTTPS | Không dùng |
+| Flexible | HTTPS Cloudflare ↔ User, HTTP Cloudflare ↔ Origin | Không an toàn |
+| Full | HTTPS cả 2 chiều, nhưng chấp nhận self-signed cert | Tạm ổn |
+| **Full (strict)** | HTTPS cả 2 chiều, cert phải hợp lệ (CA-issued) | **Dùng cái này** |
 
-| Field | Value |
-|---|---|
-| Project name | `ai-wisdom-battle` |
-| Production branch | `master` |
-| Build command | `npm run build` |
-| Build output directory | `dist` |
-| Root directory | `frontend` |
+> **Tại sao Full (strict)?** Caddy tự lấy cert từ Let's Encrypt qua DNS-01 challenge — cert hợp lệ, không phải self-signed → Full (strict) hoạt động. Đồng thời đảm bảo không có MITM giữa Cloudflare và Lightsail.
 
-4. **Environment variables** (Production):
+**Lưu ý:** Ở tab **Edge Certificates**, kiểm tra **Always Use HTTPS** đã bật (thường bật mặc định).
 
-| Variable | Value |
-|---|---|
-| `VITE_API_BASE_URL` | `https://api.aiwisdombattle.com/api/v1` |
+### 3.4 Tìm Cloudflare Account ID
 
-5. **Save and Deploy**
+Account ID dùng cho GitHub Secret `CLOUDFLARE_ACCOUNT_ID` (bước 4) và trong Cloudflare Pages.
 
-Sau khi deploy xong, Cloudflare Pages sẽ cấp subdomain dạng `ai-wisdom-battle.pages.dev`. Bạn có thể thêm custom domain `aiwisdombattle.com` sau.
+**Cách lấy:**
+1. Trên [dash.cloudflare.com](https://dash.cloudflare.com), click vào domain bất kỳ
+2. Nhìn vào **sidebar phải** → mục **Account ID** (cuộn xuống nếu không thấy ngay)
+3. Copy chuỗi 32 ký tự hex, ví dụ: `a1b2c3d4e5f6789012345678901234ab`
+
+Hoặc vào **Workers & Pages** → trang Overview → sidebar phải cũng hiển thị **Account ID**.
+
+### 3.5 Tạo Cloudflare API Token
+
+Token cần **hai quyền** cho hai mục đích khác nhau trong cùng một token:
+
+| Mục đích | Quyền cần | Sử dụng bởi |
+|---|---|---|
+| Caddy lấy TLS cert tự động qua DNS-01 | `Zone → DNS → Edit` | Container `awb-caddy` trên Lightsail |
+| Deploy React app lên Cloudflare Pages | `Account → Cloudflare Pages → Edit` | GitHub Actions workflow |
+
+**Các bước tạo token:**
+
+1. Click **avatar** góc trên phải → **My Profile** → tab **API Tokens**
+2. Nhấn **Create Token** → chọn **Create Custom Token** (không dùng template)
+3. Đặt tên: `ai-wisdom-battle-prod`
+4. Phần **Permissions** — nhấn **Add more** để thêm đủ **2 dòng**:
+
+   | Resource | Permission |
+   |---|---|
+   | `Zone` → `DNS` | `Edit` |
+   | `Account` → `Cloudflare Pages` | `Edit` |
+
+5. Phần **Zone Resources** (xuất hiện sau khi thêm Zone permission):
+   - Chọn **Specific zone** → chọn `aiwisdombattle.com`
+   - (Không chọn "All zones" — least privilege)
+
+6. Nhấn **Continue to summary** → kiểm tra danh sách quyền:
+   ```
+   Zone - DNS - Edit - aiwisdombattle.com
+   Account - Cloudflare Pages - Edit - <tên account>
+   ```
+7. Nhấn **Create Token** → **copy token ngay** — chỉ hiển thị một lần
+
+Token có dạng: `yJFxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
+
+> **Token bị lộ?** Vào **My Profile → API Tokens** → nhấn **Roll** (đổi giá trị giữ nguyên quyền) hoặc **Delete** → tạo mới.
+
+Xem thêm chi tiết xử lý lỗi tại: [docs/CLOUDFLARE-TOKEN-SETUP.md](CLOUDFLARE-TOKEN-SETUP.md)
+
+### 3.6 Cấu hình Cloudflare Pages (frontend)
+
+#### 3.6.1 Tạo project Pages
+
+1. Từ sidebar trái, vào **Workers & Pages** → tab **Pages**
+2. Nhấn **Create application** → chọn tab **Pages** → **Connect to Git**
+3. Chọn provider **GitHub** → authorize Cloudflare nếu lần đầu
+4. Tìm và chọn repo `ai-wisdom-battle` → nhấn **Begin setup**
+
+#### 3.6.2 Cấu hình build
+
+| Field | Value | Lưu ý |
+|---|---|---|
+| Project name | `ai-wisdom-battle` | Tạo subdomain `ai-wisdom-battle.pages.dev` |
+| Production branch | `master` | Deploy lên production khi có push vào master |
+| Framework preset | `None` (hoặc tự detect Vite) | |
+| Build command | `npm run build` | |
+| Build output directory | `dist` | Relative to root directory |
+| Root directory | `frontend` | Quan trọng — không để trống |
+
+#### 3.6.3 Thêm environment variable
+
+Trong phần **Environment variables** → click **Add variable**:
+
+| Variable name | Value | Environment |
+|---|---|---|
+| `VITE_API_BASE_URL` | `https://api.aiwisdombattle.com/api/v1` | Production |
+
+> **Lưu ý:** Biến `VITE_*` được Vite nhúng vào bundle lúc build — không phải runtime. Phải set ở đây (build time), không phải trên Lightsail.
+
+#### 3.6.4 Deploy lần đầu
+
+Nhấn **Save and Deploy** — Cloudflare sẽ build và deploy lần đầu (~2 phút).
+
+Sau khi deploy xong:
+- URL production: `https://ai-wisdom-battle.pages.dev`
+- Dashboard → **Workers & Pages** → `ai-wisdom-battle` → tab **Deployments** để xem log
+
+> **SPA routing hoạt động nhờ `_redirects`:** File `frontend/public/_redirects` (đã có trong repo) chứa `/* /index.html 200` — đảm bảo React Router hoạt động đúng khi truy cập trực tiếp URL như `/login`, `/battle`.
+
+#### 3.6.5 Kết nối deploy workflow với Pages
+
+Từ bước 4.1 trở đi, GitHub Actions dùng `cloudflare/pages-action@v1` để deploy. Cần đảm bảo:
+- Secret `CLOUDFLARE_API_TOKEN` có quyền `Account → Cloudflare Pages → Edit` (bước 3.5)
+- Secret `CLOUDFLARE_ACCOUNT_ID` khớp với Account ID (bước 3.4)
+- `projectName: ai-wisdom-battle` trong workflow khớp với tên project vừa tạo
+
+> **Lần deploy từ CI (sau merge vào master):** Workflow chỉ định `branch: master` khi deploy → Cloudflare Pages nhận dạng đây là production deployment, không phải preview URL.
 
 ---
 
@@ -766,4 +858,4 @@ echo | openssl s_client -connect api.aiwisdombattle.com:443 2>&1 | grep -E "subj
 
 ---
 
-*Cập nhật lần cuối: 2026-03-24 — fix SSH key type RSA, cảnh báo không dùng lại key Oracle Cloud*
+*Cập nhật lần cuối: 2026-03-25 — mở rộng section 3 Cloudflare với hướng dẫn chi tiết DNS, SSL, API Token, Pages*
