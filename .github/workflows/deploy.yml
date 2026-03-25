@@ -122,6 +122,10 @@ jobs:
             echo "::error::JWT_SECRET secret is not set. Run: gh secret set JWT_SECRET --body \"\$(openssl rand -base64 32)\""
             exit 1
           fi
+          if [ -z "${API_DOMAIN}" ]; then
+            echo "::error::API_DOMAIN variable is not set. Run: gh variable set API_DOMAIN --body \"<IP>.sslip.io\""
+            exit 1
+          fi
 
           GHCR_REPO_LC=$(echo "$GHCR_REPO" | tr '[:upper:]' '[:lower:]')
 
@@ -155,22 +159,23 @@ jobs:
             echo "Repo already exists."
           fi
           # --- .env from secrets (always overwrite to pick up secret rotations) ---
+          # Use printf to avoid shell reinterpretation of special chars in values.
           {
-            echo "POSTGRES_DB=ai_wisdom_battle"
-            echo "POSTGRES_USER=postgres"
-            echo "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}"
-            echo "PORT=8080"
-            echo "DATABASE_URL=postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/ai_wisdom_battle"
-            echo "JWT_SECRET=${JWT_SECRET}"
-            echo "JWT_EXPIRATION_MS=86400000"
-            echo "JWT_REFRESH_EXPIRATION_MS=2592000000"
-            echo "CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}"
-            echo "RATE_LIMIT_MAX=20"
-            echo "RATE_LIMIT_WINDOW=60"
-            echo "CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}"
-            echo "API_DOMAIN=${API_DOMAIN}"
-            echo "GHCR_REPO=${GHCR_REPO_LC}"
-            echo "IMAGE_TAG=latest"
+            printf 'POSTGRES_DB=ai_wisdom_battle\n'
+            printf 'POSTGRES_USER=postgres\n'
+            printf 'POSTGRES_PASSWORD=%s\n' "${POSTGRES_PASSWORD}"
+            printf 'PORT=8080\n'
+            printf 'DATABASE_URL=postgres://postgres:%s@postgres:5432/ai_wisdom_battle\n' "${POSTGRES_PASSWORD}"
+            printf 'JWT_SECRET=%s\n' "${JWT_SECRET}"
+            printf 'JWT_EXPIRATION_MS=86400000\n'
+            printf 'JWT_REFRESH_EXPIRATION_MS=2592000000\n'
+            printf 'CORS_ALLOWED_ORIGINS=%s\n' "${CORS_ALLOWED_ORIGINS}"
+            printf 'RATE_LIMIT_MAX=20\n'
+            printf 'RATE_LIMIT_WINDOW=60\n'
+            printf 'CLOUDFLARE_API_TOKEN=%s\n' "${CLOUDFLARE_API_TOKEN}"
+            printf 'API_DOMAIN=%s\n' "${API_DOMAIN}"
+            printf 'GHCR_REPO=%s\n' "${GHCR_REPO_LC}"
+            printf 'IMAGE_TAG=latest\n'
           } > /opt/ai-wisdom-battle/.env
           chmod 600 /opt/ai-wisdom-battle/.env
           echo ".env generated from secrets (\$(wc -l < /opt/ai-wisdom-battle/.env) lines)"
