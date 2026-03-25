@@ -1,6 +1,6 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-25 14:40:38
+> Cập nhật lần cuối: 2026-03-25 14:46:43
 > Session: `d90ad423-754`
 > Branch: `claude/change_code`
 
@@ -11,6 +11,8 @@
 ### Các commit gần nhất
 
 ```
+6abd8ec fix(security): validate API_DOMAIN, fix Caddyfile comment, safe .env write
+42a63c5 docs: update PROJECT_LOG [2026-03-25]
 0766095 fix(caddy): use HTTP-01 auto-HTTPS instead of Cloudflare DNS-01
 e629c64 docs: update PROJECT_LOG [2026-03-25]
 b69d577 feat: make API domain configurable via API_DOMAIN env var
@@ -24,8 +26,6 @@ cad6395 docs: update PROJECT_LOG [2026-03-25]
 f125520 docs: update PROJECT_LOG [2026-03-25]
 423e153 Update PROJECT_LOG: 2026-03-25 unknown
 c4c2017 Update PROJECT_LOG: 2026-03-25 d90ad423
-52f4c64 Update PROJECT_LOG: 2026-03-25 d90ad423
-6cb3e60 Fix frontend 404: deploy to production branch + add SPA _redirects
 ```
 
 ---
