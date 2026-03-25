@@ -1,6 +1,6 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-25 15:59:28
+> Cập nhật lần cuối: 2026-03-25 16:02:18
 > Session: `e488410c-22b`
 > Branch: `claude/change_code`
 
@@ -11,6 +11,7 @@
 ### Các commit gần nhất
 
 ```
+483258c docs: update PROJECT_LOG [2026-03-25]
 45b458b docs: update PROJECT_LOG [2026-03-25]
 9482083 docs: update PROJECT_LOG [2026-03-25]
 cb7118f docs: update PROJECT_LOG [2026-03-25]
@@ -25,7 +26,6 @@ c5c59c0 docs: update PROJECT_LOG [2026-03-25]
 847929c fix(frontend): add vite/client types so import.meta.env compiles
 2e2b0ba docs: update PROJECT_LOG [2026-03-25]
 bf94d46 fix(frontend): read API base URL from VITE_API_BASE_URL env var
-eb25fc1 docs: update PROJECT_LOG [2026-03-25]
 ```
 
 ---
