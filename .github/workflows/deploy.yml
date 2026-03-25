@@ -114,6 +114,7 @@ jobs:
             -o ConnectTimeout=15 \
             "ubuntu@${REMOTE_HOST}" \
             "set -e
+            export PATH=\$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
             echo '--- SSH: OK'
             echo '--- Docker version:' && docker --version
             echo '--- Docker Compose version:' && docker compose version
@@ -138,6 +139,7 @@ jobs:
             -o BatchMode=yes \
             "ubuntu@${REMOTE_HOST}" << EOF
           set -euo pipefail
+          export PATH=$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
           cd /opt/ai-wisdom-battle
 
           echo "=== [1/5] Login to GHCR ==="
@@ -173,7 +175,7 @@ jobs:
             -o StrictHostKeyChecking=no \
             -o BatchMode=yes \
             "ubuntu@${REMOTE_HOST}" \
-            "docker compose -f /opt/ai-wisdom-battle/docker-compose.prod.yml logs --tail=50 app 2>&1 || true" \
+            "export PATH=\$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin; docker compose -f /opt/ai-wisdom-battle/docker-compose.prod.yml logs --tail=50 app 2>&1 || true" \
             || echo "(Không thể SSH vào server để lấy logs)"
           echo "Run URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
