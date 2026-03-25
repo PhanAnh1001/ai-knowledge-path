@@ -162,27 +162,24 @@ Sau khi đã xác nhận Plan ở bước 1.4 đúng như kỳ vọng:
 
 Trong log của step **"Terraform Output"**, bạn sẽ thấy:
 ```
-ipv6_address = "2406:da18:886:3400:abcd:1234:5678:ef90"
+public_ip_address = "54.251.xxx.xxx"
 instance_name = "awb-prod"
-ssh_command = "ssh -i ~/.ssh/awb-lightsail ubuntu@2406:da18:886:3400:abcd:1234:5678:ef90"
+ssh_command = "ssh -i ~/.ssh/awb-lightsail ubuntu@54.251.xxx.xxx"
 ```
 
-> **Lưu lại IPv6 address** — dùng ở bước 3 (Cloudflare AAAA record) và bước 4 (GitHub Secret `LIGHTSAIL_HOST`).
+> **Lưu lại public IP** — dùng ở bước 3 (Cloudflare A record) và bước 4 (GitHub Secret `LIGHTSAIL_HOST`).
 
 **Terraform đã tự động:**
 - Upload SSH public key → `awb-deploy-key`
-- Tạo instance Ubuntu 22.04 · `small_ipv6_3_0` · 2vCPU · 2GB · $10/tháng · IPv6-only
+- Tạo instance Ubuntu 24.04 · `small_3_0` · 2vCPU · 2GB · $10/tháng · IPv4
 - Chạy `lightsail-init.sh` khi boot (cài Docker, clone repo, cấu hình firewall)
 - Mở firewall ports: TCP 22/80/443 và UDP 443
 
 ### 1.6 SSH vào instance lần đầu
 
 ```bash
-# Thay <IPv6> bằng địa chỉ lấy từ Terraform output
-ssh -i ~/.ssh/awb-lightsail ubuntu@<IPv6>
-
-# Nếu máy local không có IPv6, dùng Lightsail browser SSH:
-#   AWS Console → Lightsail → awb-prod → Connect using SSH
+# Thay <IP> bằng địa chỉ lấy từ Terraform output
+ssh -i ~/.ssh/awb-lightsail ubuntu@<IP>
 ```
 
 ---
@@ -193,7 +190,7 @@ ssh -i ~/.ssh/awb-lightsail ubuntu@<IPv6>
 
 ```bash
 # SSH vào instance
-ssh -i ~/.ssh/awb-lightsail ubuntu@<IPv6>
+ssh -i ~/.ssh/awb-lightsail ubuntu@<IP>
 
 # Kiểm tra cloud-init đã hoàn thành
 sudo cloud-init status
@@ -259,7 +256,7 @@ IMAGE_TAG=latest
 
 ## 3. Cấu hình Cloudflare
 
-### 3.1 Thêm AAAA record
+### 3.1 Thêm A record
 
 1. Đăng nhập [dash.cloudflare.com](https://dash.cloudflare.com)
 2. Chọn domain `aiwisdombattle.com`
@@ -267,13 +264,13 @@ IMAGE_TAG=latest
 
 | Field | Value |
 |---|---|
-| Type | `AAAA` |
+| Type | `A` |
 | Name | `api` |
-| IPv6 address | `2406:da18:886:3400:abcd:1234:5678:ef90` (IPv6 từ bước 1.4) |
+| IPv4 address | `54.251.xxx.xxx` (public IP từ bước 1.4) |
 | Proxy status | **Proxied** (cloud cam) |
 | TTL | Auto |
 
-> **Tại sao Proxied?** Cloudflare làm bridge IPv4↔IPv6. User dùng IPv4 vẫn kết nối được vì Cloudflare nhận IPv4 rồi forward sang IPv6 Lightsail.
+> **Tại sao Proxied?** Cloudflare làm CDN/DDoS protection. SSL terminate tại Cloudflare edge, forward về Lightsail qua HTTPS (Full strict mode).
 
 ### 3.2 Cấu hình SSL
 
@@ -337,12 +334,12 @@ Truy cập: **GitHub repo** → **Settings** → **Secrets and variables** → *
 | `AWS_ACCESS_KEY_ID` | Access key ID | IAM → Security credentials | Terraform Lightsail |
 | `AWS_SECRET_ACCESS_KEY` | Secret access key | Cùng lúc tạo Access key | Terraform Lightsail |
 | `SSH_PUBLIC_KEY` | Nội dung `~/.ssh/awb-lightsail.pub` | `cat ~/.ssh/awb-lightsail.pub` | Terraform (upload key) |
-| `LIGHTSAIL_HOST` | IPv6 từ Terraform output | Bước 1.4 — workflow log | Deploy workflow |
+| `LIGHTSAIL_HOST` | Public IPv4 từ Terraform output | Bước 1.4 — workflow log | Deploy workflow |
 | `LIGHTSAIL_SSH_KEY` | Nội dung `~/.ssh/awb-lightsail` | `cat ~/.ssh/awb-lightsail` | Deploy workflow (SSH) |
 | `CLOUDFLARE_API_TOKEN` | Token từ bước 3.3 | Cloudflare dashboard | Deploy frontend + Caddy |
 | `CLOUDFLARE_ACCOUNT_ID` | Account ID | Cloudflare → sidebar phải | Deploy frontend |
 
-> **Thứ tự quan trọng:** Tạo `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `SSH_PUBLIC_KEY` **trước** khi chạy Terraform (bước 1.3). Tạo `LIGHTSAIL_HOST` **sau** khi có IPv6 từ Terraform output (bước 1.4).
+> **Thứ tự quan trọng:** Tạo `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `SSH_PUBLIC_KEY` **trước** khi chạy Terraform (bước 1.3). Tạo `LIGHTSAIL_HOST` **sau** khi có public IP từ Terraform output (bước 1.4).
 
 ### 4.2 Variables cần tạo
 
@@ -363,8 +360,8 @@ gh secret set AWS_ACCESS_KEY_ID      --body "<access-key-id>"
 gh secret set AWS_SECRET_ACCESS_KEY  --body "<secret-access-key>"
 gh secret set SSH_PUBLIC_KEY         < ~/.ssh/awb-lightsail.pub
 
-# Secrets cho Deploy workflow (tạo sau bước 1.4 khi có IPv6)
-gh secret set LIGHTSAIL_HOST         --body "<IPv6-từ-terraform-output>"
+# Secrets cho Deploy workflow (tạo sau bước 1.4 khi có public IP)
+gh secret set LIGHTSAIL_HOST         --body "<IP-từ-terraform-output>"
 gh secret set LIGHTSAIL_SSH_KEY      < ~/.ssh/awb-lightsail
 gh secret set CLOUDFLARE_API_TOKEN   --body "<token>"
 gh secret set CLOUDFLARE_ACCOUNT_ID  --body "<account_id>"
@@ -421,7 +418,7 @@ cat > .env.migrate << 'EOF'
 NEO4J_URI=bolt://<oracle-vm-ip>:7687
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=<neo4j-password>
-DATABASE_URL=postgres://postgres:<password>@<lightsail-ipv6>:5432/ai_wisdom_battle
+DATABASE_URL=postgres://postgres:<password>@<lightsail-ip>:5432/ai_wisdom_battle
 EOF
 ```
 
@@ -431,7 +428,7 @@ EOF
 # Mở SSH tunnel: port 5433 local → port 5432 trên Lightsail (qua Docker)
 ssh -i ~/.ssh/awb-lightsail \
   -L 5433:localhost:5432 \
-  -N ubuntu@<IPv6> &
+  -N ubuntu@<IP> &
 
 # Sau đó dùng DATABASE_URL qua tunnel
 DATABASE_URL=postgres://postgres:<password>@localhost:5433/ai_wisdom_battle
@@ -512,7 +509,7 @@ LIMIT 10;
 ### 7.1 SSH vào instance
 
 ```bash
-ssh -i ~/.ssh/awb-lightsail ubuntu@<IPv6>
+ssh -i ~/.ssh/awb-lightsail ubuntu@<IP>
 cd /opt/ai-wisdom-battle
 ```
 
@@ -734,13 +731,13 @@ aws lightsail delete-instance \
 ### Infrastructure
 
 - [ ] Lightsail instance `awb-prod` đang `running`
-- [ ] SSH kết nối được qua IPv6
+- [ ] SSH kết nối được qua IPv4
 - [ ] Docker, docker-compose hoạt động trên instance
 - [ ] UFW firewall: 22, 80, 443 TCP/UDP open
 
 ### Cloudflare
 
-- [ ] AAAA record `api.aiwisdombattle.com` → IPv6 Lightsail
+- [ ] A record `api.aiwisdombattle.com` → public IPv4 Lightsail
 - [ ] Proxy mode ON (orange cloud)
 - [ ] SSL/TLS mode: Full (strict)
 - [ ] Cloudflare Pages deploy thành công

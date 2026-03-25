@@ -1,14 +1,38 @@
 name: Deploy
 
 # Tự động deploy khi CI pass trên nhánh master
+# Hoặc trigger thủ công để test/debug
 on:
   workflow_run:
     workflows: ["CI"]
     types: [completed]
     branches: [master]
 
+  # Trigger thủ công để test deploy trên feature branch
+  workflow_dispatch:
+    inputs:
+      deploy_target:
+        description: "Deploy target"
+        required: true
+        default: both
+        type: choice
+        options:
+          - backend
+          - frontend
+          - both
+      dry_run:
+        description: "Dry-run (validate only, không deploy thật)"
+        required: false
+        default: true
+        type: boolean
+      ref_sha:
+        description: "Git SHA để deploy (để trống = HEAD của branch hiện tại)"
+        required: false
+        default: ""
+        type: string
+
 # ── Secrets cần thiết ──────────────────────────────────────────────────────────
-#   LIGHTSAIL_HOST        — IPv6 address của AWS Lightsail instance
+#   LIGHTSAIL_HOST        — Public IPv4 address của AWS Lightsail instance
 #   LIGHTSAIL_SSH_KEY     — Nội dung private key SSH (ed25519)
 #   CLOUDFLARE_API_TOKEN  — CF token với quyền "Edit Cloudflare Pages"
 #   CLOUDFLARE_ACCOUNT_ID — Cloudflare Account ID
@@ -18,11 +42,51 @@ on:
 
 jobs:
 
+  # ── Kiểm tra file thay đổi (chỉ chạy khi workflow_run) ───────────────────────
+  # workflow_dispatch luôn bỏ qua job này, chạy thẳng vào deploy jobs
+  check-changes:
+    name: Check Deploy-Relevant Changes
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 2
+
+      - name: Detect changed files
+        id: filter
+        run: |
+          CHANGED=$(git diff --name-only HEAD~1 HEAD)
+          echo "Changed files:"
+          echo "$CHANGED"
+
+          BE=$(echo "$CHANGED" | grep -qE \
+            '^(backend-go/|docker-compose\.prod\.yml|Caddyfile|\.github/workflows/(deploy|ci)\.yml)' \
+            && echo true || echo false)
+          FE=$(echo "$CHANGED" | grep -qE \
+            '^(frontend/|\.github/workflows/deploy\.yml)' \
+            && echo true || echo false)
+
+          echo "backend=$BE" >> $GITHUB_OUTPUT
+          echo "frontend=$FE" >> $GITHUB_OUTPUT
+          echo "backend-changed=$BE, frontend-changed=$FE"
+
   # ── Deploy Go backend lên AWS Lightsail ──────────────────────────────────────
   deploy-backend:
     name: Deploy to Lightsail (SSH)
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.conclusion == 'success'
+    needs: [check-changes]
+    # Chạy khi: (a) workflow_dispatch target backend/both, hoặc (b) workflow_run + backend files changed
+    if: >-
+      always() && (
+        (github.event_name == 'workflow_dispatch' && inputs.deploy_target != 'frontend') ||
+        (needs.check-changes.result == 'success' && needs.check-changes.outputs.backend == 'true')
+      )
 
     permissions:
       packages: read
@@ -36,20 +100,43 @@ jobs:
           echo "$SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
+      # Dry-run: chỉ validate SSH connectivity + kiểm tra môi trường server
+      - name: Dry-run — Validate SSH + server environment
+        if: inputs.dry_run == true
+        env:
+          REMOTE_HOST: ${{ secrets.LIGHTSAIL_HOST }}
+        run: |
+          echo "=== Dry-run: Validate SSH connectivity ==="
+          # SSH vào instance bằng public IPv4
+          ssh -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=no \
+            -o BatchMode=yes \
+            -o ConnectTimeout=15 \
+            "ubuntu@${REMOTE_HOST}" \
+            "set -e
+            echo '--- SSH: OK'
+            echo '--- Docker version:' && docker --version
+            echo '--- Docker Compose version:' && docker compose version
+            echo '--- Disk usage:' && df -h /
+            echo '--- /opt/ai-wisdom-battle:' && ls -la /opt/ai-wisdom-battle/
+            echo '--- Running containers:' && docker ps --format 'table {{.Names}}\t{{.Status}}'"
+
+      # Real deploy: chạy khi dry_run == false HOẶC khi trigger bằng workflow_run (production)
       - name: Deploy via SSH
+        if: inputs.dry_run != true
         env:
           REMOTE_HOST: ${{ secrets.LIGHTSAIL_HOST }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GHCR_ACTOR: ${{ github.actor }}
           GHCR_REPO: ${{ github.repository }}
-          DEPLOY_SHA: ${{ github.event.workflow_run.head_sha }}
+          DEPLOY_SHA: ${{ inputs.ref_sha || github.event.workflow_run.head_sha || github.sha }}
         run: |
           GHCR_REPO_LC=$(echo "$GHCR_REPO" | tr '[:upper:]' '[:lower:]')
 
           ssh -i ~/.ssh/deploy_key \
             -o StrictHostKeyChecking=no \
             -o BatchMode=yes \
-            "ubuntu@[${REMOTE_HOST}]" << EOF
+            "ubuntu@${REMOTE_HOST}" << EOF
           set -euo pipefail
           cd /opt/ai-wisdom-battle
 
@@ -75,16 +162,37 @@ jobs:
           echo "Backend deploy OK"
           EOF
 
+      # Tự động lấy log lỗi từ server khi deploy fail
+      - name: Fetch remote logs on failure
+        if: failure() && inputs.dry_run != true
+        env:
+          REMOTE_HOST: ${{ secrets.LIGHTSAIL_HOST }}
+        run: |
+          echo "=== Remote docker logs (last 50 lines) ==="
+          ssh -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=no \
+            -o BatchMode=yes \
+            "ubuntu@${REMOTE_HOST}" \
+            "docker compose -f /opt/ai-wisdom-battle/docker-compose.prod.yml logs --tail=50 app 2>&1 || true" \
+            || echo "(Không thể SSH vào server để lấy logs)"
+          echo "Run URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
   # ── Deploy React frontend lên Cloudflare Pages ───────────────────────────────
   deploy-frontend:
     name: Deploy Frontend (Cloudflare Pages)
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.conclusion == 'success'
+    needs: [check-changes]
+    # Chạy khi: (a) workflow_dispatch target frontend/both, hoặc (b) workflow_run + frontend files changed
+    if: >-
+      always() && (
+        (github.event_name == 'workflow_dispatch' && inputs.deploy_target != 'backend') ||
+        (needs.check-changes.result == 'success' && needs.check-changes.outputs.frontend == 'true')
+      )
 
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ inputs.ref_sha || github.event.workflow_run.head_sha || github.sha }}
 
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
@@ -103,7 +211,9 @@ jobs:
         env:
           VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
 
+      # Real deploy lên Cloudflare Pages
       - name: Deploy to Cloudflare Pages
+        if: inputs.dry_run != true
         uses: cloudflare/pages-action@v1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -112,22 +222,38 @@ jobs:
           directory: frontend/dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
 
+      # Dry-run: build đã xong, bỏ qua deploy
+      - name: Dry-run — Build OK, skipping Cloudflare deploy
+        if: inputs.dry_run == true
+        run: |
+          echo "Dry-run mode — build succeeded, skipping Cloudflare Pages deploy"
+          echo "Dist size: $(du -sh frontend/dist)"
+
+      - name: Report failure context
+        if: failure()
+        run: |
+          echo "Frontend deploy FAILED"
+          echo "SHA: ${{ inputs.ref_sha || github.event.workflow_run.head_sha || github.sha }}"
+          echo "Run URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
   # ── Tóm tắt kết quả ──────────────────────────────────────────────────────────
   deploy-summary:
     name: Deploy Summary
     runs-on: ubuntu-latest
     needs: [deploy-backend, deploy-frontend]
-    if: always() && github.event.workflow_run.conclusion == 'success'
+    if: always()
 
     steps:
       - name: Report status
         run: |
           echo "Backend  : ${{ needs.deploy-backend.result }}"
           echo "Frontend : ${{ needs.deploy-frontend.result }}"
+          echo "Trigger  : ${{ github.event_name }}"
+          echo "Run URL  : ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
           if [[ "${{ needs.deploy-backend.result }}"  == "failure" ||
                 "${{ needs.deploy-frontend.result }}" == "failure" ]]; then
             echo "Mot hoac nhieu deploy that bai"
             exit 1
           fi
-          echo "Tat ca deploy thanh cong"
+          echo "Tat ca deploy thanh cong (hoac skip)"

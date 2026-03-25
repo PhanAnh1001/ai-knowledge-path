@@ -101,7 +101,7 @@ ai-wisdom-battle/
 | Cache | In-memory (sync.Map, TTL 10 phút) |
 | Build | Go modules |
 | Container | Docker + Docker Compose |
-| Infra | AWS Lightsail Singapore (IPv6-only, ~$7/tháng) |
+| Infra | AWS Lightsail Singapore (IPv4, ~$10/tháng) |
 
 ### Legacy Stack
 

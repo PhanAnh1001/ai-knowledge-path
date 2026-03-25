@@ -5,13 +5,13 @@ variable "aws_region" {
 }
 
 variable "bundle_id" {
-  description = "Lightsail bundle ID — IPv6-only instance phải dùng bundle _ipv6_. small_ipv6_3_0 = 2vCPU·2GB·$10/tháng"
+  description = "Lightsail bundle ID. small_3_0 = 2vCPU·2GB·$10/tháng (IPv4)"
   type        = string
-  default     = "small_ipv6_3_0"
+  default     = "small_3_0"
 
   validation {
-    condition     = contains(["nano_ipv6_3_0", "micro_ipv6_3_0", "small_ipv6_3_0", "medium_ipv6_3_0"], var.bundle_id)
-    error_message = "IPv6-only instance phải dùng bundle _ipv6_: nano_ipv6_3_0, micro_ipv6_3_0, small_ipv6_3_0, medium_ipv6_3_0"
+    condition     = contains(["nano_3_0", "micro_3_0", "small_3_0", "medium_3_0"], var.bundle_id)
+    error_message = "bundle_id phải là một trong: nano_3_0, micro_3_0, small_3_0, medium_3_0"
   }
 }
 

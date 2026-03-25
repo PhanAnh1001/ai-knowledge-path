@@ -48,7 +48,7 @@ Cloudflare (DNS + CDN + IPv4 proxy)
     │
     ├──▶ Cloudflare Pages — React SPA (free)
     │
-    └──▶ AWS Lightsail Singapore (IPv6-only, ~$7/tháng)
+    └──▶ AWS Lightsail Singapore (IPv4, ~$10/tháng)
              │
              ▼
          Caddy (reverse proxy, auto TLS via Cloudflare DNS)
@@ -104,7 +104,7 @@ Cloudflare (DNS + CDN + IPv4 proxy)
 | Cache | In-memory (sync.Map, TTL 10 phút) |
 | Build | Go modules |
 | Container | Docker + Docker Compose |
-| Infra | AWS Lightsail Singapore (IPv6-only) |
+| Infra | AWS Lightsail Singapore (IPv4) |
 
 ### Java Backend (Legacy — Maintenance)
 
@@ -350,7 +350,7 @@ pytest tests/     # Chỉ thư mục tests
 
 ## Deploy lên AWS Lightsail
 
-Hạ tầng mới dùng **AWS Lightsail Singapore (IPv6-only)** + Cloudflare proxy.
+Hạ tầng mới dùng **AWS Lightsail Singapore (IPv4)** + Cloudflare proxy.
 
 ### Quy trình
 
