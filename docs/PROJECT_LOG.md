@@ -1,8 +1,8 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-25 13:28:59
+> Cập nhật lần cuối: 2026-03-25 14:25:17
 > Session: `d90ad423-754`
-> Branch: `claude/fix-lightsail-bundle-ipv6`
+> Branch: `claude/change_code`
 
 ---
 
@@ -11,6 +11,10 @@
 ### Các commit gần nhất
 
 ```
+6523732 docs: expand section 3 Cloudflare with step-by-step instructions
+ae00c5b Merge pull request #32 from PhanAnh1001/claude/fix-lightsail-bundle-ipv6
+cf4f07d Improve claude hooks: self-check reminder + better PR/commit content
+05d9df1 docs: update PROJECT_LOG [2026-03-25]
 5e80c89 docs: update PROJECT_LOG [2026-03-25]
 cad6395 docs: update PROJECT_LOG [2026-03-25]
 f125520 docs: update PROJECT_LOG [2026-03-25]
@@ -18,21 +22,10 @@ f125520 docs: update PROJECT_LOG [2026-03-25]
 c4c2017 Update PROJECT_LOG: 2026-03-25 d90ad423
 52f4c64 Update PROJECT_LOG: 2026-03-25 d90ad423
 6cb3e60 Fix frontend 404: deploy to production branch + add SPA _redirects
+b7ed96c Merge pull request #31 from PhanAnh1001/claude/fix-lightsail-bundle-ipv6
 13dc68c Fix deploy security: validate ref_sha, clear git token, docker logout
 798b41e Fix deploy: validate secrets before SSH + sync postgres password on rotation
-82283ff Fix deploy.yml: replace nested heredoc with echo group to fix YAML parse error
-cc11c8f Automate Caddy image build + .env secrets injection via CI/CD
-8bdf9fe Fix deploy: only start postgres and app, skip caddy
-7ca1c0d Fix deploy: start all services (not --no-deps), increase health check wait
-f0d83db Fix docker compose env vars: pass GHCR_REPO/IMAGE_TAG via sudo syntax
-e635835 Fix git fetch in deploy: refresh remote URL with current GITHUB_TOKEN
-```
-
-### Thay đổi chưa commit
-
-```
- M .claude/save-discussion.sh
- M .claude/settings.json
+81d7685 Merge pull request #30 from PhanAnh1001/claude/fix-lightsail-bundle-ipv6
 ```
 
 ---
