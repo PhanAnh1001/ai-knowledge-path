@@ -319,6 +319,9 @@ jobs:
           projectName: ai-wisdom-battle
           directory: frontend/dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          # Without branch, action deploys as preview (hash URL). Specify master so
+          # Cloudflare Pages promotes this to production → ai-wisdom-battle.pages.dev
+          branch: master
 
       # Dry-run: build đã xong, bỏ qua deploy
       - name: Dry-run — Build OK, skipping Cloudflare deploy
