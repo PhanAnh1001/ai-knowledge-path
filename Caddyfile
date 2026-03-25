@@ -9,9 +9,12 @@
 # Reload config: docker exec awb-caddy caddy reload --config /etc/caddy/Caddyfile
 # =============================================================================
 
-api.aiwisdombattle.com {
+{env.API_DOMAIN} {
 
     # ── TLS via Cloudflare DNS-01 challenge ───────────────────────────────────
+    # Requires CLOUDFLARE_API_TOKEN env var and API_DOMAIN to be a Cloudflare-managed zone.
+    # If not using Cloudflare proxy (e.g. testing with sslip.io), remove this tls block
+    # and Caddy will use HTTP-01 auto-HTTPS instead.
     tls {
         dns cloudflare {env.CLOUDFLARE_API_TOKEN}
     }

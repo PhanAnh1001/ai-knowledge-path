@@ -236,14 +236,27 @@ ls -la /opt/ai-wisdom-battle/.env  # phải là -rw------- (600)
 ## 3. Cấu hình Cloudflare
 
 > **Tổng quan:** Cloudflare đảm nhận 3 vai trò trong hệ thống:
-> 1. **DNS + proxy** cho API backend (`api.aiwisdombattle.com` → Lightsail)
+> 1. **DNS + proxy** cho API backend (`api.example.com` → Lightsail)
 > 2. **TLS certificate** tự động cho Caddy qua DNS-01 challenge
 > 3. **Hosting frontend** React app qua Cloudflare Pages (miễn phí)
+>
+> **Lưu ý:** Tài liệu này dùng `example.com` làm placeholder. Thay bằng domain thật của bạn ở mọi nơi.
+
+> **Chưa có domain?**
+>
+> Custom domain là bắt buộc để backend có HTTPS đúng nghĩa. Không có HTTPS, frontend (`https://*.pages.dev`) sẽ bị lỗi **Mixed Content** khi gọi API qua HTTP.
+>
+> **Các lựa chọn:**
+> - **Mua domain** (~$10/năm tại Cloudflare Registrar, Namecheap) — khuyến nghị cho production
+> - **Dùng `sslip.io` để test** (miễn phí, không cần đăng ký): `<LIGHTSAIL-IP>.sslip.io` tự động resolve về IP đó, Caddy lấy cert qua ACME HTTP-01. Ví dụ: `54.251.1.2.sslip.io`
+>   - Set `API_DOMAIN=54.251.1.2.sslip.io` trong GitHub Variables
+>   - Xoá block `tls { dns cloudflare ... }` khỏi `Caddyfile` (Caddy sẽ dùng HTTP-01 tự động)
+>   - `CLOUDFLARE_API_TOKEN` vẫn cần cho Cloudflare Pages deploy, nhưng KHÔNG cần quyền `Zone → DNS → Edit`
 
 ### 3.1 Đăng nhập và chọn domain
 
 1. Truy cập [dash.cloudflare.com](https://dash.cloudflare.com) và đăng nhập
-2. Trên trang chủ dashboard, click vào domain `aiwisdombattle.com` trong danh sách
+2. Trên trang chủ dashboard, click vào domain `example.com` trong danh sách
 
 > **Domain chưa có trong Cloudflare?** Vào **Add a Site** → nhập domain → chọn Free plan → Cloudflare sẽ scan DNS hiện tại → cập nhật nameservers tại nhà đăng ký domain (GoDaddy/Namecheap/...) theo hướng dẫn.
 
@@ -254,7 +267,7 @@ Từ trang domain, vào **DNS** → **Records** → nhấn **Add record**:
 | Field | Giá trị | Lưu ý |
 |---|---|---|
 | Type | `A` | |
-| Name | `api` | → tạo subdomain `api.aiwisdombattle.com` |
+| Name | `api` | → tạo subdomain `api.example.com` |
 | IPv4 address | `54.251.xxx.xxx` | Public IP từ Terraform output (bước 1.4) |
 | Proxy status | **Proxied** | Click icon cloud để bật — phải là **cam** (không phải xám) |
 | TTL | Auto | Chỉ có hiệu lực khi tắt proxy |
@@ -319,12 +332,12 @@ Token cần **hai quyền** cho hai mục đích khác nhau trong cùng một to
    | `Account` → `Cloudflare Pages` | `Edit` |
 
 5. Phần **Zone Resources** (xuất hiện sau khi thêm Zone permission):
-   - Chọn **Specific zone** → chọn `aiwisdombattle.com`
+   - Chọn **Specific zone** → chọn `example.com`
    - (Không chọn "All zones" — least privilege)
 
 6. Nhấn **Continue to summary** → kiểm tra danh sách quyền:
    ```
-   Zone - DNS - Edit - aiwisdombattle.com
+   Zone - DNS - Edit - example.com
    Account - Cloudflare Pages - Edit - <tên account>
    ```
 7. Nhấn **Create Token** → **copy token ngay** — chỉ hiển thị một lần
@@ -361,7 +374,7 @@ Trong phần **Environment variables** → click **Add variable**:
 
 | Variable name | Value | Environment |
 |---|---|---|
-| `VITE_API_BASE_URL` | `https://api.aiwisdombattle.com/api/v1` | Production |
+| `VITE_API_BASE_URL` | `https://api.example.com/api/v1` | Production |
 
 > **Lưu ý:** Biến `VITE_*` được Vite nhúng vào bundle lúc build — không phải runtime. Phải set ở đây (build time), không phải trên Lightsail.
 
@@ -412,8 +425,9 @@ Truy cập: **GitHub repo** → **Settings** → **Secrets and variables** → *
 
 | Variable name | Giá trị |
 |---|---|
-| `VITE_API_BASE_URL` | `https://api.aiwisdombattle.com/api/v1` |
-| `CORS_ALLOWED_ORIGINS` | `https://aiwisdombattle.com,https://ai-wisdom-battle.pages.dev` |
+| `API_DOMAIN` | `api.example.com` (hoặc `54.251.x.x.sslip.io` nếu không có domain) |
+| `VITE_API_BASE_URL` | `https://api.example.com/api/v1` |
+| `CORS_ALLOWED_ORIGINS` | `https://example.com,https://ai-wisdom-battle.pages.dev` |
 
 ### 4.3 Dùng GitHub CLI (nhanh hơn)
 
@@ -435,8 +449,9 @@ gh secret set POSTGRES_PASSWORD      --body "$(openssl rand -base64 24)"
 gh secret set JWT_SECRET             --body "$(openssl rand -base64 32)"
 
 # Variables
-gh variable set VITE_API_BASE_URL    --body "https://api.aiwisdombattle.com/api/v1"
-gh variable set CORS_ALLOWED_ORIGINS --body "https://aiwisdombattle.com,https://ai-wisdom-battle.pages.dev"
+gh variable set API_DOMAIN           --body "api.example.com"
+gh variable set VITE_API_BASE_URL    --body "https://api.example.com/api/v1"
+gh variable set CORS_ALLOWED_ORIGINS --body "https://ai-wisdom-battle.pages.dev"
 ```
 
 ### 4.4 Cấp quyền GHCR cho Actions
@@ -615,7 +630,7 @@ docker compose -f /opt/ai-wisdom-battle/docker-compose.prod.yml ps
 # awb-caddy      running
 
 # Kiểm tra HTTPS (sau khi Caddy lấy cert xong — có thể mất ~30s)
-curl -s https://api.aiwisdombattle.com/health
+curl -s https://api.example.com/health
 # → {"status":"UP"}
 ```
 
@@ -628,7 +643,7 @@ Chạy từ máy local (thay `<token>` sau khi register/login):
 ### 8.1 Register
 
 ```bash
-curl -s -X POST https://api.aiwisdombattle.com/api/v1/auth/register \
+curl -s -X POST https://api.example.com/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",
@@ -644,7 +659,7 @@ curl -s -X POST https://api.aiwisdombattle.com/api/v1/auth/register \
 ### 8.2 Login
 
 ```bash
-TOKEN=$(curl -s -X POST https://api.aiwisdombattle.com/api/v1/auth/login \
+TOKEN=$(curl -s -X POST https://api.example.com/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","password":"TestPass123"}' \
   | jq -r '.accessToken')
@@ -655,14 +670,14 @@ echo "Token: $TOKEN"
 ### 8.3 Get profile
 
 ```bash
-curl -s https://api.aiwisdombattle.com/api/v1/auth/me \
+curl -s https://api.example.com/api/v1/auth/me \
   -H "Authorization: Bearer $TOKEN" | jq .
 ```
 
 ### 8.4 List nodes
 
 ```bash
-curl -s https://api.aiwisdombattle.com/api/v1/nodes \
+curl -s https://api.example.com/api/v1/nodes \
   -H "Authorization: Bearer $TOKEN" | jq 'length'
 # → số lượng node chưa xem
 ```
@@ -671,11 +686,11 @@ curl -s https://api.aiwisdombattle.com/api/v1/nodes \
 
 ```bash
 # Lấy nodeId từ /nodes
-NODE_ID=$(curl -s https://api.aiwisdombattle.com/api/v1/nodes \
+NODE_ID=$(curl -s https://api.example.com/api/v1/nodes \
   -H "Authorization: Bearer $TOKEN" \
   | jq -r '.[0].id')
 
-curl -s -X POST https://api.aiwisdombattle.com/api/v1/sessions \
+curl -s -X POST https://api.example.com/api/v1/sessions \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d "{\"nodeId\":\"$NODE_ID\"}" | jq .
@@ -686,7 +701,7 @@ curl -s -X POST https://api.aiwisdombattle.com/api/v1/sessions \
 ```bash
 SESSION_ID=<sessionId từ bước trên>
 
-curl -s -X POST https://api.aiwisdombattle.com/api/v1/sessions/complete \
+curl -s -X POST https://api.example.com/api/v1/sessions/complete \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d "{
@@ -700,7 +715,7 @@ curl -s -X POST https://api.aiwisdombattle.com/api/v1/sessions/complete \
 ### 8.7 Knowledge map
 
 ```bash
-curl -s "https://api.aiwisdombattle.com/api/v1/nodes/$NODE_ID/map" \
+curl -s "https://api.example.com/api/v1/nodes/$NODE_ID/map" \
   -H "Authorization: Bearer $TOKEN" | jq 'length'
 ```
 
@@ -742,7 +757,7 @@ Truy cập `https://ai-wisdom-battle.pages.dev` (hoặc custom domain nếu đã
 
 ### 9.3 Kiểm tra Network tab (browser DevTools)
 
-- Tất cả API call đến `https://api.aiwisdombattle.com/api/v1/...`
+- Tất cả API call đến `https://api.example.com/api/v1/...`
 - Response headers có `Access-Control-Allow-Origin` đúng
 - Không có `Mixed Content` warning (toàn HTTPS)
 
@@ -770,7 +785,7 @@ python3 scripts/migrate-neo4j-to-pg.py --csv-dir ./migration-export
 
 ### Nếu muốn quay về Oracle VM cũ hoàn toàn
 
-1. DNS: trỏ `api.aiwisdombattle.com` về IP Oracle VM (CNAME hoặc A record)
+1. DNS: trỏ `api.example.com` về IP Oracle VM (CNAME hoặc A record)
 2. Cloudflare: đổi record type
 3. Oracle VM Spring Boot vẫn còn chạy → production không mất service
 
@@ -796,7 +811,7 @@ aws lightsail delete-instance \
 
 ### Cloudflare
 
-- [ ] A record `api.aiwisdombattle.com` → public IPv4 Lightsail
+- [ ] A record `api.example.com` → public IPv4 Lightsail (bỏ qua nếu dùng sslip.io)
 - [ ] Proxy mode ON (orange cloud)
 - [ ] SSL/TLS mode: Full (strict)
 - [ ] Cloudflare Pages deploy thành công
@@ -804,7 +819,7 @@ aws lightsail delete-instance \
 ### GitHub
 
 - [ ] Secrets: `LIGHTSAIL_HOST`, `LIGHTSAIL_SSH_KEY`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `POSTGRES_PASSWORD`, `JWT_SECRET`
-- [ ] Variables: `VITE_API_BASE_URL`, `CORS_ALLOWED_ORIGINS`
+- [ ] Variables: `API_DOMAIN`, `VITE_API_BASE_URL`, `CORS_ALLOWED_ORIGINS`
 - [ ] GHCR write permission bật
 
 ### Data Migration
@@ -817,7 +832,7 @@ aws lightsail delete-instance \
 
 - [ ] `docker compose -f docker-compose.prod.yml ps` → `awb-postgres`, `awb-app`, `awb-caddy` đang chạy
 - [ ] `http://localhost:8080/health` trả `{"status":"UP"}`
-- [ ] `https://api.aiwisdombattle.com/health` trả `{"status":"UP"}` (HTTPS cert valid)
+- [ ] `https://api.example.com/health` trả `{"status":"UP"}` (HTTPS cert valid)
 - [ ] Toàn bộ 13 endpoints smoke test pass
 - [ ] Frontend kết nối backend end-to-end
 
@@ -853,7 +868,7 @@ docker compose -f docker-compose.prod.yml exec caddy \
   caddy reload --config /etc/caddy/Caddyfile
 
 # Kiểm tra TLS cert
-echo | openssl s_client -connect api.aiwisdombattle.com:443 2>&1 | grep -E "subject|issuer|expire"
+echo | openssl s_client -connect api.example.com:443 2>&1 | grep -E "subject|issuer|expire"
 ```
 
 ---
