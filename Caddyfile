@@ -11,7 +11,7 @@
 # Reload config: docker exec awb-caddy caddy reload --config /etc/caddy/Caddyfile
 # =============================================================================
 
-{env.API_DOMAIN} {
+{$API_DOMAIN} {
 
     # ── TLS: Caddy auto-HTTPS via ACME HTTP-01 (Let's Encrypt) ───────────────
     # No tls block needed — Caddy obtains and renews cert automatically.
