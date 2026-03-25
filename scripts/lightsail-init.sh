@@ -13,9 +13,10 @@ echo "=== [1/5] Update packages ==="
 apt-get update -y
 apt-get upgrade -y
 
-echo "=== [2/5] Install Docker ==="
-apt-get install -y docker.io docker-compose-plugin git curl
-
+echo "=== [2/5] Install Docker CE ==="
+apt-get install -y ca-certificates curl git
+# Install Docker CE from official script (includes docker-compose-plugin)
+curl -fsSL https://get.docker.com | sh
 systemctl enable docker
 systemctl start docker
 usermod -aG docker ubuntu

@@ -115,14 +115,15 @@ jobs:
                 echo Docker already installed: \$(docker --version)
                 exit 0
               fi
-              echo Docker not found, installing...
+              echo Docker not found, installing via official script...
               sudo apt-get update -y
-              sudo apt-get install -y docker.io docker-compose-plugin
+              sudo apt-get install -y ca-certificates curl
+              curl -fsSL https://get.docker.com | sudo sh
               sudo systemctl enable docker
               sudo systemctl start docker
               sudo usermod -aG docker ubuntu
-              echo Docker installed: \$(docker --version)
-              echo Compose installed: \$(docker compose version)
+              echo Docker installed: \$(sudo docker --version)
+              echo Compose installed: \$(sudo docker compose version)
             '"
 
       # Dry-run: chỉ validate SSH connectivity + kiểm tra môi trường server
@@ -141,11 +142,11 @@ jobs:
             "bash -l -c '
               set -e
               echo --- SSH: OK
-              docker --version
-              docker compose version
+              sudo docker --version
+              sudo docker compose version
               df -h /
               ls /opt/ai-wisdom-battle/ || echo /opt/ai-wisdom-battle not found
-              docker ps --format \"{{.Names}}: {{.Status}}\" || true
+              sudo docker ps --format \"{{.Names}}: {{.Status}}\" || true
             '"
 
       # Real deploy: chạy khi dry_run == false HOẶC khi trigger bằng workflow_run (production)
@@ -165,11 +166,10 @@ jobs:
             -o BatchMode=yes \
             "ubuntu@${REMOTE_HOST}" << EOF
           set -euo pipefail
-          export PATH=$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
           cd /opt/ai-wisdom-battle
 
           echo "=== [1/5] Login to GHCR ==="
-          echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_ACTOR}" --password-stdin
+          echo "${GHCR_TOKEN}" | sudo docker login ghcr.io -u "${GHCR_ACTOR}" --password-stdin
 
           echo "=== [2/5] Pull code ==="
           git fetch origin master
@@ -177,11 +177,11 @@ jobs:
 
           echo "=== [3/5] Pull new image ==="
           GHCR_REPO="${GHCR_REPO_LC}" IMAGE_TAG="${DEPLOY_SHA}" \
-            docker compose -f docker-compose.prod.yml pull app
+            sudo docker compose -f docker-compose.prod.yml pull app
 
           echo "=== [4/5] Restart app ==="
           GHCR_REPO="${GHCR_REPO_LC}" IMAGE_TAG="${DEPLOY_SHA}" \
-            docker compose -f docker-compose.prod.yml up -d \
+            sudo docker compose -f docker-compose.prod.yml up -d \
             --remove-orphans --no-deps app
 
           echo "=== [5/5] Health check ==="
@@ -201,7 +201,7 @@ jobs:
             -o StrictHostKeyChecking=no \
             -o BatchMode=yes \
             "ubuntu@${REMOTE_HOST}" \
-            "export PATH=\$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin; docker compose -f /opt/ai-wisdom-battle/docker-compose.prod.yml logs --tail=50 app 2>&1 || true" \
+            "sudo docker compose -f /opt/ai-wisdom-battle/docker-compose.prod.yml logs --tail=50 app 2>&1 || true" \
             || echo "(Không thể SSH vào server để lấy logs)"
           echo "Run URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
