@@ -90,6 +90,7 @@ jobs:
 
     permissions:
       packages: read
+      contents: read
 
     steps:
       - name: Setup SSH key
