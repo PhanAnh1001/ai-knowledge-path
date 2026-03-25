@@ -96,7 +96,7 @@ yJFxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 SSH vào VM và sửa file `.env`:
 
 ```bash
-ssh -i ~/.ssh/lightsail_awb ubuntu@<LIGHTSAIL_IPv6>
+ssh -i ~/.ssh/lightsail_awb ubuntu@<LIGHTSAIL_IP>
 cd /opt/ai-wisdom-battle
 nano .env
 ```

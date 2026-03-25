@@ -1,6 +1,6 @@
 # =============================================================================
 # AWS Lightsail — AI Wisdom Battle
-# Tạo instance Ubuntu 24.04 tại Singapore, IPv6-only, $7/tháng
+# Tạo instance Ubuntu 24.04 tại Singapore, IPv4, $10/tháng
 #
 # Yêu cầu:
 #   terraform >= 1.5
@@ -10,7 +10,7 @@
 #   terraform init
 #   terraform plan
 #   terraform apply
-#   terraform output ipv6_address
+#   terraform output public_ip_address
 # =============================================================================
 
 terraform {
@@ -40,7 +40,7 @@ resource "aws_lightsail_instance" "awb_prod" {
   blueprint_id      = "ubuntu_24_04"
   bundle_id         = var.bundle_id
   key_pair_name     = aws_lightsail_key_pair.awb_key.name
-  ip_address_type   = "ipv6"
+  ip_address_type   = "ipv4"
 
   # Bootstrap: cài Docker, clone repo, cấu hình firewall
   user_data = file("${path.module}/../../scripts/lightsail-init.sh")

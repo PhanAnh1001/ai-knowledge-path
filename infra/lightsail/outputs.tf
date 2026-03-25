@@ -1,6 +1,6 @@
-output "ipv6_address" {
-  description = "IPv6 address của Lightsail instance — dùng để cấu hình Cloudflare AAAA record"
-  value       = aws_lightsail_instance.awb_prod.ipv6_addresses[0]
+output "public_ip_address" {
+  description = "Public IPv4 address của Lightsail instance — dùng để cấu hình Cloudflare A record"
+  value       = aws_lightsail_instance.awb_prod.public_ip_address
 }
 
 output "instance_name" {
@@ -10,7 +10,7 @@ output "instance_name" {
 
 output "ssh_command" {
   description = "Lệnh SSH để kết nối vào instance"
-  value       = "ssh -i ~/.ssh/awb-lightsail ubuntu@${aws_lightsail_instance.awb_prod.ipv6_addresses[0]}"
+  value       = "ssh -i ~/.ssh/awb-lightsail ubuntu@${aws_lightsail_instance.awb_prod.public_ip_address}"
 }
 
 output "instance_arn" {

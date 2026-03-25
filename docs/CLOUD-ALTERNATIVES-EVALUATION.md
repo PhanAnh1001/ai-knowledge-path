@@ -537,7 +537,7 @@ Tương tự Go nhưng memory thậm chí thấp hơn (~30MB under load). **Tuy 
 | Provider | Plan | vCPU | RAM | Disk | Bandwidth | Location | Giá/tháng | Ghi chú |
 |---|---|---|---|---|---|---|---|---|
 | **Contabo VPS S** | AMD EPYC | 4 | 8 GB | 75 GB NVMe | Unlimited (200Mbps) | **Singapore, Tokyo** | **~$6.50** (€4.50 + ~€1.07 SG fee, annual) | Hợp đồng 12 tháng. Setup €4.99 một lần. |
-| **AWS Lightsail** | IPv6-only 2GB | 1 | 2 GB | 60 GB SSD | 3 TB | Singapore, Tokyo, Seoul, Mumbai | **~$7** (giảm 30% so IPv4) | Free 3 tháng. Dùng Cloudflare proxy trước → OK IPv6. |
+| **AWS Lightsail** | IPv4 2GB | 1 | 2 GB | 60 GB SSD | 3 TB | Singapore, Tokyo, Seoul, Mumbai | **$10** | Free 3 tháng. Tích hợp AWS ecosystem. |
 
 ### Tier 2: Mid-range — $8-15/tháng
 
@@ -554,7 +554,7 @@ Tương tự Go nhưng memory thậm chí thấp hơn (~30MB under load). **Tuy 
 
 1. **Contabo Singapore thực tế ~$6.50/tháng** (có phụ phí location ~€1.07/tháng), không phải $3.90 như giá base EU. Vẫn là **giá tốt nhất cho 8GB RAM tại châu Á**
 2. **Hetzner CÓ datacenter Singapore** (CPX/CCX series), nhưng: bandwidth chỉ 0.5TB (vs 20TB EU), và sẽ **tăng giá 30-37% từ 1/4/2026** → sau tăng giá sẽ kém hấp dẫn
-3. **AWS Lightsail IPv6-only là "hidden gem"**: ~$7/tháng, dùng Cloudflare proxy phía trước → users vẫn truy cập bình thường qua IPv4. Free 3 tháng để test
+3. **AWS Lightsail $10/tháng**: IPv4 standard, dùng Cloudflare proxy phía trước → CDN + DDoS protection. Free 3 tháng để test
 4. **Contabo trade-off:** Giá rẻ vượt trội nhưng IO có thể chậm hơn Vultr/Hetzner. Với app ~700MB RAM, <100 concurrent users ban đầu → **không phải vấn đề thực tế**
 5. **Chiến lược tối ưu:** Bắt đầu AWS Lightsail free 3 tháng → đánh giá traffic → chuyển sang Contabo annual nếu cần tiết kiệm
 
@@ -641,8 +641,8 @@ Tương tự Go nhưng memory thậm chí thấp hơn (~30MB under load). **Tuy 
 
 | | Chi tiết |
 |---|---|
-| **Server** | AWS Lightsail 2GB IPv6-only — Singapore (dùng Cloudflare proxy phía trước) |
-| **Giá** | **Free 3 tháng**, sau đó ~$7/tháng = ~$63/năm (9 tháng trả phí) |
+| **Server** | AWS Lightsail 2GB IPv4 — Singapore (dùng Cloudflare proxy phía trước) |
+| **Giá** | **Free 3 tháng**, sau đó ~$10/tháng = ~$90/năm (9 tháng trả phí) |
 | **Stack** | Go hoặc Node.js + PostgreSQL + Caddy |
 | **RAM sử dụng** | ~700-800MB / 2GB |
 | **Effort (Claude)** | **4-5 ngày** (Go) hoặc **3-4 ngày** (Node.js) |
@@ -696,7 +696,7 @@ Phương án A — Nhanh nhất (nếu muốn test market ngay):
 Phương án B — Tiết kiệm nhất (nếu chưa vội):
 
   Phase 0:
-    → AWS Lightsail free 3 tháng (Singapore, IPv6-only + Cloudflare)
+    → AWS Lightsail free 3 tháng (Singapore, IPv4 + Cloudflare)
     → Claude rewrite backend sang Go/Node.js
     → Deploy stack mới ngay từ đầu
     → Effort: 4-5 ngày

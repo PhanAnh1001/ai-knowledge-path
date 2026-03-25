@@ -2,7 +2,7 @@
 
 > **Trạng thái:** Draft — 2026-03-23
 > **Phương án:** ĐX 9 từ [CLOUD-ALTERNATIVES-EVALUATION.md](./CLOUD-ALTERNATIVES-EVALUATION.md)
-> **Mục tiêu:** Rewrite Spring Boot → Go, bỏ Neo4j/Redis/Adaptive Engine, deploy lên AWS Lightsail Singapore IPv6-only + Cloudflare
+> **Mục tiêu:** Rewrite Spring Boot → Go, bỏ Neo4j/Redis/Adaptive Engine, deploy lên AWS Lightsail Singapore IPv4 + Cloudflare
 
 ---
 
@@ -17,8 +17,8 @@
 | **Rate limiting** | Redis-based | In-memory (sliding window) |
 | **Containers** | 7 (app + pg + neo4j + redis + engine + frontend + caddy) | 3 (go-app + postgres + caddy) |
 | **RAM sử dụng** | ~5.3 GB | ~700 MB |
-| **Server** | Oracle VM (hiện tại) | AWS Lightsail Singapore IPv6-only |
-| **Giá** | ~$0/tháng (Oracle free tier, hết hạn) | **Free 3 tháng** → ~$7/tháng |
+| **Server** | Oracle VM (hiện tại) | AWS Lightsail Singapore IPv4 |
+| **Giá** | ~$0/tháng (Oracle free tier, hết hạn) | **Free 3 tháng** → ~$10/tháng |
 | **Frontend** | Caddy serving + React SPA | Cloudflare Pages (free) |
 
 ---
@@ -33,7 +33,7 @@ Cloudflare (DNS + CDN + IPv4 proxy)
     │
     ├──▶ Cloudflare Pages — React SPA (free)
     │
-    └──▶ AWS Lightsail (Singapore, IPv6-only, $7/tháng)
+    └──▶ AWS Lightsail (Singapore, IPv4, $10/tháng)
              │
              ▼
          Caddy (reverse proxy, auto TLS via Cloudflare DNS challenge)
@@ -51,11 +51,9 @@ Cloudflare (DNS + CDN + IPv4 proxy)
              └── In-memory cache (node lists, TTL 10 phút)
 ```
 
-**Lưu ý về IPv6-only + Cloudflare:**
-- AWS Lightsail IPv6-only: không có IPv4 public address trực tiếp
-- Cloudflare proxy trước domain → Cloudflare kết nối tới server qua IPv6
-- User (IPv4 hoặc IPv6) → Cloudflare → IPv6 → server: hoàn toàn transparent
-- Caddy dùng Cloudflare DNS-01 challenge để lấy SSL cert (không cần port 80 IPv4)
+**Lưu ý về Cloudflare + Lightsail:**
+- Cloudflare proxy trước domain → CDN, DDoS protection, SSL termination
+- Caddy dùng Cloudflare DNS-01 challenge để lấy SSL cert
 
 ---
 
@@ -259,9 +257,9 @@ GET    /actuator/health   → /health (Caddy rewrite rule)
 aws lightsail create-instances \
   --instance-names awb-prod \
   --availability-zone ap-southeast-1a \
-  --blueprint-id ubuntu_22_04 \
-  --bundle-id small_ipv6_3_0 \ # $10/tháng IPv6-only: 2vCPU, 2GB RAM, 60GB SSD, 3TB transfer
-  --ip-address-type ipv6 \
+  --blueprint-id ubuntu_24_04 \
+  --bundle-id small_3_0 \ # $10/tháng IPv4: 2vCPU, 2GB RAM, 60GB SSD, 3TB transfer
+  --ip-address-type ipv4 \
   --user-data file://scripts/lightsail-init.sh
 ```
 
@@ -288,8 +286,8 @@ ufw --force enable
 
 ### 8.3 Cloudflare setup
 
-1. **Domain**: trỏ `api.aiwisdombattle.com` → AAAA record của Lightsail IPv6 IP
-2. **Proxy**: bật Cloudflare proxy (orange cloud) → Cloudflare làm IPv4 bridge
+1. **Domain**: trỏ `api.aiwisdombattle.com` → A record của Lightsail public IPv4
+2. **Proxy**: bật Cloudflare proxy (orange cloud) → CDN + DDoS protection
 3. **SSL mode**: Full (strict) — Caddy tự lấy cert
 4. **Caddyfile** (cập nhật cho Lightsail):
 
@@ -306,7 +304,7 @@ api.aiwisdombattle.com {
 
 | Secret | Mô tả |
 |---|---|
-| `LIGHTSAIL_HOST` | IPv6 address của instance |
+| `LIGHTSAIL_HOST` | Public IPv4 address của instance |
 | `LIGHTSAIL_SSH_KEY` | Private key SSH |
 | `CLOUDFLARE_API_TOKEN` | CF token để Caddy DNS challenge |
 
@@ -423,7 +421,7 @@ jobs:
 ### `.github/workflows/deploy.yml` (cập nhật)
 
 ```yaml
-# Deploy backend lên Lightsail (SSH vào IPv6 address)
+# Deploy backend lên Lightsail (SSH vào public IPv4)
 # Deploy frontend lên Cloudflare Pages
 jobs:
   deploy-backend:
@@ -521,7 +519,7 @@ jobs:
 1. [ ] Viết `Dockerfile` cho Go backend (multi-stage: builder + distroless)
 2. [ ] Cập nhật `docker-compose.yml` (dev: 3 containers)
 3. [ ] Cập nhật `docker-compose.prod.yml` (prod: 3 containers + Caddy CF)
-4. [ ] Cập nhật `Caddyfile` cho IPv6 Lightsail + Cloudflare DNS challenge
+4. [ ] Cập nhật `Caddyfile` cho Lightsail + Cloudflare DNS challenge
 5. [ ] RFC 7807 error middleware (format như Java GlobalExceptionHandler)
 6. [ ] Viết Go tests cho các handlers (`handler/*_test.go`)
 7. [ ] Cập nhật `.github/workflows/ci.yml` (Go build + test)
@@ -536,10 +534,10 @@ jobs:
 **Mục tiêu:** Production live trên Lightsail Singapore
 
 **Tasks:**
-1. [ ] Provision AWS Lightsail instance (ap-southeast-1, IPv6-only, $7/tháng plan)
+1. [ ] Provision AWS Lightsail instance (ap-southeast-1, IPv4, $10/tháng plan)
 2. [ ] Chạy `lightsail-init.sh` (Docker setup, firewall)
 3. [ ] Setup Cloudflare:
-   - AAAA record → Lightsail IPv6
+   - A record → Lightsail public IPv4
    - Proxy mode ON
    - SSL Full (strict)
 4. [ ] Setup GitHub Secrets (`LIGHTSAIL_HOST`, `LIGHTSAIL_SSH_KEY`, `CLOUDFLARE_API_TOKEN`)
@@ -558,7 +556,7 @@ jobs:
 |---|---|---|
 | Recursive CTE cho deep-dive chậm hơn Cypher | Thấp | Max depth 3, indexed, data nhỏ (<1000 nodes ban đầu) |
 | In-memory cache mất khi restart | Chấp nhận | Node list cache warm lại ngay sau restart (<100ms) |
-| Lightsail IPv6-only không reach được một số services | Thấp | Chỉ outbound: GitHub Container Registry (IPv6 OK), Cloudflare (IPv6 OK) |
+| Lightsail không reach được GitHub Actions | Không áp dụng | IPv4 → GitHub Actions runner có thể SSH vào Lightsail bình thường |
 | SM-2 kết quả khác với Python engine | Thấp | Unit test so sánh output với Python reference implementation |
 | Caddy DNS challenge Cloudflare rate limit | Rất thấp | Cert được cache, chỉ renew 60 ngày/lần |
 | Data loss khi migrate Neo4j → PostgreSQL | Thấp | Giữ Neo4j container chạy song song đến khi verify xong |
