@@ -13,19 +13,6 @@
     ]
   },
   "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "cat | ./.claude/check-posttool.sh",
-            "asyncRewake": true,
-            "statusMessage": "Checking build..."
-          }
-        ]
-      }
-    ],
     "Stop": [
       {
         "hooks": [
@@ -36,9 +23,15 @@
           },
           {
             "type": "command",
-            "command": "./.claude/check-code.sh",
+            "command": "cat | ./.claude/check-posttool.sh",
             "timeout": 60,
-            "statusMessage": "Running code checks..."
+            "statusMessage": "Running build checks..."
+          },
+          {
+            "type": "agent",
+            "prompt": "Run the /test skill: execute `go test ./...` in backend-go/ and `npm run build` in frontend/. Report pass/fail for each. If anything fails, show the error output.",
+            "timeout": 120,
+            "statusMessage": "Running /test..."
           },
           {
             "type": "command",
