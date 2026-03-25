@@ -1,7 +1,7 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-25 13:09:30
-> Session: `d90ad423-754`
+> Cập nhật lần cuối: 2026-03-25 13:18:04
+> Session: `unknown`
 > Branch: `claude/fix-lightsail-bundle-ipv6`
 
 ---
@@ -11,6 +11,7 @@
 ### Các commit gần nhất
 
 ```
+c4c2017 Update PROJECT_LOG: 2026-03-25 d90ad423
 52f4c64 Update PROJECT_LOG: 2026-03-25 d90ad423
 6cb3e60 Fix frontend 404: deploy to production branch + add SPA _redirects
 13dc68c Fix deploy security: validate ref_sha, clear git token, docker logout
@@ -25,12 +26,12 @@ e635835 Fix git fetch in deploy: refresh remote URL with current GITHUB_TOKEN
 37a62aa Fix git clone URL: use original case GHCR_REPO not lowercased
 f7b09f4 Fix git clone auth: use GITHUB_TOKEN in clone URL
 cc2569e Fix git clone: combine GIT_TERMINAL_PROMPT=0 and credential.helper=
-f1fee03 Fix git clone: use credential.helper= instead of GIT_TERMINAL_PROMPT
 ```
 
 ### Thay đổi chưa commit
 
 ```
+ M .claude/save-discussion.sh
  M .claude/settings.json
 ```
 
