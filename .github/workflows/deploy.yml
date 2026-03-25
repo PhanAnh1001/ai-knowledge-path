@@ -104,43 +104,46 @@ jobs:
       - name: Ensure Docker installed on server
         env:
           REMOTE_HOST: ${{ secrets.LIGHTSAIL_HOST }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_REPO: ${{ github.repository }}
         run: |
+          GHCR_REPO_LC=$(echo "$GHCR_REPO" | tr '[:upper:]' '[:lower:]')
+
           ssh -i ~/.ssh/deploy_key \
             -o StrictHostKeyChecking=no \
             -o BatchMode=yes \
             -o ConnectTimeout=15 \
-            "ubuntu@${REMOTE_HOST}" \
-            "bash -l -c '
-              set -e
-              # --- Docker ---
-              if sudo docker version &>/dev/null; then
-                echo Docker already installed: \$(sudo docker --version)
-              else
-                echo Docker not found, installing via official script...
-                sudo apt-get update -y
-                sudo apt-get install -y ca-certificates curl git
-                curl -fsSL https://get.docker.com | sudo sh
-                sudo systemctl enable docker
-                sudo systemctl start docker
-                sudo usermod -aG docker ubuntu
-                echo Docker installed: \$(sudo docker --version)
-              fi
-              # --- App directory ---
-              if [ ! -d /opt/ai-wisdom-battle/.git ]; then
-                echo Cloning repository...
-                sudo mkdir -p /opt/ai-wisdom-battle
-                sudo chown ubuntu:ubuntu /opt/ai-wisdom-battle
-                GIT_TERMINAL_PROMPT=0 git -c credential.helper= clone --depth 1 https://github.com/PhanAnh1001/ai-wisdom-battle.git /opt/ai-wisdom-battle
-                echo Repo cloned OK.
-              else
-                echo Repo already exists.
-              fi
-              # --- .env placeholder ---
-              if [ ! -f /opt/ai-wisdom-battle/.env ]; then
-                cp /opt/ai-wisdom-battle/.env.example /opt/ai-wisdom-battle/.env
-                echo .env created from .env.example - MUST update with real values!
-              fi
-            '"
+            "ubuntu@${REMOTE_HOST}" << ENDSSH
+          set -e
+          # --- Docker ---
+          if sudo docker version &>/dev/null; then
+            echo "Docker already installed: \$(sudo docker --version)"
+          else
+            echo "Docker not found, installing via official script..."
+            sudo apt-get update -y
+            sudo apt-get install -y ca-certificates curl git
+            curl -fsSL https://get.docker.com | sudo sh
+            sudo systemctl enable docker
+            sudo systemctl start docker
+            sudo usermod -aG docker ubuntu
+            echo "Docker installed: \$(sudo docker --version)"
+          fi
+          # --- App directory ---
+          if [ ! -d /opt/ai-wisdom-battle/.git ]; then
+            echo "Cloning repository..."
+            sudo mkdir -p /opt/ai-wisdom-battle
+            sudo chown ubuntu:ubuntu /opt/ai-wisdom-battle
+            git clone --depth 1 https://x-access-token:${GHCR_TOKEN}@github.com/${GHCR_REPO_LC}.git /opt/ai-wisdom-battle
+            echo "Repo cloned OK."
+          else
+            echo "Repo already exists."
+          fi
+          # --- .env placeholder ---
+          if [ ! -f /opt/ai-wisdom-battle/.env ]; then
+            cp /opt/ai-wisdom-battle/.env.example /opt/ai-wisdom-battle/.env
+            echo ".env created from .env.example - MUST update with real values!"
+          fi
+          ENDSSH
 
       # Dry-run: chỉ validate SSH connectivity + kiểm tra môi trường server
       - name: Dry-run — Validate SSH + server environment
