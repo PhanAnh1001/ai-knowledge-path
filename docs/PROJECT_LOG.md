@@ -1,6 +1,6 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-25 16:02:18
+> Cập nhật lần cuối: 2026-03-25 16:19:00
 > Session: `e488410c-22b`
 > Branch: `claude/change_code`
 
@@ -11,6 +11,8 @@
 ### Các commit gần nhất
 
 ```
+c7d64bb fix(caddy): use parse-time env substitution for site address
+8d7bb04 docs: update PROJECT_LOG [2026-03-25]
 483258c docs: update PROJECT_LOG [2026-03-25]
 45b458b docs: update PROJECT_LOG [2026-03-25]
 9482083 docs: update PROJECT_LOG [2026-03-25]
@@ -24,8 +26,6 @@ dcb80c4 refactor(claude): consolidate hooks — move build check to Stop, add /t
 4fb71b0 feat(claude): add actual build checks to hooks + /test skill
 c5c59c0 docs: update PROJECT_LOG [2026-03-25]
 847929c fix(frontend): add vite/client types so import.meta.env compiles
-2e2b0ba docs: update PROJECT_LOG [2026-03-25]
-bf94d46 fix(frontend): read API base URL from VITE_API_BASE_URL env var
 ```
 
 ---
