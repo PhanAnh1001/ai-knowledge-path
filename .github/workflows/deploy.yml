@@ -192,20 +192,21 @@ jobs:
           echo "${GHCR_TOKEN}" | sudo docker login ghcr.io -u "${GHCR_ACTOR}" --password-stdin
 
           echo "=== [2/5] Pull code ==="
+          git remote set-url origin https://x-access-token:${GHCR_TOKEN}@github.com/${GHCR_REPO}.git
           git fetch origin master
           git reset --hard origin/master
 
           echo "=== [3/5] Pull new image ==="
-          GHCR_REPO="${GHCR_REPO_LC}" IMAGE_TAG="${DEPLOY_SHA}" \
-            sudo docker compose -f docker-compose.prod.yml pull app
+          sudo GHCR_REPO="${GHCR_REPO_LC}" IMAGE_TAG="${DEPLOY_SHA}" \
+            docker compose -f docker-compose.prod.yml pull app
 
           echo "=== [4/5] Restart app ==="
-          GHCR_REPO="${GHCR_REPO_LC}" IMAGE_TAG="${DEPLOY_SHA}" \
-            sudo docker compose -f docker-compose.prod.yml up -d \
-            --remove-orphans --no-deps app
+          sudo GHCR_REPO="${GHCR_REPO_LC}" IMAGE_TAG="${DEPLOY_SHA}" \
+            docker compose -f docker-compose.prod.yml up -d \
+            --remove-orphans postgres app
 
           echo "=== [5/5] Health check ==="
-          sleep 10
+          sleep 20
           curl -fsS http://localhost:8080/health | grep -q '"status":"UP"'
           echo "Backend deploy OK"
           EOF
