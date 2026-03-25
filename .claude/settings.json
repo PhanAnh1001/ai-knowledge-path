@@ -16,7 +16,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cat | /home/user/ai-wisdom-battle/.claude/save-discussion.sh",
+            "command": "echo '{\"systemMessage\": \"[Self-check] (1) General — review answer from multiple angles. (2) Security — injection, XSS, auth, hardcoded secrets. (3) Syntax/logic — code builds, logic correct. (4) Tests — run go test ./... or npm test, confirm pass. Fix issues before reporting done.\"}'",
+            "statusMessage": "Injecting post-task review checklist..."
+          },
+          {
+            "type": "command",
+            "command": "cat | ./.claude/save-discussion.sh",
             "timeout": 30
           }
         ]
