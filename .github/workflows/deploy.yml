@@ -203,7 +203,7 @@ jobs:
           echo "=== [4/5] Restart app ==="
           sudo GHCR_REPO="${GHCR_REPO_LC}" IMAGE_TAG="${DEPLOY_SHA}" \
             docker compose -f docker-compose.prod.yml up -d \
-            --remove-orphans
+            --remove-orphans postgres app
 
           echo "=== [5/5] Health check ==="
           sleep 20
