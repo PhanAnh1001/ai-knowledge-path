@@ -107,20 +107,22 @@ jobs:
           REMOTE_HOST: ${{ secrets.LIGHTSAIL_HOST }}
         run: |
           echo "=== Dry-run: Validate SSH connectivity ==="
-          # SSH vào instance bằng public IPv4
+          # SSH vào instance bằng public IPv4, dùng login shell để load đầy đủ PATH
           ssh -i ~/.ssh/deploy_key \
             -o StrictHostKeyChecking=no \
             -o BatchMode=yes \
             -o ConnectTimeout=15 \
             "ubuntu@${REMOTE_HOST}" \
-            "set -e
-            export PATH=\$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-            echo '--- SSH: OK'
-            echo '--- Docker version:' && docker --version
-            echo '--- Docker Compose version:' && docker compose version
-            echo '--- Disk usage:' && df -h /
-            echo '--- /opt/ai-wisdom-battle:' && ls -la /opt/ai-wisdom-battle/
-            echo '--- Running containers:' && docker ps --format 'table {{.Names}}\t{{.Status}}'"
+            "bash -l -c '
+              echo --- SSH: OK
+              echo --- Docker binary: \$(which docker 2>/dev/null || echo NOT FOUND)
+              echo --- Docker version: \$(docker --version 2>&1 || echo FAILED)
+              echo --- Compose version: \$(docker compose version 2>&1 || echo FAILED)
+              echo --- cloud-init: \$(cloud-init status 2>/dev/null || echo unknown)
+              echo --- Disk: \$(df -h / | tail -1)
+              echo --- App dir: \$(ls /opt/ai-wisdom-battle/ 2>/dev/null | head -5 || echo NOT FOUND)
+              echo --- Containers: \$(docker ps --format \"{{.Names}}: {{.Status}}\" 2>/dev/null || echo FAILED)
+            '"
 
       # Real deploy: chạy khi dry_run == false HOẶC khi trigger bằng workflow_run (production)
       - name: Deploy via SSH
