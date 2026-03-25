@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '{\"systemMessage\": \"[Self-check] (1) General — review answer from multiple angles. (2) Security — injection, XSS, auth, hardcoded secrets. (3) Syntax/logic — code builds, logic correct. (4) Tests — run go test ./... or npm test, confirm pass. Fix issues before reporting done.\"}'",
+            "command": "echo '{\"systemMessage\": \"[Self-check] (1) General — review answer from multiple angles. (2) Security — injection, XSS, auth, hardcoded secrets. (3) Syntax/logic — code builds, logic correct. (4) Tests — run go test ./... or npm test, confirm pass. Fix issues before reporting done. (5) Docs — after all issues are resolved, if any project documentation files are related to the task, update them too.\"}'",
             "statusMessage": "Injecting post-task review checklist..."
           },
           {
