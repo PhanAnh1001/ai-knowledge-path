@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cat | /home/user/ai-wisdom-battle/.claude/save-discussion.sh",
+            "command": "cat | ./.claude/save-discussion.sh",
             "timeout": 30
           }
         ]
