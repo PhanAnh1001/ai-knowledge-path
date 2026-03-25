@@ -192,6 +192,7 @@ jobs:
           echo "${GHCR_TOKEN}" | sudo docker login ghcr.io -u "${GHCR_ACTOR}" --password-stdin
 
           echo "=== [2/5] Pull code ==="
+          git remote set-url origin https://x-access-token:${GHCR_TOKEN}@github.com/${GHCR_REPO}.git
           git fetch origin master
           git reset --hard origin/master
 
