@@ -368,6 +368,18 @@ Các biến cần thiết:
 | `OCI_REGION` | Region OCI |
 | `OCI_COMPARTMENT_OCID` | OCID compartment |
 
+## Tự review sau mỗi nhiệm vụ (BẮT BUỘC)
+
+Sau khi hoàn thành bất kỳ nhiệm vụ nào, PHẢI tự thực hiện các bước sau TRƯỚC KHI kết thúc:
+
+1. **General review** — Đứng trên các góc nhìn khác nhau để review lại câu trả lời.
+2. **Security review** — Kiểm tra: injection (SQL/command/shell), XSS, broken auth, secrets hardcoded, insecure config, input validation thiếu.
+3. **Syntax / logic** — Xác nhận code build được không lỗi, logic đúng với yêu cầu đề ra.
+4. **Tests** — Chạy test suite phù hợp (`go test ./...` cho Go, `npm test` cho frontend) và xác nhận pass. Nếu không chạy được test, giải thích lý do.
+5. **Docs** — Nếu có file document trong dự án liên quan đến nhiệm vụ, update luôn trước khi báo cáo hoàn thành.
+
+Nếu phát hiện vấn đề ở bất kỳ bước nào, sửa trước khi báo cáo hoàn thành.
+
 ## Key Instructions for AI Assistants
 
 1. **Always work on the designated branch** — never commit directly to `master`
