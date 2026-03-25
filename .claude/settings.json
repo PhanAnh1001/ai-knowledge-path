@@ -32,11 +32,6 @@
             "prompt": "Run the /test skill: execute `go test ./...` in backend-go/ and `npm run build` in frontend/. Report pass/fail for each. If anything fails, show the error output.",
             "timeout": 120,
             "statusMessage": "Running /test..."
-          },
-          {
-            "type": "command",
-            "command": "cat | ./.claude/save-discussion.sh",
-            "timeout": 30
           }
         ]
       }
