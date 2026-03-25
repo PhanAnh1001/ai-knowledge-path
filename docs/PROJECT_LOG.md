@@ -1,6 +1,6 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-25 13:22:55
+> Cập nhật lần cuối: 2026-03-25 13:25:07
 > Session: `d90ad423-754`
 > Branch: `claude/fix-lightsail-bundle-ipv6`
 
@@ -11,6 +11,7 @@
 ### Các commit gần nhất
 
 ```
+f125520 docs: update PROJECT_LOG [2026-03-25]
 423e153 Update PROJECT_LOG: 2026-03-25 unknown
 c4c2017 Update PROJECT_LOG: 2026-03-25 d90ad423
 52f4c64 Update PROJECT_LOG: 2026-03-25 d90ad423
@@ -25,7 +26,6 @@ f0d83db Fix docker compose env vars: pass GHCR_REPO/IMAGE_TAG via sudo syntax
 e635835 Fix git fetch in deploy: refresh remote URL with current GITHUB_TOKEN
 52ffbb8 Add contents: read permission to deploy-backend job
 37a62aa Fix git clone URL: use original case GHCR_REPO not lowercased
-f7b09f4 Fix git clone auth: use GITHUB_TOKEN in clone URL
 ```
 
 ### Thay đổi chưa commit
