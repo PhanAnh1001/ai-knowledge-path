@@ -1,6 +1,6 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-25 14:37:10
+> Cập nhật lần cuối: 2026-03-25 14:40:38
 > Session: `d90ad423-754`
 > Branch: `claude/change_code`
 
@@ -11,6 +11,8 @@
 ### Các commit gần nhất
 
 ```
+0766095 fix(caddy): use HTTP-01 auto-HTTPS instead of Cloudflare DNS-01
+e629c64 docs: update PROJECT_LOG [2026-03-25]
 b69d577 feat: make API domain configurable via API_DOMAIN env var
 bb5e106 docs: update PROJECT_LOG [2026-03-25]
 6523732 docs: expand section 3 Cloudflare with step-by-step instructions
@@ -24,8 +26,6 @@ f125520 docs: update PROJECT_LOG [2026-03-25]
 c4c2017 Update PROJECT_LOG: 2026-03-25 d90ad423
 52f4c64 Update PROJECT_LOG: 2026-03-25 d90ad423
 6cb3e60 Fix frontend 404: deploy to production branch + add SPA _redirects
-b7ed96c Merge pull request #31 from PhanAnh1001/claude/fix-lightsail-bundle-ipv6
-13dc68c Fix deploy security: validate ref_sha, clear git token, docker logout
 ```
 
 ---
