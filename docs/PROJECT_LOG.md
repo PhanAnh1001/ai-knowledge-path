@@ -1,6 +1,6 @@
 # AI Wisdom Battle — Context Dự án
 
-> Cập nhật lần cuối: 2026-03-25 15:31:34
+> Cập nhật lần cuối: 2026-03-25 15:40:16
 > Session: `d90ad423-754`
 > Branch: `claude/change_code`
 
@@ -11,6 +11,7 @@
 ### Các commit gần nhất
 
 ```
+f29aef8 docs: update PROJECT_LOG [2026-03-25]
 dcb80c4 refactor(claude): consolidate hooks — move build check to Stop, add /test agent
 0304edf docs: update PROJECT_LOG [2026-03-25]
 4fb71b0 feat(claude): add actual build checks to hooks + /test skill
@@ -25,7 +26,12 @@ feaecbf docs: update PROJECT_LOG [2026-03-25]
 70a56f6 docs: update PROJECT_LOG [2026-03-25]
 7f07466 docs: update secrets/token guides for sslip.io + no-custom-domain setup
 7ff18d0 docs: update PROJECT_LOG [2026-03-25]
-6abd8ec fix(security): validate API_DOMAIN, fix Caddyfile comment, safe .env write
+```
+
+### Thay đổi chưa commit
+
+```
+ M CLAUDE.md
 ```
 
 ---
