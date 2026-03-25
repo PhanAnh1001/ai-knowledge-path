@@ -61,7 +61,41 @@ EOF
 # Auto-commit
 git add "$LOG_FILE" 2>/dev/null || true
 git diff --cached --quiet "$LOG_FILE" 2>/dev/null || \
-    git commit -m "Update PROJECT_LOG: $DATE ${SESSION_ID:0:8}" \
+    git commit -m "docs: update PROJECT_LOG [$DATE]" \
         --no-verify 2>/dev/null || true
 
 echo "Đã cập nhật context: $LOG_FILE" >&2
+
+# Tạo PR nếu chưa có
+if [[ "$BRANCH" != "master" && "$BRANCH" != "main" && "$BRANCH" != "unknown" ]]; then
+    PR_EXISTS=$(gh pr list --head "$BRANCH" --base master --state open --json number --jq '.[0].number' 2>/dev/null || echo "")
+
+    if [ -z "$PR_EXISTS" ]; then
+        echo "Nhánh $BRANCH chưa có PR. Đang tạo..." >&2
+        git push origin "$BRANCH" --no-verify 2>/dev/null || true
+
+        # Title: commit đầu tiên của branch so với master (bỏ qua PROJECT_LOG commits)
+        TITLE=$(git log master..HEAD --oneline --reverse 2>/dev/null \
+            | grep -v "docs: update PROJECT_LOG" | head -1 | sed 's/^[a-f0-9]* //')
+        # Fallback: chuyển tên branch thành readable text
+        TITLE="${TITLE:-$(echo "$BRANCH" | sed 's|.*/||; s/-/ /g')}"
+
+        # Body: danh sách commits trên branch so với master
+        BRANCH_COMMITS=$(git log master..HEAD --oneline 2>/dev/null \
+            | grep -v "docs: update PROJECT_LOG" | head -15 || echo "(none)")
+
+        PR_BODY="## Changes
+
+\`\`\`
+$BRANCH_COMMITS
+\`\`\`
+
+Branch: \`$BRANCH\`"
+
+        gh pr create --base master --head "$BRANCH" \
+            --title "$TITLE" --body "$PR_BODY" 2>/dev/null || \
+            echo "Lưu ý: Không thể tạo PR (chưa push hoặc chưa login gh CLI)." >&2
+    else
+        echo "Nhánh $BRANCH đã có Pull Request (#$PR_EXISTS)." >&2
+    fi
+fi
