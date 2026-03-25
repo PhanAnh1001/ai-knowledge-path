@@ -111,8 +111,9 @@ jobs:
             -o ConnectTimeout=15 \
             "ubuntu@${REMOTE_HOST}" \
             "bash -l -c '
+              set -e
               # --- Docker ---
-              if command -v docker &>/dev/null; then
+              if sudo docker version &>/dev/null; then
                 echo Docker already installed: \$(sudo docker --version)
               else
                 echo Docker not found, installing via official script...
@@ -129,15 +130,15 @@ jobs:
                 echo Cloning repository...
                 sudo mkdir -p /opt/ai-wisdom-battle
                 sudo chown ubuntu:ubuntu /opt/ai-wisdom-battle
-                git clone https://github.com/PhanAnh1001/ai-wisdom-battle.git /opt/ai-wisdom-battle
-                echo Repo cloned.
+                GIT_TERMINAL_PROMPT=0 git clone --depth 1 https://github.com/PhanAnh1001/ai-wisdom-battle.git /opt/ai-wisdom-battle
+                echo Repo cloned OK.
               else
                 echo Repo already exists.
               fi
               # --- .env placeholder ---
               if [ ! -f /opt/ai-wisdom-battle/.env ]; then
                 cp /opt/ai-wisdom-battle/.env.example /opt/ai-wisdom-battle/.env
-                echo .env created from .env.example
+                echo .env created from .env.example - MUST update with real values!
               fi
             '"
 
