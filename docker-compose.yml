@@ -1,5 +1,5 @@
 # =============================================================================
-# AI Wisdom Battle — Docker Compose DEV
+# AI Knowledge Path — Docker Compose DEV
 # 2 containers: postgres + go-app
 #
 # Khởi động:  docker compose up -d
@@ -16,7 +16,7 @@ services:
     container_name: awb-postgres-dev
     restart: unless-stopped
     environment:
-      POSTGRES_DB:       ${POSTGRES_DB:-ai_wisdom_battle}
+      POSTGRES_DB:       ${POSTGRES_DB:-ai-knowledge-path}
       POSTGRES_USER:     ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
@@ -40,7 +40,7 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      DATABASE_URL:          "postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-ai_wisdom_battle}"
+      DATABASE_URL:          "postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-ai-knowledge-path}"
       PORT:                  "8080"
       JWT_SECRET:            ${JWT_SECRET:-dev_secret_at_least_32_characters_long!!}
       JWT_EXPIRATION_MS:     "86400000"

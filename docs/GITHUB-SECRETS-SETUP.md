@@ -55,12 +55,12 @@ gh secret set JWT_SECRET             --body "$(openssl rand -base64 32)"
 IP="<IP-từ-terraform-output>"
 gh variable set API_DOMAIN           --body "${IP}.sslip.io"
 gh variable set VITE_API_BASE_URL    --body "https://${IP}.sslip.io/api/v1"
-gh variable set CORS_ALLOWED_ORIGINS --body "https://ai-wisdom-battle.pages.dev"
+gh variable set CORS_ALLOWED_ORIGINS --body "https://ai-knowledge-path.pages.dev"
 
 # Nếu có custom domain (ví dụ example.com):
 # gh variable set API_DOMAIN           --body "api.example.com"
 # gh variable set VITE_API_BASE_URL    --body "https://api.example.com/api/v1"
-# gh variable set CORS_ALLOWED_ORIGINS --body "https://example.com,https://ai-wisdom-battle.pages.dev"
+# gh variable set CORS_ALLOWED_ORIGINS --body "https://example.com,https://ai-knowledge-path.pages.dev"
 ```
 
 ### 0.3 Cách lấy từng secret

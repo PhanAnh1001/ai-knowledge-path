@@ -1,4 +1,4 @@
-# Deploy với Terraform — AI Wisdom Battle (Oracle Cloud Always Free)
+# Deploy với Terraform — AI Knowledge Path (Oracle Cloud Always Free)
 
 Hướng dẫn này triển khai toàn bộ hạ tầng Oracle Cloud bằng **Infrastructure as Code** —
 một lệnh `terraform apply` tạo xong VCN, Security List, Subnet, và ARM VM.
@@ -385,7 +385,7 @@ sudo netfilter-persistent save 2>/dev/null || true
 docker --version        # Docker version 26.x.x
 docker compose version  # Docker Compose version v2.x.x
 git --version           # git version 2.x.x
-ls /opt/ai-wisdom-battle/ # thư mục repo đã được clone
+ls /opt/ai-knowledge-path/ # thư mục repo đã được clone
 ```
 
 ---
@@ -396,14 +396,14 @@ ls /opt/ai-wisdom-battle/ # thư mục repo đã được clone
 
 ```bash
 ssh -i ~/.ssh/oracle_awb ubuntu@<PUBLIC_IP>
-sudo -u deploy nano /opt/ai-wisdom-battle/.env
+sudo -u deploy nano /opt/ai-knowledge-path/.env
 ```
 
 Điền các giá trị sau (thay placeholder bằng giá trị thật):
 
 ```dotenv
 # PostgreSQL (chạy trong Docker trên VM)
-POSTGRES_DB=ai_wisdom_battle
+POSTGRES_DB=ai-knowledge-path
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=<mật_khẩu_mạnh>
 
@@ -439,7 +439,7 @@ openssl rand -base64 48   # JWT secret ~64 ký tự
 
 ```bash
 sudo -u deploy bash
-cd /opt/ai-wisdom-battle
+cd /opt/ai-knowledge-path
 docker compose -f docker-compose.prod.yml up -d
 
 # Theo dõi khởi động (Neo4j cần ~30 giây)
@@ -563,7 +563,7 @@ terraform apply
    ```
 3. Restart Caddy:
    ```bash
-   sudo -u deploy bash -c "cd /opt/ai-wisdom-battle && docker compose -f docker-compose.prod.yml restart caddy"
+   sudo -u deploy bash -c "cd /opt/ai-knowledge-path && docker compose -f docker-compose.prod.yml restart caddy"
    ```
    Caddy tự cấp SSL cert mới cho domain.
 
@@ -709,8 +709,8 @@ Lần đầu:
   terraform apply
        ↓
   SSH vào VM (sau ~5 phút cloud-init)
-  sudo -u deploy nano /opt/ai-wisdom-battle/.env
-  sudo -u deploy bash -c "cd /opt/ai-wisdom-battle && docker compose -f docker-compose.prod.yml up -d"
+  sudo -u deploy nano /opt/ai-knowledge-path/.env
+  sudo -u deploy bash -c "cd /opt/ai-knowledge-path && docker compose -f docker-compose.prod.yml up -d"
   docker compose -f docker-compose.prod.yml run --rm neo4j-seeder
        ↓
   Website: https://<IP>.sslip.io  ✅

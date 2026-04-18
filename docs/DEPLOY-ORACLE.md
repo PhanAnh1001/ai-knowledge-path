@@ -151,14 +151,14 @@ sudo tail -f /var/log/cloud-init-output.log
 
 ```bash
 ssh -i ~/.ssh/oracle_awb ubuntu@<PUBLIC_IP>
-sudo nano /opt/ai-wisdom-battle/.env
+sudo nano /opt/ai-knowledge-path/.env
 ```
 
 Sửa các giá trị sau (thay `change_me_*` bằng giá trị thật):
 
 ```bash
 # PostgreSQL
-POSTGRES_DB=ai_wisdom_battle
+POSTGRES_DB=ai-knowledge-path
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=<mật_khẩu_mạnh>
 
@@ -192,7 +192,7 @@ SITE_ADDRESS=<PUBLIC_IP>.sslip.io
 ```bash
 # Chuyển sang user deploy
 sudo -u deploy bash
-cd /opt/ai-wisdom-battle
+cd /opt/ai-knowledge-path
 
 # Khởi động toàn bộ stack (frontend trên Cloudflare Pages, không cần build ở đây)
 docker compose -f docker-compose.prod.yml up -d
@@ -331,7 +331,7 @@ Kiểm tra: **GitHub repo → Actions → Deploy**
 # SSH vào VM
 ssh -i ~/.ssh/oracle_awb ubuntu@<PUBLIC_IP>
 sudo -u deploy bash
-cd /opt/ai-wisdom-battle
+cd /opt/ai-knowledge-path
 
 # Xem trạng thái tất cả services
 docker compose -f docker-compose.prod.yml ps
@@ -366,12 +366,12 @@ df -h
 
 1. Đăng nhập [dash.cloudflare.com](https://dash.cloudflare.com)
 2. Sidebar trái → **Workers & Pages** → tab **Pages** → **Create a project**
-3. **Connect to Git** → chọn repo `ai-wisdom-battle` → **Begin setup**
+3. **Connect to Git** → chọn repo `ai-knowledge-path` → **Begin setup**
 4. Điền build settings:
 
    | Trường | Giá trị |
    |---|---|
-   | **Project name** | `ai-wisdom-battle` |
+   | **Project name** | `ai-knowledge-path` |
    | **Production branch** | `master` |
    | **Framework preset** | `Vite` |
    | **Build command** | `npm run build` |
@@ -384,7 +384,7 @@ df -h
    |---|---|---|
    | `VITE_API_BASE_URL` | `https://<PUBLIC_IP>.sslip.io/api/v1` | Production |
 
-6. **Save and Deploy** → chờ ~2 phút → lấy URL: `ai-wisdom-battle.pages.dev`
+6. **Save and Deploy** → chờ ~2 phút → lấy URL: `ai-knowledge-path.pages.dev`
 
 ### D2. Cập nhật CORS trên Oracle VM
 
@@ -392,23 +392,23 @@ Backend Spring Boot cần biết domain của frontend để cho phép CORS:
 
 ```bash
 ssh -i ~/.ssh/oracle_awb ubuntu@<PUBLIC_IP>
-sudo -u deploy nano /opt/ai-wisdom-battle/.env
+sudo -u deploy nano /opt/ai-knowledge-path/.env
 ```
 
 Sửa:
 ```bash
-CORS_ALLOWED_ORIGINS=https://ai-wisdom-battle.pages.dev
+CORS_ALLOWED_ORIGINS=https://ai-knowledge-path.pages.dev
 ```
 
 Restart backend:
 ```bash
-sudo -u deploy bash -c "cd /opt/ai-wisdom-battle && docker compose -f docker-compose.prod.yml restart app"
+sudo -u deploy bash -c "cd /opt/ai-knowledge-path && docker compose -f docker-compose.prod.yml restart app"
 ```
 
 ### D3. Kiểm tra
 
 ```bash
-# Mở trình duyệt → https://ai-wisdom-battle.pages.dev
+# Mở trình duyệt → https://ai-knowledge-path.pages.dev
 # Mở DevTools → Network → kiểm tra /api/v1 requests về Oracle VM
 # Không có CORS error → setup thành công
 ```
@@ -462,12 +462,12 @@ sudo -u deploy crontab -e
 Thêm dòng sau:
 ```
 # Backup PostgreSQL 2h sáng mỗi ngày
-0 2 * * * /opt/ai-wisdom-battle/scripts/backup.sh >> /var/log/awb-backup.log 2>&1
+0 2 * * * /opt/ai-knowledge-path/scripts/backup.sh >> /var/log/awb-backup.log 2>&1
 ```
 
 Kiểm tra ngay:
 ```bash
-sudo -u deploy /opt/ai-wisdom-battle/scripts/backup.sh
+sudo -u deploy /opt/ai-knowledge-path/scripts/backup.sh
 # Xem kết quả trên OCI Console → Object Storage → awb-backups → postgres/
 ```
 

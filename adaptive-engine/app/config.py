@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    app_name: str = "AI Wisdom Battle — Adaptive Engine"
+    app_name: str = "AI Knowledge Path — Adaptive Engine"
     app_version: str = "0.1.0"
     debug: bool = False
 

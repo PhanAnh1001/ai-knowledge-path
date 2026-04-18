@@ -1,4 +1,4 @@
-# Đánh giá phương án Cloud thay thế cho AI Wisdom Battle
+# Đánh giá phương án Cloud thay thế cho AI Knowledge Path
 
 > **Ngày đánh giá:** 2026-03-23
 >

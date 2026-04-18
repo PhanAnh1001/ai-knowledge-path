@@ -18,7 +18,7 @@ Hệ thống gồm:
 ## Current Repository State
 
 ```
-ai-wisdom-battle/
+ai-knowledge-path/
 ├── backend-go/                   # Go 1.22 backend (ACTIVE)
 │   ├── cmd/server/               # Entry point: main.go
 │   ├── internal/

@@ -1,5 +1,5 @@
 # Product Requirements Document
-## AI Wisdom Battle — Nền tảng khám phá kiến thức
+## AI Knowledge Path — Nền tảng khám phá kiến thức
 
 **Phiên bản:** 0.2 (Draft)
 **Ngày:** 2026-03-21

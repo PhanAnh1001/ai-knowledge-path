@@ -444,7 +444,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: ai-wisdom-battle
+          projectName: ai-knowledge-path
           directory: frontend/dist
 ```
 

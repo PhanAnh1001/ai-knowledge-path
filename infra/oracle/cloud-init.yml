@@ -1,6 +1,6 @@
 #cloud-config
 # =============================================================================
-# cloud-init Bootstrap — AI Wisdom Battle
+# cloud-init Bootstrap — AI Knowledge Path
 # Chạy tự động lần đầu khi VM khởi động (mất ~3-5 phút)
 # Xem log: sudo cat /var/log/cloud-init-output.log
 # =============================================================================
@@ -42,7 +42,7 @@ write_files:
       ufw --force enable
     permissions: "0755"
 
-  # /opt/ai-wisdom-battle placeholder — git clone thay thế sau
+  # /opt/ai-knowledge-path placeholder — git clone thay thế sau
   - path: /opt/.awb-placeholder
     content: "placeholder"
 
@@ -80,15 +80,15 @@ runcmd:
   - chmod 600 /home/deploy/.ssh/authorized_keys
   - chown -R deploy:deploy /home/deploy/.ssh
 
-  # ── 5. Clone repo vào /opt/ai-wisdom-battle ─────────────────────────────────
-  # Thay YOUR_GITHUB_USERNAME/ai-wisdom-battle bằng repo thật
-  - git clone https://github.com/PhanAnh1001/ai-wisdom-battle.git /opt/ai-wisdom-battle
-  - chown -R deploy:deploy /opt/ai-wisdom-battle
+  # ── 5. Clone repo vào /opt/ai-knowledge-path ─────────────────────────────────
+  # Thay YOUR_GITHUB_USERNAME/ai-knowledge-path bằng repo thật
+  - git clone https://github.com/PhanAnh1001/ai-knowledge-path.git /opt/ai-knowledge-path
+  - chown -R deploy:deploy /opt/ai-knowledge-path
 
   # ── 6. Copy .env.example thành .env (user điền giá trị sau) ─────────────────
-  - cp /opt/ai-wisdom-battle/.env.example /opt/ai-wisdom-battle/.env
-  - chown deploy:deploy /opt/ai-wisdom-battle/.env
-  - chmod 600 /opt/ai-wisdom-battle/.env
+  - cp /opt/ai-knowledge-path/.env.example /opt/ai-knowledge-path/.env
+  - chown deploy:deploy /opt/ai-knowledge-path/.env
+  - chmod 600 /opt/ai-knowledge-path/.env
 
   # ── 7. Cấu hình firewall UFW ─────────────────────────────────────────────────
   - ufw default deny incoming
@@ -114,7 +114,7 @@ runcmd:
 
 final_message: |
   ==============================================
-  AI Wisdom Battle VM ready in $UPTIME seconds
+  AI Knowledge Path VM ready in $UPTIME seconds
   SSH: ssh ubuntu@<PUBLIC_IP>
   Next: sudo cat /var/log/cloud-init-output.log
   ==============================================

@@ -80,7 +80,7 @@ case "${1:-help}" in
     psql)
         check_env
         source "$ENV_FILE"
-        $COMPOSE exec postgres psql -U "${POSTGRES_USER:-postgres}" -d "${POSTGRES_DB:-ai_wisdom_battle}"
+        $COMPOSE exec postgres psql -U "${POSTGRES_USER:-postgres}" -d "${POSTGRES_DB:-ai-knowledge-path}"
         ;;
 
     # Kết nối redis-cli

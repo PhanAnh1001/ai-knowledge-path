@@ -29,17 +29,17 @@ ufw allow 443/udp   # HTTP/3 QUIC
 ufw --force enable
 
 echo "=== [4/5] Clone repository ==="
-mkdir -p /opt/ai-wisdom-battle
-chown ubuntu:ubuntu /opt/ai-wisdom-battle
-sudo -u ubuntu git clone https://github.com/PhanAnh1001/ai-wisdom-battle.git /opt/ai-wisdom-battle
+mkdir -p /opt/ai-knowledge-path
+chown ubuntu:ubuntu /opt/ai-knowledge-path
+sudo -u ubuntu git clone https://github.com/PhanAnh1001/ai-knowledge-path.git /opt/ai-knowledge-path
 
 echo "=== [5/5] Create .env placeholder ==="
-cp /opt/ai-wisdom-battle/.env.example /opt/ai-wisdom-battle/.env
+cp /opt/ai-knowledge-path/.env.example /opt/ai-knowledge-path/.env
 echo ""
 echo "============================================================"
 echo "Lightsail init complete!"
 echo "Next steps:"
 echo "  1. SSH into instance: ssh ubuntu@<IP>"
-echo "  2. Edit /opt/ai-wisdom-battle/.env with real values"
+echo "  2. Edit /opt/ai-knowledge-path/.env with real values"
 echo "  3. docker compose -f docker-compose.prod.yml up -d"
 echo "============================================================"

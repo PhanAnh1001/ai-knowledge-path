@@ -201,10 +201,10 @@ sudo systemctl status docker
 docker --version
 
 # Kiểm tra repo đã clone
-ls /opt/ai-wisdom-battle/
+ls /opt/ai-knowledge-path/
 
 # Kiểm tra .env placeholder đã tạo
-cat /opt/ai-wisdom-battle/.env
+cat /opt/ai-knowledge-path/.env
 ```
 
 ### 2.1 File .env — tự động từ GitHub Secrets
@@ -227,8 +227,8 @@ File `.env` được inject tự động với nội dung sau:
 Nếu cần kiểm tra `.env` đã được tạo đúng (không xem nội dung):
 ```bash
 ssh -i ~/.ssh/awb-lightsail ubuntu@<IP>
-wc -l /opt/ai-wisdom-battle/.env   # phải là 14 dòng
-ls -la /opt/ai-wisdom-battle/.env  # phải là -rw------- (600)
+wc -l /opt/ai-knowledge-path/.env   # phải là 14 dòng
+ls -la /opt/ai-knowledge-path/.env  # phải là -rw------- (600)
 ```
 
 ---
@@ -323,7 +323,7 @@ Token cần **hai quyền** cho hai mục đích khác nhau trong cùng một to
 
 1. Click **avatar** góc trên phải → **My Profile** → tab **API Tokens**
 2. Nhấn **Create Token** → chọn **Create Custom Token** (không dùng template)
-3. Đặt tên: `ai-wisdom-battle-prod`
+3. Đặt tên: `ai-knowledge-path-prod`
 4. Phần **Permissions** — nhấn **Add more** để thêm đủ **2 dòng**:
 
    | Resource | Permission |
@@ -355,13 +355,13 @@ Xem thêm chi tiết xử lý lỗi tại: [docs/CLOUDFLARE-TOKEN-SETUP.md](CLOU
 1. Từ sidebar trái, vào **Workers & Pages** → tab **Pages**
 2. Nhấn **Create application** → chọn tab **Pages** → **Connect to Git**
 3. Chọn provider **GitHub** → authorize Cloudflare nếu lần đầu
-4. Tìm và chọn repo `ai-wisdom-battle` → nhấn **Begin setup**
+4. Tìm và chọn repo `ai-knowledge-path` → nhấn **Begin setup**
 
 #### 3.6.2 Cấu hình build
 
 | Field | Value | Lưu ý |
 |---|---|---|
-| Project name | `ai-wisdom-battle` | Tạo subdomain `ai-wisdom-battle.pages.dev` |
+| Project name | `ai-knowledge-path` | Tạo subdomain `ai-knowledge-path.pages.dev` |
 | Production branch | `master` | Deploy lên production khi có push vào master |
 | Framework preset | `None` (hoặc tự detect Vite) | |
 | Build command | `npm run build` | |
@@ -383,8 +383,8 @@ Trong phần **Environment variables** → click **Add variable**:
 Nhấn **Save and Deploy** — Cloudflare sẽ build và deploy lần đầu (~2 phút).
 
 Sau khi deploy xong:
-- URL production: `https://ai-wisdom-battle.pages.dev`
-- Dashboard → **Workers & Pages** → `ai-wisdom-battle` → tab **Deployments** để xem log
+- URL production: `https://ai-knowledge-path.pages.dev`
+- Dashboard → **Workers & Pages** → `ai-knowledge-path` → tab **Deployments** để xem log
 
 > **SPA routing hoạt động nhờ `_redirects`:** File `frontend/public/_redirects` (đã có trong repo) chứa `/* /index.html 200` — đảm bảo React Router hoạt động đúng khi truy cập trực tiếp URL như `/login`, `/battle`.
 
@@ -393,7 +393,7 @@ Sau khi deploy xong:
 Từ bước 4.1 trở đi, GitHub Actions dùng `cloudflare/pages-action@v1` để deploy. Cần đảm bảo:
 - Secret `CLOUDFLARE_API_TOKEN` có quyền `Account → Cloudflare Pages → Edit` (bước 3.5)
 - Secret `CLOUDFLARE_ACCOUNT_ID` khớp với Account ID (bước 3.4)
-- `projectName: ai-wisdom-battle` trong workflow khớp với tên project vừa tạo
+- `projectName: ai-knowledge-path` trong workflow khớp với tên project vừa tạo
 
 > **Lần deploy từ CI (sau merge vào master):** Workflow chỉ định `branch: master` khi deploy → Cloudflare Pages nhận dạng đây là production deployment, không phải preview URL.
 
@@ -427,7 +427,7 @@ Truy cập: **GitHub repo** → **Settings** → **Secrets and variables** → *
 |---|---|
 | `API_DOMAIN` | `api.example.com` (hoặc `54.251.x.x.sslip.io` nếu không có domain) |
 | `VITE_API_BASE_URL` | `https://api.example.com/api/v1` |
-| `CORS_ALLOWED_ORIGINS` | `https://example.com,https://ai-wisdom-battle.pages.dev` |
+| `CORS_ALLOWED_ORIGINS` | `https://example.com,https://ai-knowledge-path.pages.dev` |
 
 ### 4.3 Dùng GitHub CLI (nhanh hơn)
 
@@ -451,7 +451,7 @@ gh secret set JWT_SECRET             --body "$(openssl rand -base64 32)"
 # Variables
 gh variable set API_DOMAIN           --body "api.example.com"
 gh variable set VITE_API_BASE_URL    --body "https://api.example.com/api/v1"
-gh variable set CORS_ALLOWED_ORIGINS --body "https://ai-wisdom-battle.pages.dev"
+gh variable set CORS_ALLOWED_ORIGINS --body "https://ai-knowledge-path.pages.dev"
 ```
 
 ### 4.4 Cấp quyền GHCR cho Actions
@@ -468,7 +468,7 @@ GitHub Container Registry (ghcr.io) dùng để lưu Docker image.
 
 ```bash
 # Trên máy local, tại thư mục gốc repo
-cd /path/to/ai-wisdom-battle
+cd /path/to/ai-knowledge-path
 
 # Login GHCR
 echo $GITHUB_TOKEN | docker login ghcr.io -u <github-username> --password-stdin
@@ -502,7 +502,7 @@ cat > .env.migrate << 'EOF'
 NEO4J_URI=bolt://<oracle-vm-ip>:7687
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=<neo4j-password>
-DATABASE_URL=postgres://postgres:<password>@<lightsail-ip>:5432/ai_wisdom_battle
+DATABASE_URL=postgres://postgres:<password>@<lightsail-ip>:5432/ai-knowledge-path
 EOF
 ```
 
@@ -515,7 +515,7 @@ ssh -i ~/.ssh/awb-lightsail \
   -N ubuntu@<IP> &
 
 # Sau đó dùng DATABASE_URL qua tunnel
-DATABASE_URL=postgres://postgres:<password>@localhost:5433/ai_wisdom_battle
+DATABASE_URL=postgres://postgres:<password>@localhost:5433/ai-knowledge-path
 ```
 
 ### 6.3 Chạy export trước (dry run)
@@ -560,7 +560,7 @@ python3 scripts/migrate-neo4j-to-pg.py \
 
 ```bash
 # Kết nối qua tunnel
-psql "postgres://postgres:<password>@localhost:5433/ai_wisdom_battle"
+psql "postgres://postgres:<password>@localhost:5433/ai-knowledge-path"
 ```
 
 ```sql
@@ -622,7 +622,7 @@ Sau khi đã cấu hình đủ GitHub Secrets (bước 4):
 ```bash
 # SSH vào xem trạng thái containers
 ssh -i ~/.ssh/awb-lightsail ubuntu@<IP>
-docker compose -f /opt/ai-wisdom-battle/docker-compose.prod.yml ps
+docker compose -f /opt/ai-knowledge-path/docker-compose.prod.yml ps
 
 # Output mong đợi:
 # awb-postgres   running (healthy)
@@ -743,7 +743,7 @@ curl -s "https://api.example.com/api/v1/nodes/$NODE_ID/map" \
 
 ### 9.1 Kiểm tra Cloudflare Pages URL
 
-Truy cập `https://ai-wisdom-battle.pages.dev` (hoặc custom domain nếu đã cấu hình).
+Truy cập `https://ai-knowledge-path.pages.dev` (hoặc custom domain nếu đã cấu hình).
 
 ### 9.2 Checklist UI
 
@@ -861,7 +861,7 @@ docker stats --no-stream
 
 # Backup PostgreSQL
 docker compose -f docker-compose.prod.yml exec postgres \
-  pg_dump -U postgres ai_wisdom_battle > backup-$(date +%Y%m%d).sql
+  pg_dump -U postgres ai-knowledge-path > backup-$(date +%Y%m%d).sql
 
 # Reload Caddy config
 docker compose -f docker-compose.prod.yml exec caddy \

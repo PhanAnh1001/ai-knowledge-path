@@ -1,4 +1,4 @@
-# API Endpoints — AI Wisdom Battle
+# API Endpoints — AI Knowledge Path
 
 **Base URL:** `/api/v1`
 **Auth:** JWT Bearer token (header `Authorization: Bearer <token>`)

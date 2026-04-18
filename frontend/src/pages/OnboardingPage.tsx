@@ -308,7 +308,7 @@ export function OnboardingPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold text-gray-900">AI Wisdom Battle</h1>
+          <h1 className="text-2xl font-bold text-gray-900">AI Knowledge Path</h1>
         </div>
 
         {/* Card */}
