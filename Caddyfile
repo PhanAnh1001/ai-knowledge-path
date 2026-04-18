@@ -1,5 +1,5 @@
 # =============================================================================
-# Caddyfile — AI Wisdom Battle Production (AWS Lightsail Singapore)
+# Caddyfile — AI Knowledge Path Production (AWS Lightsail Singapore)
 # Frontend: Cloudflare Pages (free CDN)
 # Backend:  Lightsail — Caddy reverse proxy → Go backend port 8080
 #

@@ -42,7 +42,7 @@ Trên trang "Create API Token", chọn **Create Custom Token** (không dùng tem
 ### 3.1 Đặt tên token
 
 ```
-Token name: ai-wisdom-battle-prod
+Token name: ai-knowledge-path-prod
 ```
 
 ### 3.2 Thêm quyền (Permissions)
@@ -154,7 +154,7 @@ curl -v https://<API_DOMAIN>/health 2>&1 | grep -E "subject:|issuer:|expire"
 1. Vào GitHub repo → tab **Actions** → chọn workflow **Deploy**
 2. Trigger thủ công hoặc chờ CI pass trên master
 3. Bước `Deploy to Cloudflare Pages` phải hiển thị `Deployment complete`
-4. Truy cập `https://ai-wisdom-battle.pages.dev` → app load bình thường
+4. Truy cập `https://ai-knowledge-path.pages.dev` → app load bình thường
 
 ---
 

@@ -1,5 +1,5 @@
 // =============================================================================
-// AI Wisdom Battle — Neo4j Knowledge Graph Schema
+// AI Knowledge Path — Neo4j Knowledge Graph Schema
 // Version: 1.0
 // =============================================================================
 // Cấu trúc:

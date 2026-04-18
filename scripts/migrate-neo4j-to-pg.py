@@ -16,12 +16,12 @@ Environment variables (or .env file):
   NEO4J_URI         bolt://localhost:7687
   NEO4J_USER        neo4j
   NEO4J_PASSWORD    your_password
-  DATABASE_URL      postgres://user:pass@localhost:5432/ai_wisdom_battle
+  DATABASE_URL      postgres://user:pass@localhost:5432/ai-knowledge-path
 
 NOTE — PostgreSQL on Lightsail is NOT exposed externally.
 Open an SSH tunnel before running import:
   ssh -i ~/.ssh/awb-lightsail -L 5433:localhost:5432 -N ubuntu@<IPv6> &
-  DATABASE_URL=postgres://postgres:<pw>@localhost:5433/ai_wisdom_battle
+  DATABASE_URL=postgres://postgres:<pw>@localhost:5433/ai-knowledge-path
 """
 
 import argparse

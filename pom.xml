@@ -13,11 +13,11 @@
     </parent>
 
     <groupId>com.aiwisdombattle</groupId>
-    <artifactId>ai-wisdom-battle</artifactId>
+    <artifactId>ai-knowledge-path</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>ai-wisdom-battle</name>
-    <description>AI Wisdom Battle — knowledge graph session API</description>
+    <name>ai-knowledge-path</name>
+    <description>AI Knowledge Path — knowledge graph session API</description>
 
     <properties>
         <java.version>21</java.version>

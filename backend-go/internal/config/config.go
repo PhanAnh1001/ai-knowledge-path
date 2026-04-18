@@ -23,7 +23,7 @@ type Config struct {
 
 func Load() *Config {
 	return &Config{
-		DatabaseURL: getEnv("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/ai_wisdom_battle"),
+		DatabaseURL: getEnv("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/ai-knowledge-path"),
 		Port:        getEnv("PORT", "8080"),
 
 		JWTSecret:            requireEnv("JWT_SECRET"),

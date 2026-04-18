@@ -1,5 +1,5 @@
 # =============================================================================
-# Multi-stage Dockerfile — AI Wisdom Battle Spring Boot
+# Multi-stage Dockerfile — AI Knowledge Path Spring Boot
 # Stage 1 (builder): compile + package với Maven
 # Stage 2 (runtime): image tối giản chỉ chứa JAR
 # =============================================================================
@@ -21,7 +21,7 @@ RUN --mount=type=cache,target=/root/.m2 \
 
 # Unpack layered JAR để tối ưu Docker layer cache
 RUN java -Djarmode=layertools \
-         -jar target/ai-wisdom-battle-*.jar extract --destination /build/extracted
+         -jar target/ai-knowledge-path-*.jar extract --destination /build/extracted
 
 
 # ── Stage 2: runtime ──────────────────────────────────────────────────────────

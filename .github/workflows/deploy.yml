@@ -149,11 +149,11 @@ jobs:
             echo "Docker installed: \$(sudo docker --version)"
           fi
           # --- App directory ---
-          if [ ! -d /opt/ai-wisdom-battle/.git ]; then
+          if [ ! -d /opt/ai-knowledge-path/.git ]; then
             echo "Cloning repository..."
-            sudo mkdir -p /opt/ai-wisdom-battle
-            sudo chown ubuntu:ubuntu /opt/ai-wisdom-battle
-            git clone --depth 1 https://x-access-token:${GHCR_TOKEN}@github.com/${GHCR_REPO}.git /opt/ai-wisdom-battle
+            sudo mkdir -p /opt/ai-knowledge-path
+            sudo chown ubuntu:ubuntu /opt/ai-knowledge-path
+            git clone --depth 1 https://x-access-token:${GHCR_TOKEN}@github.com/${GHCR_REPO}.git /opt/ai-knowledge-path
             echo "Repo cloned OK."
           else
             echo "Repo already exists."
@@ -161,11 +161,11 @@ jobs:
           # --- .env from secrets (always overwrite to pick up secret rotations) ---
           # Use printf to avoid shell reinterpretation of special chars in values.
           {
-            printf 'POSTGRES_DB=ai_wisdom_battle\n'
+            printf 'POSTGRES_DB=ai-knowledge-path\n'
             printf 'POSTGRES_USER=postgres\n'
             printf 'POSTGRES_PASSWORD=%s\n' "${POSTGRES_PASSWORD}"
             printf 'PORT=8080\n'
-            printf 'DATABASE_URL=postgres://postgres:%s@postgres:5432/ai_wisdom_battle\n' "${POSTGRES_PASSWORD}"
+            printf 'DATABASE_URL=postgres://postgres:%s@postgres:5432/ai-knowledge-path\n' "${POSTGRES_PASSWORD}"
             printf 'JWT_SECRET=%s\n' "${JWT_SECRET}"
             printf 'JWT_EXPIRATION_MS=86400000\n'
             printf 'JWT_REFRESH_EXPIRATION_MS=2592000000\n'
@@ -176,12 +176,12 @@ jobs:
             printf 'API_DOMAIN=%s\n' "${API_DOMAIN}"
             printf 'GHCR_REPO=%s\n' "${GHCR_REPO_LC}"
             printf 'IMAGE_TAG=latest\n'
-          } > /opt/ai-wisdom-battle/.env
-          chmod 600 /opt/ai-wisdom-battle/.env
-          echo ".env generated from secrets (\$(wc -l < /opt/ai-wisdom-battle/.env) lines)"
+          } > /opt/ai-knowledge-path/.env
+          chmod 600 /opt/ai-knowledge-path/.env
+          echo ".env generated from secrets (\$(wc -l < /opt/ai-knowledge-path/.env) lines)"
           # Validate critical env vars were written
           for key in CORS_ALLOWED_ORIGINS API_DOMAIN JWT_SECRET DATABASE_URL; do
-            grep -q "^\${key}=.\+" /opt/ai-wisdom-battle/.env \
+            grep -q "^\${key}=.\+" /opt/ai-knowledge-path/.env \
               || echo "::warning::\${key} is empty or missing in .env"
           done
           # --- Sync postgres password if container already running ---
@@ -213,7 +213,7 @@ jobs:
               sudo docker --version
               sudo docker compose version
               df -h /
-              ls /opt/ai-wisdom-battle/ || echo /opt/ai-wisdom-battle not found
+              ls /opt/ai-knowledge-path/ || echo /opt/ai-knowledge-path not found
               sudo docker ps --format \"{{.Names}}: {{.Status}}\" || true
             '"
 
@@ -241,7 +241,7 @@ jobs:
             -o BatchMode=yes \
             "ubuntu@${REMOTE_HOST}" << EOF
           set -euo pipefail
-          cd /opt/ai-wisdom-battle
+          cd /opt/ai-knowledge-path
 
           echo "=== [1/5] Login to GHCR ==="
           echo "${GHCR_TOKEN}" | sudo docker login ghcr.io -u "${GHCR_ACTOR}" --password-stdin
@@ -283,7 +283,7 @@ jobs:
             -o StrictHostKeyChecking=no \
             -o BatchMode=yes \
             "ubuntu@${REMOTE_HOST}" \
-            "sudo docker compose -f /opt/ai-wisdom-battle/docker-compose.prod.yml logs --tail=50 app 2>&1 || true" \
+            "sudo docker compose -f /opt/ai-knowledge-path/docker-compose.prod.yml logs --tail=50 app 2>&1 || true" \
             || echo "(Không thể SSH vào server để lấy logs)"
           echo "Run URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
@@ -328,11 +328,11 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: ai-wisdom-battle
+          projectName: ai-knowledge-path
           directory: frontend/dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
           # Without branch, action deploys as preview (hash URL). Specify master so
-          # Cloudflare Pages promotes this to production → ai-wisdom-battle.pages.dev
+          # Cloudflare Pages promotes this to production → ai-knowledge-path.pages.dev
           branch: master
 
       # Dry-run: build đã xong, bỏ qua deploy

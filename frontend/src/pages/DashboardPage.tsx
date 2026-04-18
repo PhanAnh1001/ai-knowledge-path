@@ -42,7 +42,7 @@ export function DashboardPage() {
       <header className="sticky top-0 z-10 border-b bg-white px-6 py-4">
         <div className="mx-auto flex max-w-4xl items-center justify-between">
           <div>
-            <h1 className="text-lg font-bold text-gray-900">AI Wisdom Battle</h1>
+            <h1 className="text-lg font-bold text-gray-900">AI Knowledge Path</h1>
             <p className="text-sm text-gray-500">Xin chào, {displayName} 👋</p>
           </div>
           <Button variant="ghost" onClick={() => navigate('/profile')} className="text-sm">

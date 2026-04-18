@@ -1,5 +1,5 @@
 # =============================================================================
-# AWS Lightsail — AI Wisdom Battle
+# AWS Lightsail — AI Knowledge Path
 # Tạo instance Ubuntu 24.04 tại Singapore, IPv4, $10/tháng
 #
 # Yêu cầu:
@@ -46,7 +46,7 @@ resource "aws_lightsail_instance" "awb_prod" {
   user_data = file("${path.module}/../../scripts/lightsail-init.sh")
 
   tags = {
-    Project     = "ai-wisdom-battle"
+    Project     = "ai-knowledge-path"
     Environment = "production"
     ManagedBy   = "terraform"
   }

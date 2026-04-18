@@ -1,4 +1,4 @@
-# Hướng dẫn Deploy — AI Wisdom Battle
+# Hướng dẫn Deploy — AI Knowledge Path
 
 ## Chọn phương án deploy
 
@@ -54,8 +54,8 @@ docker compose version
 Clone code về server:
 
 ```bash
-git clone <repo-url> /opt/ai-wisdom-battle
-cd /opt/ai-wisdom-battle
+git clone <repo-url> /opt/ai-knowledge-path
+cd /opt/ai-knowledge-path
 ```
 
 ---
@@ -84,7 +84,7 @@ INTERNAL_API_KEY=<chuỗi ngẫu nhiên>
 CORS_ALLOWED_ORIGINS=https://yourdomain.com
 
 # Tên/version DB
-POSTGRES_DB=ai_wisdom_battle
+POSTGRES_DB=ai-knowledge-path
 POSTGRES_USER=awb_user
 NEO4J_USER=neo4j
 APP_VERSION=1.0.0

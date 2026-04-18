@@ -1,21 +1,21 @@
 #!/bin/bash
 # =============================================================================
-# AI Wisdom Battle — Backup Script
+# AI Knowledge Path — Backup Script
 # Dump PostgreSQL → gzip → upload Oracle Object Storage (Always Free 20GB)
 #
 # Cài đặt cron (chạy mỗi ngày 2h sáng):
 #   sudo -u deploy crontab -e
-#   0 2 * * * /opt/ai-wisdom-battle/scripts/backup.sh >> /var/log/awb-backup.log 2>&1
+#   0 2 * * * /opt/ai-knowledge-path/scripts/backup.sh >> /var/log/awb-backup.log 2>&1
 #
 # Yêu cầu:
 #   - OCI CLI đã cài và configured: oci setup config
 #   - Bucket đã tạo trên Oracle Object Storage (xem DEPLOY-ORACLE.md Phần E)
-#   - .env tồn tại tại /opt/ai-wisdom-battle/.env
+#   - .env tồn tại tại /opt/ai-knowledge-path/.env
 # =============================================================================
 
 set -euo pipefail
 
-APP_DIR="/opt/ai-wisdom-battle"
+APP_DIR="/opt/ai-knowledge-path"
 BUCKET="awb-backups"
 KEEP_DAYS=7    # giữ backup trong 7 ngày
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)

@@ -1,4 +1,4 @@
-# AI Wisdom Battle — Context Dự án
+# AI Knowledge Path — Context Dự án
 
 > Cập nhật lần cuối: 2026-03-25 16:46:27
 > Session: `e488410c-22b`

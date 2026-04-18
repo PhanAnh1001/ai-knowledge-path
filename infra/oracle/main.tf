@@ -1,5 +1,5 @@
 # =============================================================================
-# Oracle Cloud Infrastructure — AI Wisdom Battle
+# Oracle Cloud Infrastructure — AI Knowledge Path
 # Tạo toàn bộ hạ tầng: VCN, Subnet, Security List, ARM A1 Instance
 #
 # Yêu cầu:
