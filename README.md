@@ -1,4 +1,4 @@
-# AI Wisdom Battle
+# AI Knowledge Path
 
 Nền tảng học tập hướng tò mò — kích thích khám phá tri thức thông qua knowledge graph và các phiên học thích nghi.
 
