@@ -1,10 +1,10 @@
-# CLAUDE.md — AI Assistant Guide for ai-wisdom-battle
+# CLAUDE.md — AI Assistant Guide for ai-knowledge-path
 
 This file provides context and conventions for AI assistants (Claude and others) working on this repository.
 
 ## Project Overview
 
-**AI Wisdom Battle** là nền tảng học tập hướng tò mò, kích thích khám phá tri thức thông qua knowledge graph và các phiên học thích nghi.
+**AI Knowledge Path** là nền tảng học tập hướng tò mò, kích thích khám phá tri thức thông qua knowledge graph và các phiên học thích nghi.
 
 > **Trạng thái hiện tại (2026-03-23):** Đang migration từ Java/Spring Boot + Oracle Cloud sang **Go 1.22 + AWS Lightsail Singapore**. `backend-go/` là codebase active; `src/` (Java) và `adaptive-engine/` (Python) là legacy.
 
